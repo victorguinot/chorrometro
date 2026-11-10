@@ -2048,7 +2048,14 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function placeStatsAll(D){
     var S={},P={},pid={},out={};D.sess.forEach(function(se){S[se.id]=se;});D.people.forEach(function(p){pid[p.id]=p;});
     function g(n){n=(n||'').trim();if(!n)return null;var k=plKey(n);return out[k]||(out[k]={k:k,name:n,ml:0,n:0,ch:{},pp:{},h:0,last:0});}
-    D.sess.forEach(function(se){locTimeline(se).forEach(function(x,i,a){var o=g(x.loc);if(!o)return;o.ch[se.id]=1;var e=i+1<a.length?a[i+1].at:(se.end||Date.now());o.h+=Math.max(0,e-x.at)/3600000;o.last=Math.max(o.last,x.at);});});
+    var LB={};D.logs.forEach(function(l){(LB[l.pid]=LB[l.pid]||[]).push(l);});
+    D.sess.forEach(function(se){var IV={};
+      locTimeline(se).forEach(function(x){var o=g(x.loc);if(!o)return;o.ch[se.id]=1;o.last=Math.max(o.last,x.at);});
+      D.people.forEach(function(p){if(p.sid!==se.id)return;var ls=(LB[p.id]||[]).slice().sort(function(x,y){return x.ts-y.ts;}),a=Math.max(arrOf(p,ls,se),se.start),b=depOf(p,ls,se);if(!(b>a))return;
+        var cuts=[[a,b]];(p.away||[]).forEach(function(w){var wf=w.f,wt=w.t||b,nx=[];cuts.forEach(function(c){if(wt<=c[0]||wf>=c[1])nx.push(c);else{if(wf>c[0])nx.push([c[0],wf]);if(wt<c[1])nx.push([wt,c[1]]);}});cuts=nx;});
+        cuts.forEach(function(c){pSegs(p,se,c[0],c[1]).forEach(function(q){var o=g(q.loc);if(!o)return;o.ch[se.id]=1;(IV[o.k]=IV[o.k]||[]).push([q.f,q.t]);});});});
+      if(!Object.keys(IV).length)locTimeline(se).forEach(function(x,i,a){var o=g(x.loc);if(!o)return;var e=i+1<a.length?a[i+1].at:(se.end||Date.now());(IV[o.k]=IV[o.k]||[]).push([x.at,e]);});
+      Object.keys(IV).forEach(function(k){var v=IV[k].sort(function(x,y){return x[0]-y[0];}),tot=0,cs=null,ce=null;v.forEach(function(x){if(cs===null||x[0]>ce){if(cs!==null)tot+=ce-cs;cs=x[0];ce=x[1];}else ce=Math.max(ce,x[1]);});if(cs!==null)tot+=ce-cs;out[k].h+=tot/3600000;});});
     D.people.forEach(function(p){(p.moves||[]).forEach(function(m){var o=g(m.loc);if(o&&S[p.sid]){o.ch[p.sid]=1;o.last=Math.max(o.last,m.at);}});});
     D.logs.forEach(function(l){var se=S[l.sid],p=pid[l.pid];if(!se)return;var o=g(l.loc||plocAt(p,se,l.ts));if(!o)return;o.ml+=l.amt;o.n++;o.ch[l.sid]=1;if(p)o.pp[canon(p.name)]=1;});
     Object.keys(placesMeta).forEach(function(k){var m=placesMeta[k];if(!out[k]&&m.name)g(m.name);});
@@ -2061,7 +2068,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var h='<h2>📍 Lugares</h2><div class="msg">Cada sitio donde ha habido chill, con su ubicación y tipo. Con la ubicación puesta aparecen en el mapa.</div>'+
       '<div class="pltop"><select id="plMetric"><option value="ml"'+(plMetric==='ml'?' selected':'')+'>Mililitros</option><option value="n"'+(plMetric==='n'?' selected':'')+'>Nº de chorros</option><option value="nch"'+(plMetric==='nch'?' selected':'')+'>Nº de chills</option><option value="h"'+(plMetric==='h'?' selected':'')+'>Horas</option></select><select id="plMode"><option value="circ"'+(plMode==='circ'?' selected':'')+'>Círculos</option><option value="heat"'+(plMode==='heat'?' selected':'')+'>Mapa de calor</option></select><span class="msg" style="margin:0">'+withLoc.length+' de '+L.length+' con ubicación</span></div>'+
       '<div id="plMap"></div>';
-    h+=L.map(function(o){var m=o.meta,op=plOpen===o.k;return '<div class="plc"><div class="ph"><b>'+esc(m.name||o.name)+'</b><span class="msg" style="margin:0">'+(m.type?ptype(m.type)+' · ':'')+fmt(o.ml)+' ml · '+o.n+' chorros · '+o.nch+' chill'+(o.nch===1?'':'s')+' · '+o.npp+' pers. · '+(Math.round(o.h*10)/10)+' h</span></div>'+
+    h+=L.map(function(o){var m=o.meta,op=plOpen===o.k;return '<div class="plc"><div class="ph"><b>'+esc(m.name||o.name)+'</b><span class="msg" style="margin:0">'+(m.type?ptype(m.type)+' · ':'')+fmt(o.ml)+' ml · '+o.n+' chorros · '+o.nch+' chill'+(o.nch===1?'':'s')+' · '+o.npp+' pers. · '+fmt(Math.round(o.h*10)/10)+' h</span></div>'+
       '<div class="msg" style="margin:4px 0 0">'+(m.lat!=null?'📍 '+(m.addr?esc(m.addr)+' · ':'')+m.lat.toFixed(5)+', '+m.lng.toFixed(5):'Sin ubicación')+'</div>'+
       (ed?(op?'<div class="pf"><input id="plN" value="'+esc(m.name||o.name)+'" maxlength="40" placeholder="Nombre"><select id="plT"><option value="">Tipo…</option>'+PTYPES.map(function(t){return '<option value="'+t[0]+'"'+(m.type===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
         '<div class="pf"><input id="plQ" placeholder="Dirección o pega un enlace de Google Maps / coordenadas" value="'+esc(m.addr||'')+'"><button class="s" id="plFind" type="button">🔎 Buscar</button><button class="s" id="plGeo" type="button">📍 Estoy aquí</button></div><div class="plres" id="plRes"></div>'+
