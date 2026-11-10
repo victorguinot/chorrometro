@@ -55,7 +55,13 @@
     me = u;
     if (!u) { show('<p>Registro de chorros del grupo. Entra con tu cuenta de Google; el organizador aprobará tu acceso.</p><button id="gIn">Entrar con Google</button>'); bind(); return; }
     var ref = fs.doc('members/' + u.uid);
-    unMem = ref.onSnapshot(function (d) {
+    unMem = ref.onSnapshot({ includeMetadataChanges: true }, function (d) {
+      var okUid = null; try { okUid = localStorage.getItem('chorro-ok'); } catch (e) {}
+      if (!d.exists && d.metadata && d.metadata.fromCache) {
+        if (okUid === u.uid) { var rl = 'viewer'; try { rl = localStorage.getItem('chorro-role') || 'viewer'; } catch (e) {} member = { status: 'approved', role: rl, name: u.displayName || '' }; hide(); resolveReady(); addMembersBtn(); return; }
+        if (!navigator.onLine) { show('<p>📴 Sin conexión.<br>La primera vez necesitas cobertura para entrar. Luego podrás usarlo sin conexión.</p>'); return; }
+        return;
+      }
       if (!d.exists) {
         fs.doc('meta/owner').get().then(function (o) {
           if (!o.exists) { show('<p>Hola, ' + esc(u.displayName) + '. Todavía no hay organizador.</p><button id="gClaim">Soy el organizador</button><button class="s" id="gOut">Salir</button>'); bind(); return; }
@@ -64,11 +70,25 @@
         return;
       }
       member = d.data();
-      if (member.status === 'approved') { hide(); resolveReady(); addMembersBtn(); return; }
+      if (member.status === 'approved') { try { localStorage.setItem('chorro-ok', u.uid); localStorage.setItem('chorro-role', member.role || 'viewer'); } catch (e) {} hide(); resolveReady(); addMembersBtn(); return; }
+      if (member.status !== 'approved') { try { localStorage.removeItem('chorro-ok'); } catch (e) {} }
       if (member.status === 'blocked') { show('<p>Tu acceso al Chorrómetro está desactivado. Habla con el organizador.</p><button class="s" id="gOut">Salir</button>'); bind(); return; }
       show('<p>Hola, ' + esc(u.displayName) + '. Tu solicitud está enviada.<br>En cuanto el organizador la acepte, entrarás automáticamente.</p><button class="s" id="gOut">Salir</button>'); bind();
     }, function (e) { show('<p>Error: ' + esc(e.message) + '</p><button class="s" id="gOut">Salir</button>'); bind(); });
   });
+
+  /* aviso de conexión */
+  var net = document.createElement('div'); net.id = 'netBar';
+  net.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:120;padding:8px 14px;border-radius:999px;font:600 13px "IBM Plex Sans",system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none;max-width:92vw;text-align:center';
+  var netT = null;
+  function netShow() {
+    if (!net.parentNode) document.body.appendChild(net);
+    clearTimeout(netT);
+    if (!navigator.onLine) { net.style.background = '#7a3b00'; net.style.color = '#fff'; net.textContent = '📴 Sin conexión · lo que apuntes se guarda en el móvil y se subirá al volver la cobertura'; net.style.display = 'block'; }
+    else { net.style.background = '#0b6e7f'; net.style.color = '#fff'; net.textContent = '✅ Conectado · sincronizando'; net.style.display = 'block'; netT = setTimeout(function () { net.style.display = 'none'; }, 3500); }
+  }
+  window.addEventListener('offline', netShow); window.addEventListener('online', netShow);
+  if (!navigator.onLine) document.addEventListener('DOMContentLoaded', netShow);
 
   /* miembros (para nombres y para el panel) */
   function watchMembers() {
