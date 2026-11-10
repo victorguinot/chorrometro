@@ -425,7 +425,9 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     if(tl.some(function(x){return isHostOf(x.loc,k);}))return ' <span class="host was" title="Fue anfitrión en este chill">🏠</span>';
     if(!tl.length&&se.loc&&isHostOf(se.loc,k))return ' <span class="host" title="Anfitrión">🏠</span>';return '';}
   function sTitle(se){if(!se)return 'Chill';if(se.title)return se.title;var st=mainPath(se),n=sidePlaces(se).length;if(!st.length)return se.name||'Chill';
-    var b=st.length>1?'Ruta '+(st.length>3?st[0]+' → … → '+st[st.length-1]:st.join(' → ')):(se.name||('Chill de '+st[0]));return b+(n?' · +'+n+(n===1?' sitio':' sitios'):'');}
+    var b=st.length>1?'Ruta '+(st.length>3?st[0]+' → … → '+st[st.length-1]:st.join(' → ')):(se.name||('Chill de '+st[0]));var sp=sidePlaces(se),kc={};sp.forEach(function(l){var w=kindOf(l);kc[w]=(kc[w]||0)+1;});return b+Object.keys(kc).map(function(w){return ' · +'+kc[w]+' '+(kc[w]===1?w:w+'s');}).join('');}
+  function kindOf(loc){var m=(typeof placesMeta!=='undefined'&&loc&&placesMeta[plKey(loc)])||null;if(m&&m.type==='disco')return 'fiesta';return isHouse(loc)?'chill':'visita';}
+  function kindWord(loc,n){var w=kindOf(loc);return n===1?w:w+'s';}
   var PLC=['#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#14b8a6','#84cc16'];
   function pById(id){for(var i=0;i<state.people.length;i++)if(state.people[i].id===id)return state.people[i];return null;}
   function plocAt(p,se,ts){var m=null;((p&&p.moves)||[]).forEach(function(x){if(x.at<=ts+60000)m=x;});return (m&&m.loc)||locAtTs(se,ts);}
@@ -444,7 +446,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function routeStr(se,people){var out=[],prev=[];groupStates(se,people).forEach(function(s){var ks=s.keys.map(nrm);if(prev.length&&ks.every(function(k){return prev.indexOf(k)>=0;}))return;out.push(s.keys.join(' / '));prev=ks;});return out.join(' → ');}
   function mainPath(se){var out=[];locTimeline(se).forEach(function(x){if(!out.length||nrm(out[out.length-1])!==nrm(x.loc))out.push(x.loc);});return out;}
   function sidePlaces(se){if(!se||!se.rpath)return [];var mp=mainPath(se).map(nrm),o=[];se.rpath.split(/ → | \/ /).forEach(function(x){x=x.trim();if(x&&mp.indexOf(nrm(x))<0&&!o.some(function(z){return nrm(z)===nrm(x);}))o.push(x);});return o;}
-  function locPath(se){var sp=sidePlaces(se);return mainPath(se).join(' → ')+(sp.length?' · aparte: '+sp.join(', '):'');}
+  function locPath(se){var sp=sidePlaces(se);return mainPath(se).join(' → ')+(sp.length?' · además: '+sp.join(', '):'');}
   function allLocs(){var locs=[];sessions.forEach(function(x){locTimeline(x).forEach(function(y){var l=(y.loc||'').trim();if(l&&!locs.some(function(z){return nrm(z)===nrm(l);}))locs.push(l);});});return locs;}
   var mySids={};
   function loadMine(){
@@ -1176,8 +1178,12 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         if(prev.length&&!was.length&&(r.ls.length||r.h>0))add(r,'🆕 Debut');
         if(was.length&&r.tot>0){var mxp=0;was.forEach(function(x){mxp=Math.max(mxp,pTot[r.k+'@'+x.id]||0);});if(mxp>0&&r.tot>mxp)add(r,'📈 Récord personal');}
         if(prev.length>=4&&prev.slice(0,4).every(function(x){return byS[x.id]&&byS[x.id][r.k];}))add(r,'🔁 Fijo');
-        if(prev.length&&r.ls.some(function(l){var pl=nrm(l.loc||plocAt(r.p,se,l.ts)||'');return pl&&!places[pl];}))add(r,'🌍 Explorador');
+        if(was.length){var mineP={};H.people.forEach(function(pp){if(!pS[pp.sid]||!pp.name||canon(pp.name)!==r.k)return;var ss=null;prev.some(function(x){if(x.id===pp.sid){ss=x;return true;}return false;});if(!ss)return;var pl0=H.logs.filter(function(l){return l.pid===pp.id;});pl0.forEach(function(l){mineP[nrm(l.loc||plocAt(pp,ss,l.ts)||'')]=1;});var a0=Math.max(arrOf(pp,pl0,ss),ss.start),b0=depOf(pp,pl0,ss);if(b0>a0)pSegs(pp,ss,a0,b0).forEach(function(q){mineP[nrm(q.loc)]=1;});});
+          if(r.ls.some(function(l){var pl=nrm(l.loc||plocAt(r.p,se,l.ts)||'');return pl&&!mineP[pl];}))add(r,'🌍 Explorador');}
       });
+      var segsAll=[];rows.forEach(function(r){var a=Math.max(arrOf(r.p,r.ls,se),se.start),b=depOf(r.p,r.ls,se);if(b>a)pSegs(r.p,se,a,b).forEach(function(q){segsAll.push({r:r,q:q});});});
+      var t0={};segsAll.forEach(function(x){var k=nrm(x.q.loc);if(places[k]||!isHouse(x.q.loc))return;if(t0[k]==null||x.q.f<t0[k])t0[k]=x.q.f;});
+      Object.keys(t0).forEach(function(k){segsAll.forEach(function(x){if(nrm(x.q.loc)===k&&x.q.f<=t0[k]+30*60000)add(x.r,'🎉 De estreno');});});
     }
     return M;
   }
@@ -2144,7 +2150,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   syncTabs();
 
   /* lugares */
-  var PTYPES=[['casa','🏠 Casa'],['bar','🍻 Bar'],['disco','🪩 Discoteca'],['rest','🍽️ Restaurante'],['fuera','🏖️ Playa / aire libre'],['spa','🧖 Spa / sauna'],['aloj','🏨 Alojamiento'],['transp','🚆 Transporte'],['evento','🎪 Evento'],['otro','❓ Otro']];
+  var PTYPES=[['casa','🏠 Casa'],['bar','🍻 Bar'],['disco','🪩 Discoteca / fiesta'],['rest','🍽️ Restaurante'],['fuera','🏖️ Playa / aire libre'],['spa','🧖 Spa / sauna'],['aloj','🏨 Alojamiento'],['transp','🚆 Transporte'],['evento','🎪 Evento'],['otro','❓ Otro']];
   function ptype(k){for(var i=0;i<PTYPES.length;i++)if(PTYPES[i][0]===k)return PTYPES[i][1];return '';}
   var placesMeta={},plOpen=null,plSearch={},plMapObj=null,plHeat=null,plMode='circ',plMetric='ml',plData=null;
   function plKey(n){return nrm(n).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'x';}
@@ -2176,7 +2182,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var h='<h2>📍 Lugares</h2><div class="msg">Cada sitio donde ha habido chill, con su ubicación y tipo. Con la ubicación puesta aparecen en el mapa.</div>'+
       '<div class="pltop"><select id="plMetric"><option value="ml"'+(plMetric==='ml'?' selected':'')+'>Mililitros</option><option value="n"'+(plMetric==='n'?' selected':'')+'>Nº de chorros</option><option value="nch"'+(plMetric==='nch'?' selected':'')+'>Nº de chills</option><option value="h"'+(plMetric==='h'?' selected':'')+'>Horas</option></select><select id="plMode"><option value="circ"'+(plMode==='circ'?' selected':'')+'>Círculos</option><option value="heat"'+(plMode==='heat'?' selected':'')+'>Mapa de calor</option></select><span class="msg" style="margin:0">'+withLoc.length+' de '+L.length+' con ubicación</span></div>'+
       '<div id="plMap"></div>';
-    h+=L.map(function(o){var m=o.meta,op=plOpen===o.k;return '<div class="plc"><div class="ph"><b>'+esc(m.name||o.name)+'</b><span class="msg" style="margin:0">'+(m.type?ptype(m.type)+' · ':'')+fmt(o.ml)+' ml · '+o.n+' chorros · '+o.nch+' chill'+(o.nch===1?'':'s')+' · '+o.npp+' pers. · '+fmt(Math.round(o.h*10)/10)+' h</span></div>'+
+    h+=L.map(function(o){var m=o.meta,op=plOpen===o.k;return '<div class="plc"><div class="ph"><b>'+esc(m.name||o.name)+'</b><span class="msg" style="margin:0">'+(m.type?ptype(m.type)+' · ':'')+fmt(o.ml)+' ml · '+o.n+' chorros · '+o.nch+' '+kindWord(o.meta.name||o.name,o.nch)+' · '+o.npp+' pers. · '+fmt(Math.round(o.h*10)/10)+' h</span></div>'+
       '<div class="msg" style="margin:4px 0 0">'+(m.lat!=null?'📍 '+(m.addr?esc(m.addr)+' · ':'')+m.lat.toFixed(5)+', '+m.lng.toFixed(5):'Sin ubicación')+'</div>'+
       (ed?(op?'<div class="pf"><input id="plN" value="'+esc(m.name||o.name)+'" maxlength="40" placeholder="Nombre"><select id="plT"><option value="">Tipo…</option>'+PTYPES.map(function(t){return '<option value="'+t[0]+'"'+(m.type===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
         '<div class="pf"><input id="plQ" placeholder="Dirección o pega un enlace de Google Maps / coordenadas" value="'+esc(m.addr||'')+'"><button class="s" id="plFind" type="button">🔎 Buscar</button><button class="s" id="plGeo" type="button">📍 Estoy aquí</button></div><div class="plres" id="plRes"></div>'+
