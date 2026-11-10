@@ -327,6 +327,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
 .plc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}.plc .ph{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.plc .pf{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}.plc .pf input,.plc .pf select{width:auto;flex:1 1 140px}.plc .pf button{width:auto}
 #plMap{height:360px;border-radius:12px;margin:8px 0;border:1px solid var(--line)}.plres button{display:block;width:100%;text-align:left;margin:4px 0;font-weight:400}
 .pltop{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.pltop select,.pltop input{width:auto}
+@media (prefers-color-scheme:dark){#plMap .osmT{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
 </style>
 </head>
 <body>
@@ -2110,7 +2111,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     needLeaflet().then(function(){
       if(plMapObj){try{plMapObj.remove();}catch(e){}plMapObj=null;}
       el.innerHTML='';var map=window.L.map(el,{scrollWheelZoom:false});plMapObj=map;
-      window.L.tileLayer('https://{s}.basemaps.cartocdn.com/'+(matchMedia('(prefers-color-scheme: dark)').matches?'dark_all':'light_all')+'/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · © CARTO',maxZoom:19}).addTo(map);
+      window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',maxZoom:19,className:'osmT'}).addTo(map);
       var mx=Math.max.apply(null,pts.map(function(o){return o[plMetric]||0;}).concat([1e-9]));
       var unit={ml:' ml',n:' chorros',nch:' chills',h:' h'}[plMetric];
       if(plMode==='heat'&&window.L.heatLayer){window.L.heatLayer(pts.map(function(o){return [o.meta.lat,o.meta.lng,Math.max(0.05,(o[plMetric]||0)/mx)];}),{radius:35,blur:25,maxZoom:15,max:1}).addTo(map);
