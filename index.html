@@ -2282,7 +2282,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     b.disabled=true;
     db.doc('joins/'+id).update({status:b.dataset.ap?'approved':'rejected'}).then(function(){},function(){b.disabled=false;fail();});
   };
-  var PAGE_URL='https://claude.ai/artifact/StfxYMy4zMfapBTJvha7T7';
+  var PAGE_URL=window.CHORRO_STANDALONE?(location.origin+location.pathname).replace(/index\.html$/,''):'https://claude.ai/artifact/StfxYMy4zMfapBTJvha7T7';
   $('qrBtn').onclick=function(){
     var box=$('qrBox');
     if(!box.hidden){box.hidden=true;$('qrBtn').textContent='Mostrar QR';return;}
