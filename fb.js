@@ -103,7 +103,7 @@
     var tools = document.querySelector('.tools'); if (!tools) return;
     var b = document.createElement('button'); b.className = 's'; b.id = 'memBtn'; b.textContent = '👥 Miembros';
     b.onclick = openMembers; tools.appendChild(b);
-    var o = document.createElement('button'); o.className = 's'; o.textContent = 'Salir'; o.onclick = function () { auth.signOut(); location.reload(); }; tools.appendChild(o);
+    var o = document.createElement('button'); o.className = 's'; o.textContent = '🚪 Salir'; o.onclick = function () { auth.signOut(); location.reload(); }; tools.appendChild(o);
   }
   function openMembers() {
     var m = document.createElement('div'); m.id = 'memModal';
