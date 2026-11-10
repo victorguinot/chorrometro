@@ -1128,7 +1128,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function medalsFor(se,people,logs,H){H=H||HIST;
     var M={},rows=people.map(function(p){var ls=logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),t=0;ls.forEach(function(l){t+=l.amt;});var arr=arrOf(p,ls,se),dep=depOf(p,ls,se);
       var gs=0;for(var i=1;i<ls.length;i++)gs+=Math.max(0,ls[i].ts-ls[i-1].ts-awayIn(p,ls[i-1].ts,ls[i].ts));return {p:p,k:canon(p.name),ls:ls,tot:t,h:Math.max(0,dep-arr-awayIn(p,arr,dep))/3600000,gap:ls.length>=3?gs/(ls.length-1):0};});
-    function add(r,m){(M[r.k]||(M[r.k]=[])).push(m);}
+    function add(r,m){var L=M[r.k]||(M[r.k]=[]);if(L.indexOf(m)<0)L.push(m);}
     var mx=0;rows.forEach(function(r){if(r.tot>mx)mx=r.tot;});if(mx>0)rows.forEach(function(r){if(r.tot===mx)add(r,'🥇 Más ml');});
     var mxn=0;rows.forEach(function(r){if(r.ls.length>mxn)mxn=r.ls.length;});if(mxn>0)rows.forEach(function(r){if(r.ls.length===mxn)add(r,'🔢 Más chorros');});
     var all=logs.slice().sort(function(a,b){return a.ts-b.ts;});
