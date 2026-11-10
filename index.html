@@ -1169,7 +1169,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var mad=all.filter(function(l){var d=new Date(l.ts);return d-d0>=86400000&&d.getHours()>=6;})[0];if(mad)rows.forEach(function(r){if(r.p.id===mad.pid)add(r,'🌞 Madrugador');});
     var SY={};for(var i=0;i<all.length;i++)for(var j=i+1;j<all.length&&all[j].ts-all[i].ts<=120000;j++){if(all[j].pid===all[i].pid)continue;var pa=[all[i].pid,all[j].pid].sort().join('|');SY[pa]=(SY[pa]||0)+1;}
     var syb=null,syv=1,syt=false;Object.keys(SY).forEach(function(k){if(SY[k]>syv){syv=SY[k];syb=k;syt=false;}else if(SY[k]===syv&&syb)syt=true;});
-    if(syb&&!syt){var ids=syb.split('|'),rr=ids.map(function(id){return rows.filter(function(r){return r.p.id===id;})[0];});if(rr[0]&&rr[1]){add(rr[0],'👯 Sincronizados con '+rr[1].p.name);add(rr[1],'👯 Sincronizados con '+rr[0].p.name);}}
+    if(syb&&!syt){var ids=syb.split('|'),rr=ids.map(function(id){return rows.filter(function(r){return r.p.id===id;})[0];});if(rr[0]&&rr[1]){add(rr[0],'👯 Sincronizado con '+rr[1].p.name);add(rr[1],'👯 Sincronizado con '+rr[0].p.name);}}
     /* historial */
     if(H&&H.sess&&H.people&&H.logs){
       var prev=H.sess.filter(function(x){return x.id!==se.id&&x.start<se.start;}).sort(function(a,b){return b.start-a.start;}),pS={};prev.forEach(function(x){pS[x.id]=1;});
@@ -2199,7 +2199,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🕛','Campanadas','Un chorro entre las 00:00 y las 00:10.'],
       ['🌄','Hasta el amanecer','Algún chorro entre las 6:00 y las 8:00.'],
       ['🌞','Madrugador','El primer chorro del día siguiente a partir de las 6:00.'],
-      ['👯','Sincronizados','Las dos personas que más veces toman chorro a la vez (menos de 2 min). Se la llevan las dos.']]],
+      ['👯','Sincronizado con…','Las dos personas que más veces toman chorro a la vez (menos de 2 min). Se la llevan las dos.']]],
     ['Sitios',[
       ['🧭','Nómada','Tomó chorros en 3 sitios o más.'],
       ['🌍','Explorador','Primera vez de esa persona en un sitio (no cuenta en su primer chill).'],
