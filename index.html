@@ -1833,8 +1833,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(ll.length){
         function lrec(l,o,val){return o?'<div class="rec"><div class="l">'+l+'</div><div class="v">'+esc(o.name)+' · '+val+'</div></div>':'';}
         var l1=top(ll,function(o){return o.nch;}),l2=top(ll,function(o){return o.ml;}),l3=top(ll,function(o){return o.np;});
-        h+='<h3>Por ubicación</h3><div class="recs">'+lrec('Sitio con más chills',l1,l1.nch+' chill'+(l1.nch===1?'':'s'))+lrec('Sitio con más ml',l2,fmt(l2.ml)+' ml')+lrec('Sitio con más gente',l3,l3.np+' personas')+'</div>';
-        h+='<div class="scroll" style="margin-top:8px"><table class="sumt"><thead><tr><th>Lugar</th><th class="n">Chills</th><th class="n">Chorros</th><th class="n">ml</th><th class="n">Personas</th></tr></thead><tbody>'+ll.map(function(o){return '<tr><td class="name">'+esc(o.name)+'</td><td class="n">'+o.nch+'</td><td class="n">'+o.n+'</td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.np+'</td></tr>';}).join('')+'</tbody></table></div>';
+        h+='<h3>Por ubicación</h3><div class="recs">'+lrec('Sitio más visitado',l1,l1.nch+' '+kindWord(l1.name,l1.nch))+lrec('Sitio con más ml',l2,fmt(l2.ml)+' ml')+lrec('Sitio con más gente',l3,l3.np+' personas')+'</div>';
+        h+='<div class="scroll" style="margin-top:8px"><table class="sumt"><thead><tr><th>Lugar</th><th class="n">Visitas</th><th class="n">Chorros</th><th class="n">ml</th><th class="n">Personas</th></tr></thead><tbody>'+ll.map(function(o){return '<tr><td class="name">'+esc(o.name)+'</td><td class="n">'+o.nch+'</td><td class="n">'+o.n+'</td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.np+'</td></tr>';}).join('')+'</tbody></table></div>';
       }
       var evs=ev.slice().sort(function(a,b){return a.se.start-b.se.start;}).slice(-24);
       var LPL=[],LPI=function(l){for(var i=0;i<LPL.length;i++)if(nrm(LPL[i])===nrm(l))return i;LPL.push(l);return LPL.length-1;};
