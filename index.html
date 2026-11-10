@@ -1142,7 +1142,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(r.h>=24)add(r,'🏕️ Maratón +24 h');else if(r.h>=8)add(r,'🦉 Noche completa');else if(fin&&r.h>0&&r.h<6&&r.ls.length)add(r,'⚡ Visita exprés');
       if((r.p.away||[]).some(function(x){return x.t;}))add(r,'🪃 Bumerán');
       var pl={};r.ls.forEach(function(l){pl[nrm(l.loc||plocAt(r.p,se,l.ts)||'')]=1;});if(Object.keys(pl).length>=3)add(r,'🧭 Nómada');
-      for(var i=1;i<r.ls.length;i++)if(r.ls[i].ts-r.ls[i-1].ts<=15*60000){add(r,'🔥 Doblete');break;}
+      for(var i=1;i<r.ls.length;i++)if(r.ls[i].ts-r.ls[i-1].ts<=30*60000){add(r,'🔥 Doblete');break;}
       if(r.ls.some(function(l){var hh=new Date(l.ts).getHours();return hh>=6&&hh<8;}))add(r,'🌄 Hasta el amanecer');var mo=0;r.ls.forEach(function(l){var d=new Date(l.ts);d.setHours(0,0,0,0);mo=Math.max(mo,Math.round((d-d0)/86400000));});if(mo>=1)add(r,'🌅 Llegó al D+'+mo);
       if(locTimeline(se).some(function(x){return isHostOf(x.loc,r.k);}))add(r,'🏠 Anfitrión');});
     /* ritmo y cantidad */
@@ -1157,7 +1157,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     best(function(r){if(r.ls.length<4)return null;var a=r.ls.map(function(l){return l.amt;}),m=a.reduce(function(x,y){return x+y;},0)/a.length;return m>0?sd(a)/m:null;},0,'🎲 Errante');
     best(function(r){var g=gapsOf(r);return g.length>=3?sd(g):null;},0,'🌀 Impuntual');
     best(function(r){var g=gapsOf(r);return g.length>=3?-sd(g):null;},-1e12,'🕐 Reloj suizo');
-    rows.forEach(function(r){var g=gapsOf(r);if(g.length>=2){var m=g.reduce(function(x,y){return x+y;},0)/g.length;if(m<60)add(r,'😤 Impaciente');}});
+    rows.forEach(function(r){var g=gapsOf(r);if(g.length>=2){var m=g.reduce(function(x,y){return x+y;},0)/g.length;if(m<60)add(r,'😤 Impaciente');else if(m>90)add(r,'🧘 Precavido');}});
     if(rows.filter(function(r){return r.ls.length>=3;}).length>1)best(function(r){return r.ls.length>=3?r.gap:null;},0,'🐢 Tortuga');
     best(function(r){var g=0;for(var i=1;i<r.ls.length;i++)g=Math.max(g,r.ls[i].ts-r.ls[i-1].ts-awayIn(r.p,r.ls[i-1].ts,r.ls[i].ts));return r.ls.length>=2?g:null;},0,'🏜️ Sequía');
     if(cfg&&cfg.min)best(function(r){var c=0,I=cfg.min*60000;for(var i=1;i<r.ls.length;i++){var d=r.ls[i].ts-r.ls[i-1].ts-awayIn(r.p,r.ls[i-1].ts,r.ls[i].ts);if(Math.abs(d-I)<=5*60000)c++;}return c;},1,'⏰ Puntual');
@@ -2178,7 +2178,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🪃','Bumerán','Se fue y volvió.']]],
     ['Ritmo',[
       ['💨','Más frecuente','El menor tiempo medio entre chorros.'],
-      ['🔥','Doblete','Dos chorros seguidos con 15 minutos o menos entre ellos.'],
+      ['🔥','Doblete','Dos chorros seguidos con 30 minutos o menos entre ellos.'],
       ['🎩','Hat-trick','Tres chorros en 1 h 30 min o menos.'],
       ['🚀','Arranque fuerte','Más ml en su primera hora desde que llegó.'],
       ['🏁','Sprint final','Más ml en la última hora del chill.'],
@@ -2187,6 +2187,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['⏰','Puntual','Más chorros justo cuando le tocaba (±5 min del intervalo de aviso).'],
       ['🕐','Reloj suizo','Los intervalos entre chorros más regulares, siempre parecidos (4 chorros o más). Lo contrario de Impuntual.'],
       ['😤','Impaciente','Su tiempo medio entre chorros es menor de 1 hora (3 chorros o más).'],
+      ['🧘','Precavido','Su tiempo medio entre chorros es mayor de 1 h 30 min (3 chorros o más).'],
       ['🌀','Impuntual','Los intervalos entre chorros más irregulares (4 chorros o más).']]],
     ['Cantidad',[
       ['💎','Chorro gordo','El chorro más grande de la noche.'],
