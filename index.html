@@ -342,7 +342,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
 <main>
   <div id="scrHead"></div>
   <h1 class="brand"><svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.2 2.6a2.4 2.4 0 0 1 3.4 3.4l-2.3 2.3.9.9a1 1 0 0 1-1.4 1.4l-.5-.5-6.6 6.6a2 2 0 0 1-1 .5l-2.4.5-1.6 1.6a1 1 0 0 1-1.4-1.4l1.6-1.6.5-2.4a2 2 0 0 1 .5-1l6.6-6.6-.5-.5a1 1 0 0 1 1.4-1.4l.9.9z" fill="currentColor"/><path d="M5 19.6c0 1-.7 1.8-1.5 1.8S2 20.6 2 19.6c0-.9 1.5-2.8 1.5-2.8S5 18.7 5 19.6z" fill="var(--acc)"/></svg>Chorrómetro</h1>
-  <p class="sub">Una fila por persona y una columna por cada chorro del chill. Pulsa un chorro para editarlo o borrarlo.</p>
+  <p class="sub">Una fila por persona y una columna por cada chorro de la liada. Pulsa un chorro para editarlo o borrarlo.</p>
   <div class="banner" id="status">Conectando…</div>
   <div class="banner" id="import" hidden></div>
   <div class="msg" id="toast" role="status"></div>
@@ -352,7 +352,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   <label class="alopt" id="scRow" style="margin-top:-8px" hidden><input type="checkbox" id="scOn"> <span id="scTxt">Lanzar mi atajo ChorriTime con mis chorros</span></label>
   <div id="gate" hidden></div>
   <div class="banner" id="reqBox" hidden></div>
-  <nav class="tabs" id="tabs"><button data-tab="chill" class="on">💧 Chill</button><button data-tab="stats" data-btn="statsBtn" hidden>📊 Estadísticas</button><button data-tab="places" data-btn="statsBtn" hidden>📍 Lugares</button><button data-tab="medals">🏅 Medallas</button><button data-tab="hist" data-btn="histBtn" hidden>🗂️ Historial</button><button data-tab="act" data-btn="actBtn" hidden>🕓 Actividad</button><button data-tab="trash" data-btn="trashBtn" hidden>🗑️ Eliminados</button></nav>
+  <nav class="tabs" id="tabs"><button data-tab="chill" class="on">💧 Liada</button><button data-tab="stats" data-btn="statsBtn" hidden>📊 Estadísticas</button><button data-tab="places" data-btn="statsBtn" hidden>📍 Lugares</button><button data-tab="medals">🏅 Medallas</button><button data-tab="hist" data-btn="histBtn" hidden>🗂️ Historial</button><button data-tab="act" data-btn="actBtn" hidden>🕓 Actividad</button><button data-tab="trash" data-btn="trashBtn" hidden>🗑️ Eliminados</button></nav>
   <div id="tabPane"><div id="statsBox" hidden></div><div id="placesBox" hidden></div><div id="medalsBox" hidden></div><div id="histBox" hidden></div><div id="trashBox" hidden></div><div id="actBox" hidden></div></div>
   <div class="grid" id="mainGrid">
     <div>
@@ -371,7 +371,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       </section>
     </div>
     <section id="chillSec">
-      <h2>Chorros del chill</h2>
+      <h2>Chorros de la liada</h2>
       <div id="sbar" class="sbar" hidden></div>
       <div class="tools"><span class="sp"></span><button class="s" id="statsBtn" hidden>Estadísticas</button><button class="s" id="histBtn" hidden>Historial</button><button class="s" id="trashBtn" hidden>Eliminados</button><button class="s" id="actBtn" hidden>Actividad</button><button class="s" id="scrBtn">📺 Modo pantalla</button><button class="s" id="qrBtn">🔳 Mostrar QR</button><button class="s" id="copyCsv" hidden>📋 Copiar CSV</button><button class="s" id="shareBtn" hidden>🖼️ Resumen</button><button class="s" id="bkBtn" hidden>💾 Copia de seguridad</button><button class="s" id="asUserBtn" hidden>👁️ Ver como usuario</button></div>
       <div id="csvBox"></div>
@@ -381,10 +381,10 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       <h2 class="tblOnly" style="margin-top:24px">Resumen por persona</h2>
       <div class="scroll" id="summary"></div>
       <div id="chRecs" class="tblOnly"></div>
-      <h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">Evolución por persona</h2><div class="msg tblOnly" style="margin:0 0 6px">Mililitros acumulados en el chill. Cada punto es un chorro.</div>
+      <h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">Evolución por persona</h2><div class="msg tblOnly" style="margin:0 0 6px">Mililitros acumulados en la liada. Cada punto es un chorro.</div>
       <div class="chart" id="chartBox"></div>
       <div id="nightBox" class="night"></div>
-      <h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">Presencia</h2><div class="msg tblOnly" style="margin:0 0 6px">Cuándo estuvo cada uno en el chill. Barra = presente (si hay varios sitios, su color es el sitio) · línea discontinua = ausente · puntos = chorros · 🏠 y contorno = anfitrión.</div>
+      <h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">Presencia</h2><div class="msg tblOnly" style="margin:0 0 6px">Cuándo estuvo cada uno en la liada. Barra = presente (si hay varios sitios, su color es el sitio) · línea discontinua = ausente · puntos = chorros · 🏠 y contorno = anfitrión.</div>
       <div class="chart" id="ganttBox"></div>
       <div id="routeSec" hidden><h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">🗺️ Rutas</h2><div class="msg tblOnly" style="margin:0 0 6px" id="routeMsg"></div><div id="routeBox"></div></div>
     </section>
@@ -429,13 +429,13 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function enLoc(loc){return (isHouse(loc)?'donde ':'en ')+loc;}
   function isHostOf(loc,k){if(!loc)return false;if(canon(loc)===k)return true;return loc.split(/\s+y\s+|\s+i\s+|\s*[,&+\/]\s*/i).some(function(x){return x.trim()&&canon(x.trim())===k;});}
   function hostMark(nm){var se=sess(viewSid);if(!se||!nm)return '';var k=canon(nm),cur=curLoc(se),tl=locTimeline(se);
-    if(cur&&isHostOf(cur,k))return ' <span class="host" title="Anfitrión: el chill está en su casa">🏠</span>';
-    if(tl.some(function(x){return isHostOf(x.loc,k);}))return ' <span class="host was" title="Fue anfitrión en este chill">🏠</span>';
+    if(cur&&isHostOf(cur,k))return ' <span class="host" title="Anfitrión: la liada está en su casa">🏠</span>';
+    if(tl.some(function(x){return isHostOf(x.loc,k);}))return ' <span class="host was" title="Fue anfitrión en esta liada">🏠</span>';
     if(!tl.length&&se.loc&&isHostOf(se.loc,k))return ' <span class="host" title="Anfitrión">🏠</span>';return '';}
-  function sTitle(se){if(!se)return 'Chill';if(se.title)return se.title;var st=mainPath(se),n=sidePlaces(se).length;if(!st.length)return se.name||'Chill';
+  function sTitle(se){if(!se)return 'Liada';if(se.title)return se.title;var st=mainPath(se),n=sidePlaces(se).length;if(!st.length)return se.name||'Liada';
     var b=st.length>1?'Ruta '+(st.length>3?st[0]+' → … → '+st[st.length-1]:st.join(' → ')):(se.name||('Chill de '+st[0]));var sp=sidePlaces(se),kc={};sp.forEach(function(l){var w=kindOf(l);kc[w]=(kc[w]||0)+1;});return b+Object.keys(kc).map(function(w){return ' · +'+kc[w]+' '+(kc[w]===1?w:w+'s');}).join('');}
   function kindOf(loc){var m=(typeof placesMeta!=='undefined'&&loc&&placesMeta[plKey(loc)])||null;if(m&&m.type==='disco')return 'fiesta';if(m&&m.type==='transp')return 'viaje';if(m&&m.type==='aloj')return 'chill';return isHouse(loc)?'chill':'visita';}
-  function sumTitle(se){if(!se)return 'Resumen';if(mainPath(se).length>1)return 'Resumen de la ruta';var k=kindOf(mainPath(se)[0]);return {chill:'Resumen del chill',fiesta:'Resumen de la fiesta',viaje:'Resumen del viaje',visita:'Resumen de la visita'}[k]||'Resumen del chill';}
+  function sumTitle(se){if(!se)return 'Resumen';if(mainPath(se).length>1)return 'Resumen de la ruta';var k=kindOf(mainPath(se)[0]);return {chill:'Resumen del chill',fiesta:'Resumen de la fiesta',viaje:'Resumen del viaje',visita:'Resumen de la visita'}[k]||'Resumen de la liada';}
   function kindWord(loc,n){var w=kindOf(loc);return n===1?w:w+'s';}
   var PLC=['#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#14b8a6','#84cc16'];
   function pById(id){for(var i=0;i<state.people.length;i++)if(state.people[i].id===id)return state.people[i];return null;}
@@ -496,7 +496,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function sessLabel(s){return sTitle(s)+', '+dmy(s.start)+' '+hhmm(s.start)+(s.end?'–'+hhmm(s.end):'');}
   function amtOptions(cur){var l=AMOUNTS.slice();if(cur!=null&&l.indexOf(cur)<0){l.push(cur);l.sort(function(a,b){return a-b;});}return l.map(function(a){return '<option value="'+a+'"'+(a===cur?' selected':'')+'>'+fmt(a)+' ml</option>';}).join('');}
   function gate(){if(!canWrite){say('Solo tienes acceso de lectura.');return false;}say('');return true;}
-  function canAct(){if(!gate())return false;if(db&&!isActive(viewSid)&&!pastEdit()){say('Solo se puede fichar y añadir personas en el chill en curso.');return false;}return true;}
+  function canAct(){if(!gate())return false;if(db&&!isActive(viewSid)&&!pastEdit()){say('Solo se puede fichar y añadir personas en la liada en curso.');return false;}return true;}
   function whoName(id){return id?(regMap[id]||names[id]||''):'';}
   function byText(l){var n=whoName(l.by);return n?'Registrado por '+n:'';}
   var acctMap={},myAcct='',regMap={};
@@ -565,7 +565,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   }
   function startSession(){
     var loc=($('sLoc').value==='__new'?$('sName').value:$('sLoc').value).trim();
-    if(!loc){say('Elige o escribe dónde es el chill.');return;}
+    if(!loc){say('Elige o escribe dónde es la liada.');return;}
     var nm='Chill de '+loc,keep=false,prev=sess(viewSid)||sessions[0],start=Date.now(),r=db.collection('sessions').doc();
     $('sStart').disabled=true;
     r.set({name:nm,loc:loc,locs:[{loc:loc,at:start}],start:start,end:null}).then(function(){
@@ -592,7 +592,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       se.locs=now<=se.start+1000?[{loc:loc,at:se.start}]:tl0.concat([{loc:loc,at:now}]);ops.push(db.doc('sessions/'+se.id).update({locs:se.locs,loc:loc}));
       present.forEach(function(p){var m=pLast(p);if(!(m&&m.loc))return;if(selIds[p.id]||eq(m.loc,loc)){addMv(p,null);ops.push(db.doc('people/'+p.id).update({moves:p.moves}));}});
     }else{
-      if(!sel.length){say('El chill ya está en '+loc+'.');return;}
+      if(!sel.length){say('La liada ya está en '+loc+'.');return;}
       sel.forEach(function(p){mv(p,eq(loc,main)?null:loc);});
       if(!ops.length){say(sel.length===1?sel[0].name+' ya está en '+loc+'.':'Ya están en '+loc+'.');return;}
     }
@@ -604,7 +604,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var tl=rtDraft.locs.map(function(x){return {loc:x.loc.trim(),at:x.at};});tl[0].at=se.start;
     if(tl.some(function(x){return !x.loc;})){msg.textContent='Pon nombre a todos los sitios (o quita los vacíos).';return;}
     var lim=se.end||Date.now();
-    for(var i=1;i<tl.length;i++){if(tl[i].at<=tl[i-1].at){msg.textContent='Las horas tienen que ir en orden: el sitio '+(i+1)+' empieza antes que el '+i+'.';return;}if(tl[i].at>lim+60000){msg.textContent='El sitio '+(i+1)+' empieza después del final del chill.';return;}}
+    for(var i=1;i<tl.length;i++){if(tl[i].at<=tl[i-1].at){msg.textContent='Las horas tienen que ir en orden: el sitio '+(i+1)+' empieza antes que el '+i+'.';return;}if(tl[i].at>lim+60000){msg.textContent='El sitio '+(i+1)+' empieza después del final de la liada.';return;}}
     tl=tl.filter(function(x,i){return i===0||canon(x.loc)!==canon(tl[i-1].loc)||true;});
     var title=rtDraft.title.trim(),upd={locs:tl,loc:tl[tl.length-1].loc,title:title||null};
     if(tl.length===1)upd.name='Chill de '+tl[0].loc;
@@ -630,7 +630,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     return db.collection('people').limit(1000).get().then(function(sn){
       var docs=sn.docs.map(function(d){return {id:d.id,x:d.data()};}),mine=docs.filter(function(d){return d.x.name&&canon(d.x.name)===ko;});
       if(kn!==ko){var clash=mine.filter(function(d){return docs.some(function(o){return o.id!==d.id&&o.x.sid===d.x.sid&&o.x.name&&canon(o.x.name)===kn;});});
-        if(clash.length){var e=new Error('clash');e.userMsg=nn+' ya aparece en alguno de los mismos chills. Únelos primero desde ese chill (✎ en la lista de personas).';throw e;}}
+        if(clash.length){var e=new Error('clash');e.userMsg=nn+' ya aparece en alguna de las mismas liadas. Únelos primero desde esa liada (✎ en la lista de personas).';throw e;}}
       var ps=mine.map(function(d){return db.doc('people/'+d.id).update({name:nn});});
       var oc=colMap[nrm(old)];if(typeof oc==='number'&&typeof colMap[nrm(nn)]!=='number'){var u={};for(var ck in colMap)u[ck]=colMap[ck];u[nrm(nn)]=oc;colMap[nrm(nn)]=oc;ps.push(db.doc('colors/map').set(u).catch(function(){}));}
       Object.keys(acctMap).forEach(function(id){if(canon(acctMap[id])===ko)ps.push(db.doc('accounts/'+id).update({name:nn}).catch(function(){}));});
@@ -643,7 +643,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var nn=$('pnIn').value.trim().replace(/\s+/g,' '),old=p.name,all=$('pnAll').checked;
     if(!nn){say('Escribe el nombre.');return;}if(nn===old){pnEdit=null;renderPeople();return;}
     var dupe=null;state.people.forEach(function(x){if(x.id!==p.id&&canon(x.name)===canon(nn))dupe=x;});
-    if(dupe){if(!isOwner&&db){say(nn+' ya está en este chill. Pide al organizador que los fusione.');return;}pnMerge={from:p.id,to:dupe.id};renderPeople();return;}
+    if(dupe){if(!isOwner&&db){say(nn+' ya está en esta liada. Pide al organizador que los fusione.');return;}pnMerge={from:p.id,to:dupe.id};renderPeople();return;}
     if(!db){p.name=nn;saveLocal();pnEdit=null;onData();return;}
     var ko=canon(old),job=all?db.collection('people').limit(1000).get().then(function(s){return Promise.all(s.docs.filter(function(d){var x=d.data();return x.name&&canon(x.name)===ko;}).map(function(d){return db.doc('people/'+d.id).update({name:nn});}));}):db.doc('people/'+p.id).update({name:nn});
     job.then(function(){
@@ -651,7 +651,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(all){var oc=colMap[nrm(old)];if(typeof oc==='number'&&typeof colMap[nrm(nn)]!=='number'){var u={};for(var ck in colMap)u[ck]=colMap[ck];u[nrm(nn)]=oc;colMap[nrm(nn)]=oc;ps.push(db.doc('colors/map').set(u).catch(function(){}));}
         Object.keys(acctMap).forEach(function(id){if(canon(acctMap[id])===ko)ps.push(db.doc('accounts/'+id).update({name:nn}).catch(function(){}));});}
       return Promise.all(ps);
-    }).then(function(){logAct({act:'pren',from:old,pname:nn,all:all});if(myPick&&canon(myPick)===ko){myPick=nn;try{localStorage.setItem('fichajes-me',nn);}catch(e){}}known=null;pnEdit=null;renderPeople();say('Nombre corregido: '+old+' → '+nn+(all?' en todos los chills.':' en este chill.'));},fail);
+    }).then(function(){logAct({act:'pren',from:old,pname:nn,all:all});if(myPick&&canon(myPick)===ko){myPick=nn;try{localStorage.setItem('fichajes-me',nn);}catch(e){}}known=null;pnEdit=null;renderPeople();say('Nombre corregido: '+old+' → '+nn+(all?' en todas las liadas.':' en esta liada.'));},fail);
   }
   function renameLoc(){
     var se=sess(viewSid);if(!se||!isActive(se.id)||!isOwner)return;
@@ -673,7 +673,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     if(!endPending){endPending=true;renderSessionBar();return;}
     endPending=false;follow=false;var sid=viewSid;endLocal=sid;
     logAct({act:'end',sid:sid});
-    var endAt=Date.now();db.doc('sessions/'+sid).update({end:endAt}).then(function(){return markAllGone(sid,endAt).catch(function(){});}).then(function(){say('Chill finalizado. Las demás personas ya no ven sus datos.');setTimeout(openShare,600);},fail);
+    var endAt=Date.now();db.doc('sessions/'+sid).update({end:endAt}).then(function(){return markAllGone(sid,endAt).catch(function(){});}).then(function(){say('Liada finalizada. Las demás personas ya no ven sus datos.');setTimeout(openShare,600);},fail);
   }
 
   /* alertas */
@@ -721,13 +721,13 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     function locSel(id){return '<select id="'+id+'" aria-label="Ubicación">'+locs.map(function(l){return '<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join('')+'<option value="__new">Nuevo…</option></select>';}
     if(v){
       var tl=locTimeline(v),cl=curLoc(v);
-      h+='<div class="sline"><span class="grow">'+(live?'Chill en curso: ':'Chill terminado: ')+'<b>'+esc(sTitle(v))+'</b>, '+(live?'desde las '+hhmm(v.start):dmy(v.start)+' '+hhmm(v.start)+(v.end?'–'+hhmm(v.end):''))+
+      h+='<div class="sline"><span class="grow">'+(live?'Liada en curso: ':'Liada terminada: ')+'<b>'+esc(sTitle(v))+'</b>, '+(live?'desde las '+hhmm(v.start):dmy(v.start)+' '+hhmm(v.start)+(v.end?'–'+hhmm(v.end):''))+
         (cl?'<br><span class="msg" style="margin:0">📍 '+(live?(liveGroups(v)?'Ahora: <b>'+esc(liveGroups(v))+'</b>':'Ahora '+(isHouse(cl)?'donde':'en')+' <b>'+esc(cl)+'</b>')+(tl.length>1?' desde las '+hhmm(tl[tl.length-1].at)+' · Recorrido: '+esc(locPath(v)):''):'Recorrido: '+esc(locPath(v)))+'</span>':'')+'</span></div>';
-    }else h+='<div class="sline"><span class="grow">'+(actives.length?'Elige un chill.':'Ningún chill en curso.')+'</span></div>';
+    }else h+='<div class="sline"><span class="grow">'+(actives.length?'Elige una liada.':'Ninguna liada en curso.')+'</span></div>';
     var past=sessions.filter(function(x){return !isActive(x.id)&&(isOwner||mySids[x.id]||x.id===viewSid);});
     if(actives.length>1||past.length||(isOwner&&actives.length)){
-      h+='<select id="sSel" aria-label="Chill que ves">'+(!viewSid?'<option value="" selected>Elige un chill</option>':'')+actives.map(function(id){var x=sess(id);return x?'<option value="'+id+'"'+(viewSid===id?' selected':'')+'>En curso: '+esc(sTitle(x))+'</option>':'';}).join('')+
-        (past.length?'<optgroup label="Chills anteriores">'+past.map(function(x){return '<option value="'+x.id+'"'+(viewSid===x.id?' selected':'')+'>'+esc(sessLabel(x))+'</option>';}).join('')+'</optgroup>':'')+'</select>';
+      h+='<select id="sSel" aria-label="Liada que ves">'+(!viewSid?'<option value="" selected>Elige una liada</option>':'')+actives.map(function(id){var x=sess(id);return x?'<option value="'+id+'"'+(viewSid===id?' selected':'')+'>En curso: '+esc(sTitle(x))+'</option>':'';}).join('')+
+        (past.length?'<optgroup label="Liadas anteriores">'+past.map(function(x){return '<option value="'+x.id+'"'+(viewSid===x.id?' selected':'')+'>'+esc(sessLabel(x))+'</option>';}).join('')+'</optgroup>':'')+'</select>';
     }
     if(isOwner){
       if(live){
@@ -736,24 +736,24 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         if(renOpen)h+='<div class="srow"><span>Nuevo nombre para <b>'+esc(curLoc(v))+'</b>:</span><input id="rName" maxlength="30" aria-label="Nuevo nombre de la ubicación" value="'+esc(curLoc(v))+'"><button class="go" id="rGo">Guardar</button></div>';
         h+='<label>Cierre auto <select id="sAuto" class="sm" aria-label="Cierre automático">'+[0,2,3,4,5,6,8,12,24].map(function(x){return '<option value="'+x+'"'+(x===autoH?' selected':'')+'>'+(x?x+' h sin chorros':'No')+'</option>';}).join('')+'</select></label>';
         h+='<label>Tope por persona <select id="sCap" class="sm" aria-label="Tope de ml por persona">'+[0,2,3,4,5,6,7,8,10,12].map(function(x){return '<option value="'+x+'"'+(x===capOf(viewSid)?' selected':'')+'>'+(x?x+' ml':'Sin tope')+'</option>';}).join('')+'</select></label>';
-        h+='<button id="sEnd" class="'+(endPending?'w':'')+'">'+(endPending?'Pulsa de nuevo para finalizar':'Finalizar este chill')+'</button>';
+        h+='<button id="sEnd" class="'+(endPending?'w':'')+'">'+(endPending?'Pulsa de nuevo para finalizar':'Finalizar esta liada')+'</button>';
       }
       if(v)h+='<button id="schBtn">'+(schOpen?'Cancelar horario':'Editar horario')+'</button>';
       if(v)h+='<button id="rtBtn">'+(rtOpen?'Cancelar recorrido':'Editar nombre y recorrido')+'</button>';
       if(v&&rtOpen){if(!rtDraft||rtDraft.sid!==v.id)rtDraft={sid:v.id,title:v.title||'',locs:locTimeline(v).map(function(x){return {loc:x.loc,at:x.at};})};if(!rtDraft.locs.length)rtDraft.locs=[{loc:'',at:v.start}];
-        h+='<div class="srow rt"><label style="flex:1 1 100%">Nombre del chill (opcional, si lo dejas vacío se pone solo) <input id="rtTitle" maxlength="50" placeholder="'+esc(sTitle(Object.assign({},v,{title:''})))+'" value="'+esc(rtDraft.title)+'"></label>'+
+        h+='<div class="srow rt"><label style="flex:1 1 100%">Nombre de la liada (opcional, si lo dejas vacío se pone solo) <input id="rtTitle" maxlength="50" placeholder="'+esc(sTitle(Object.assign({},v,{title:''})))+'" value="'+esc(rtDraft.title)+'"></label>'+
           rtDraft.locs.map(function(x,i){return '<div class="rtrow"><span class="rtn">'+(i+1)+'.</span><input data-rtl="'+i+'" maxlength="30" placeholder="Sitio" value="'+esc(x.loc)+'">'+(i===0?'<span class="msg" style="margin:0">desde el inicio</span>':'<input type="datetime-local" data-rtt="'+i+'" value="'+localInput(x.at)+'">')+(i>0?'<button class="s" data-rtd="'+i+'" title="Quitar este sitio">✕</button>':'')+'</div>';}).join('')+
           '<div class="rtrow"><button class="s" id="rtAdd">+ Añadir sitio</button><button class="go" id="rtGo">Guardar</button></div><div class="msg" id="rtMsg" style="margin:0"></div></div>';}
       if(v&&schOpen)h+='<div class="srow"><label>Inicio <input type="datetime-local" id="schS" value="'+localInput(v.start)+'"></label>'+(v.end?'<label>Fin <input type="datetime-local" id="schE" value="'+localInput(v.end)+'"></label>':'<span class="msg" style="margin:0">Sigue en curso (sin hora de fin)</span>')+'<button class="'+(schKey?'w':'go')+'" id="schGo">'+(schKey?'Guardar igualmente':'Guardar horario')+'</button>'+(schWarn?'<span class="msg" style="margin:0;color:var(--warn)">'+esc(schWarn)+'</span>':'')+'</div>';
-      if(v&&!live)h+='<button id="sReo" class="go">Reabrir chill</button>';
-      if(v)h+='<button id="sDel" class="w" title="Eliminar este chill">'+(delPending===v.id?'¿Eliminar '+esc(sTitle(v))+'? Pulsa otra vez':'Eliminar chill')+'</button>';
+      if(v&&!live)h+='<button id="sReo" class="go">Reabrir liada</button>';
+      if(v)h+='<button id="sDel" class="w" title="Eliminar esta liada">'+(delPending===v.id?'¿Eliminar '+esc(sTitle(v))+'? Pulsa otra vez':'Eliminar liada')+'</button>';
       if(live&&locOpen){var prs=state.people.filter(function(p){return !p.gone;});h+='<div class="srow"><span>Nueva ubicación:</span>'+locSel('lLoc')+'<input id="lName" placeholder="Nombre (p. ej. Pol)" maxlength="30" aria-label="Nueva ubicación"><label>desde <input type="datetime-local" id="lAt" min="'+localInput(v.start)+'" value="'+localInput(Date.now())+'"></label><button class="lnk" id="lAt0" type="button">desde el inicio</button><button class="go" id="lGo">Cambiar</button></div>'+
         (prs.length?'<div class="srow mvw"><span>¿Quién se mueve? <button class="lnk" id="mvAll" type="button">Todos</button> · <button class="lnk" id="mvNone" type="button">Nadie</button></span><div class="mvl">'+prs.map(function(p){var on=!mvSel||mvSel[p.id]!==false,pl=plocAt(p,v,Date.now());return '<label class="mvi"><input type="checkbox" data-mv="'+p.id+'"'+(on?' checked':'')+'> '+esc(p.name)+(isSplit(p,v)?' <span class="msg" style="margin:0">📍'+esc(pl)+'</span>':'')+'</label>';}).join('')+'</div></div>':'');}
     }
     if(db&&(isOwner||canWrite)){
       var showNew=newOpen||!actives.length;
-      if(actives.length)h+='<button id="nBtn" class="'+(showNew?'':'go')+'">'+(showNew?'Cancelar nuevo chill':'+ Nuevo chill')+'</button>';
-      if(showNew)h+='<div class="srow"><label>Chill de '+locSel('sLoc')+'</label><input id="sName" placeholder="Nombre (p. ej. Víctor)" maxlength="30" aria-label="Nuevo lugar del chill"><button class="go" id="sStart">Iniciar chill</button></div>';
+      if(actives.length)h+='<button id="nBtn" class="'+(showNew?'':'go')+'">'+(showNew?'Cancelar nueva liada':'+ Nueva liada')+'</button>';
+      if(showNew)h+='<div class="srow"><label>Chill de '+locSel('sLoc')+'</label><input id="sName" placeholder="Nombre (p. ej. Víctor)" maxlength="30" aria-label="Nuevo lugar de la liada"><button class="go" id="sStart">Iniciar liada</button></div>';
     }
     el.innerHTML=h;
     if($('sName')){$('sName').value=kn;if(kl!=null&&[].some.call($('sLoc').options,function(o){return o.value===kl;}))$('sLoc').value=kl;$('sName').hidden=$('sLoc').value!=='__new';$('sLoc').onchange=function(){$('sName').hidden=this.value!=='__new';if(!$('sName').hidden)$('sName').focus();};$('sStart').onclick=function(){if(gate())startSession();};}
@@ -826,7 +826,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var ok={add:1,del:1,delp:1,pren:1,gone:1,back:1};
       myChItems=s.docs.map(function(d){var x=d.data(),o={id:d.id};for(var k in x)o[k]=x[k];return o;}).filter(function(x){return x.by===myId&&ok[x.act]&&!x.undone;}).sort(function(a,b){return b.at-a.at;}).slice(0,8);
       var el=$('myCh');if(!el)return;
-      if(!myChItems.length){el.innerHTML='<div class="msg" style="margin:0">No tienes cambios recientes en este chill.</div>';return;}
+      if(!myChItems.length){el.innerHTML='<div class="msg" style="margin:0">No tienes cambios recientes en esta liada.</div>';return;}
       var tx={add:function(a){return 'Registraste '+fmt(a.amt||0)+' ml a '+esc(a.pname)+' ('+hhmm(a.ts)+')';},del:function(a){return 'Borraste un chorro de '+esc(a.pname)+' ('+hhmm(a.ts)+', '+fmt(a.amt||0)+' ml)';},delp:function(a){return 'Quitaste a '+esc(a.pname);},pren:function(a){return 'Cambiaste '+esc(a.from)+' → '+esc(a.pname);},gone:function(a){return 'Marcaste que '+esc(a.pname)+' se fue';},back:function(a){return 'Marcaste que '+esc(a.pname)+' volvió';}};
       el.innerHTML='<ul>'+myChItems.map(function(a,i){return '<li style="display:flex;gap:8px;align-items:center;justify-content:space-between"><span>'+tx[a.act](a)+' <span class="msg" style="margin:0">· '+hhmm(a.at)+'</span></span><button class="s" data-undo="'+i+'">Deshacer</button></li>';}).join('')+'</ul>';
       el.querySelectorAll('[data-undo]').forEach(function(b){b.onclick=function(){b.disabled=true;var it=myChItems[+b.dataset.undo];db.doc('activity/'+it.id).update({undone:true}).catch(function(){});undoAct(it).then(function(r){if(r===false){b.disabled=false;db.doc('activity/'+it.id).update({undone:false}).catch(function(){});return;}say('Deshecho.');loadMyCh();},function(e){b.disabled=false;fail(e);});};});
@@ -836,7 +836,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function undoAct(a){
     if(a.act==='add'){var l=null;state.logs.forEach(function(x){if(x.ts===a.ts&&x.amt===a.amt&&canon(name(x.pid))===canon(a.pname))l=x;});if(!l){say('Ese chorro ya no existe.');return Promise.resolve(false);}return opTrashLog(l.id);}
     if(a.act==='del'||a.act==='delp')return db.collection('trash').where('sid','==',viewSid).get().then(function(s){var t=null;s.docs.forEach(function(d){var x=d.data(),o={id:d.id};for(var k in x)o[k]=x[k];if(a.act==='del'&&o.type==='log'&&o.log&&o.log.ts===a.ts&&o.log.amt===a.amt&&o.pname===a.pname)t=o;if(a.act==='delp'&&o.type==='person'&&o.pname===a.pname)t=o;});if(!t){say('Ya no está en Eliminados.');return false;}return opRestore(t);});
-    var p=personBy(a.pname);if(!p){say(a.pname+' ya no está en el chill.');return Promise.resolve(false);}
+    var p=personBy(a.pname);if(!p){say(a.pname+' ya no está en la liada.');return Promise.resolve(false);}
     if(a.act==='pren'){if(personBy(a.from)){say('Ya hay alguien llamado '+a.from+'.');return Promise.resolve(false);}return db.doc('people/'+p.id).update({name:a.from}).then(function(){logAct({act:'pren',from:a.pname,pname:a.from,all:false});});}
     if(a.act==='gone'){if(!p.gone){say(p.name+' ya está presente.');return Promise.resolve(false);}return db.doc('people/'+p.id).update({gone:null});}
     if(a.act==='back'){var aw=(p.away||[]).slice(),last=aw.pop();if(!last||p.gone){say('No hay nada que deshacer.');return Promise.resolve(false);}return db.doc('people/'+p.id).update({away:aw,gone:last.f});}
@@ -860,14 +860,14 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(!(a>0&&a<=1.5)){it.err='cantidad fuera de rango (0,25–1,5)';out.push(it);return;}
       if(h>23||mi>59){it.err='hora no válida';out.push(it);return;}
       var d=new Date(base);d.setHours(h,mi,0,0);var ts=d.getTime();
-      if(fix!==null){d=new Date(day0);d.setDate(d.getDate()+fix);d.setHours(h,mi,0,0);ts=d.getTime();if(ts<se.start-30*60000){it.err='es anterior al inicio del chill';out.push(it);return;}}
+      if(fix!==null){d=new Date(day0);d.setDate(d.getDate()+fix);d.setHours(h,mi,0,0);ts=d.getTime();if(ts<se.start-30*60000){it.err='es anterior al inicio de la liada';out.push(it);return;}}
       else while(ts<se.start-30*60000)ts+=86400000;
-      if(ts>lim+5*60000){it.err=se.end?'fuera del horario del chill':'esa hora aún no ha llegado';out.push(it);return;}
+      if(ts>lim+5*60000){it.err=se.end?'fuera del horario de la liada':'esa hora aún no ha llegado';out.push(it);return;}
       it.ts=Math.max(ts,se.start);it.amt=Math.round(a*100)/100;out.push(it);});
     return out;
   }
   function bulkCheck(){
-    var se=sess(viewSid);if(!se){say('No hay chill seleccionado.');return;}
+    var se=sess(viewSid);if(!se){say('No hay liada seleccionada.');return;}
     var pl=bulkParse(bulkText,se);
     pl.forEach(function(it){if(it.err)return;if(state.logs.some(function(l){return l.pid===sel&&Math.abs(l.ts-it.ts)<60000&&l.amt===it.amt;}))it.dup=true;});
     pl.sort(function(a,b){return (a.ts||0)-(b.ts||0);});bulkPlan={pid:sel,items:pl};bulkShow();
@@ -892,12 +892,12 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var f=$('logForm');setTimeout(function(){try{f.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}f.classList.add('anotarFx');setTimeout(function(){f.classList.remove('anotarFx');},2200);},150);}
   function renderForm(){setTimeout(doAnotar,0);
     var el=$('logForm');
-    if(db&&!isActive(viewSid)&&!pastEdit()){el.innerHTML='<div class="empty">'+(viewSid?'Estás viendo un chill terminado. Solo se puede fichar en el chill en curso.':'No hay ningún chill en curso.')+'</div>';return;}
+    if(db&&!isActive(viewSid)&&!pastEdit()){el.innerHTML='<div class="empty">'+(viewSid?'Estás viendo una liada terminada. Solo se puede fichar en la liada en curso.':'No hay ninguna liada en curso.')+'</div>';return;}
     if(!state.people.length){el.innerHTML='<div class="empty">Añade primero una persona.</div>';return;}
     if(!selTouched){var mp=myPerson();if(mp)sel=mp.id;}
     if(sel!=='__new'&&(!sel||!state.people.some(function(x){return x.id===sel;})))sel=state.people[0].id;
     var PE=pastEdit(),PS=PE?sess(viewSid):null;if(PE&&$('when')&&$('when').dataset.sid!==viewSid)whenDirty=false;var kt=($('when')&&whenDirty)?$('when').value:localInput(PE?PS.end:Date.now()),ka=$('amt')?parseFloat($('amt').value):1;
-    el.innerHTML=(PE?'<div class="pastnote">📝 Añadiendo chorros a <b>'+esc(sTitle(PS))+'</b> (terminado)</div>':'')+'<div class="lrow"><label for="who">Persona</label><button class="lnk" id="meBtn" type="button">Soy yo</button></div><select id="who">'+state.people.map(function(x){return '<option value="'+x.id+'"'+(x.id===sel?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'<option value="__new"'+(sel==='__new'?' selected':'')+'>+ Otra persona (la añade al chill)…</option>'+'</select>'+(sel==='__new'?'<input id="whoNew" list="knownDl" maxlength="40" placeholder="Nombre de la persona" style="margin-top:6px" value="'+esc(whoNewText)+'"><datalist id="knownDl">'+(known?Object.keys(known).map(function(k){return '<option value="'+esc(known[k].name)+'">';}).join(''):'')+'</datalist>':'')+
+    el.innerHTML=(PE?'<div class="pastnote">📝 Añadiendo chorros a <b>'+esc(sTitle(PS))+'</b> (terminado)</div>':'')+'<div class="lrow"><label for="who">Persona</label><button class="lnk" id="meBtn" type="button">Soy yo</button></div><select id="who">'+state.people.map(function(x){return '<option value="'+x.id+'"'+(x.id===sel?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'<option value="__new"'+(sel==='__new'?' selected':'')+'>+ Otra persona (la añade a la liada)…</option>'+'</select>'+(sel==='__new'?'<input id="whoNew" list="knownDl" maxlength="40" placeholder="Nombre de la persona" style="margin-top:6px" value="'+esc(whoNewText)+'"><datalist id="knownDl">'+(known?Object.keys(known).map(function(k){return '<option value="'+esc(known[k].name)+'">';}).join(''):'')+'</datalist>':'')+
       '<div class="lrow"><label for="when">Fecha y hora</label>'+(PE?'':'<button class="lnk" id="nowBtn" type="button">Poner ahora</button>')+'</div><input id="when" type="datetime-local" data-sid="'+esc(viewSid||'')+'" value="'+kt+'"'+(PE?' min="'+localInput(PS.start)+'" max="'+localInput(PS.end)+'"':'')+'>'+(PE?'<div class="msg" style="margin-top:4px">Entre '+dmy(PS.start)+' '+hhmm(PS.start)+' y '+dmy(PS.end)+' '+hhmm(PS.end)+'</div>':'')+
       '<label for="amt">Cantidad</label><select id="amt">'+amtOptions(ka)+'</select>'+
       '<button class="p'+(warnKey&&!addBusy?' warnbtn':'')+'" id="addLog"'+(addBusy?' disabled':'')+'>'+(addBusy?'Registrando…':(warnKey?(warnLabel||'⚠ Peligro'):'Registrar chorro'))+'</button><div class="msg" id="logMsg"></div>'+
@@ -917,7 +917,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(addBusy)return;
       if(!canAct())return;
       var v=$('when').value,ts=v?new Date(v).getTime():Date.now();if(isNaN(ts))ts=Date.now();
-      if(pastEdit()){var ps=sess(viewSid);if(ts<ps.start||ts>ps.end+59999){showUndo('Ese chill fue del '+dmy(ps.start)+' '+hhmm(ps.start)+' al '+dmy(ps.end)+' '+hhmm(ps.end)+'. Elige una hora dentro de ese intervalo.',null);return;}}
+      if(pastEdit()){var ps=sess(viewSid);if(ts<ps.start||ts>ps.end+59999){showUndo('Esa liada fue del '+dmy(ps.start)+' '+hhmm(ps.start)+' al '+dmy(ps.end)+' '+hhmm(ps.end)+'. Elige una hora dentro de ese intervalo.',null);return;}}
       if(sel==='__new'){var nn=knownMatch(($('whoNew')?$('whoNew').value:'').trim());if(!nn){say('Escribe el nombre de la persona.');return;}
         var ex=null;state.people.forEach(function(x){if(canon(x.name)===canon(nn))ex=x;});
         if(ex){sel=ex.id;}else{var bb=$('addLog');bb.disabled=true;bb.textContent='Añadiendo a '+nn+'…';whoNewText='';opAddPerson(nn).then(function(nid){var tries=0;(function wt(){if(state.people.some(function(x){return x.id===nid;})){sel=nid;selTouched=true;renderForm();var b2=$('addLog');if(b2)b2.click();return;}if(++tries<40)setTimeout(wt,100);else{renderForm();fail(new Error('No se pudo añadir a '+nn));}})();},function(e){bb.disabled=false;fail(e);});return;}
@@ -959,7 +959,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var d=tDraft,h='<div class="tedit"><div class="tgrid">'+fld('Llegada','data-tk="at"',d.at);
     d.away.forEach(function(x,i){h+='<div class="tab">'+fld('Ausencia '+(i+1)+' · se fue','data-tk="f" data-ti="'+i+'"',x.f,'<button class="lnk" data-tdel="'+i+'">Quitar ausencia</button>')+fld('Volvió','data-tk="t" data-ti="'+i+'"',x.t)+'</div>';});
     if(d.gone)h+='<div class="tab">'+fld('Se fue (sigue fuera)','data-tk="gone"',d.gone,'<button class="lnk" data-tdel="gone">Marcar que sigue</button>')+'</div>';
-    h+='</div><div class="tsit"><div class="tl"><b>📍 Sitios aparte del grupo</b></div><div class="msg" style="margin:0 0 4px">Fuera de estos tramos, '+esc(p.name)+' va con el recorrido del chill ('+esc(locPath(sess(viewSid))||'—')+').</div>'+
+    h+='</div><div class="tsit"><div class="tl"><b>📍 Sitios aparte del grupo</b></div><div class="msg" style="margin:0 0 4px">Fuera de estos tramos, '+esc(p.name)+' va con el recorrido de la liada ('+esc(locPath(sess(viewSid))||'—')+').</div>'+
       (d.segs||[]).map(function(x,i){return '<div class="tseg"><input list="locDl" data-sk="loc" data-si="'+i+'" maxlength="30" placeholder="Sitio" value="'+esc(x.loc)+'"><label>desde <input type="datetime-local" data-sk="f" data-si="'+i+'" value="'+localInput(x.f)+'"></label><label>hasta <input type="datetime-local" data-sk="t" data-si="'+i+'" value="'+(x.t?localInput(x.t):'')+'"></label><button class="lnk" data-sdel="'+i+'">Quitar</button></div>';}).join('')+
       '<button class="s" data-sadd="1">+ Añadir sitio</button><span class="msg" style="margin:0 0 0 8px">Deja «hasta» vacío si no volvió con el grupo.</span><datalist id="locDl">'+allLocs().map(function(l){return '<option value="'+esc(l)+'">';}).join('')+'</datalist></div>'+
       (d.err?'<div class="msg" style="color:var(--warn)">'+esc(d.err)+'</div>':'')+'<div class="tbtns"><button class="s" data-tadd="1">+ Añadir ausencia</button><span style="flex:1"></span><button class="s" data-tcancel="1">Cancelar</button><button class="s go" data-tsave="1">Guardar</button></div></div>';
@@ -973,7 +973,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     if(d.gone&&d.gone<d.at)err='La salida no puede ser anterior a la llegada.';
     if(err){d.err=err;renderPeople();return;}
     var sg=(d.segs||[]).map(function(x){return {loc:(x.loc||'').trim().replace(/\s+/g,' '),f:x.f,t:x.t||null};}).sort(function(a,b){return a.f-b.f;}),se=sess(viewSid);
-    sg.forEach(function(x,i){if(!x.loc)err='Pon nombre a todos los sitios.';else if(x.t&&!(x.t>x.f))err='En cada sitio, «hasta» tiene que ser posterior a «desde».';else if(i&&(sg[i-1].t===null||x.f<sg[i-1].t))err='Los tramos de sitios no pueden solaparse (el anterior necesita «hasta»).';else if(se&&x.f<se.start-60000)err='Un sitio no puede empezar antes que el chill.';});
+    sg.forEach(function(x,i){if(!x.loc)err='Pon nombre a todos los sitios.';else if(x.t&&!(x.t>x.f))err='En cada sitio, «hasta» tiene que ser posterior a «desde».';else if(i&&(sg[i-1].t===null||x.f<sg[i-1].t))err='Los tramos de sitios no pueden solaparse (el anterior necesita «hasta»).';else if(se&&x.f<se.start-60000)err='Un sitio no puede empezar antes que la liada.';});
     if(err){d.err=err;renderPeople();return;}
     var moves=[];sg.forEach(function(x,i){moves.push({loc:x.loc,at:x.f});if(x.t&&!(sg[i+1]&&sg[i+1].f<=x.t))moves.push({loc:null,at:x.t});});
     var upd={at:d.at,away:aw,gone:d.gone||null,moves:moves};
@@ -1000,7 +1000,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         '<input id="onbQ" placeholder="Buscar nombre…" autocomplete="off"><div id="onbL" class="onbL"></div>'+
         '<div class="onbNew"><div class="msg" style="margin:10px 0 4px">¿No sales en la lista? Regístrate con tu nombre:</div><div style="display:flex;gap:6px"><input id="onbN" maxlength="40" placeholder="Tu nombre" style="flex:1"><button class="p" id="onbGo" type="button" style="width:auto">Soy nuevo</button></div></div><div class="msg" id="onbMsg"></div></div>';
       function draw(){var q=canon($('onbQ').value||''),h=L.filter(function(e){return !q||canon(e.name).indexOf(q)>=0;});
-        $('onbL').innerHTML=h.length?h.map(function(e){var t=taken[canon(e.name)];return '<button type="button" class="s onbI" data-n="'+esc(e.name)+'"'+(t?' disabled title="Ya vinculado a otra cuenta"':'')+'>'+esc(e.name)+' <span class="msg" style="margin:0">'+(t?'· ya vinculado':'· '+e.n+' chill'+(e.n===1?'':'s'))+'</span></button>';}).join(''):'<div class="msg">Nadie con ese nombre.</div>';
+        $('onbL').innerHTML=h.length?h.map(function(e){var t=taken[canon(e.name)];return '<button type="button" class="s onbI" data-n="'+esc(e.name)+'"'+(t?' disabled title="Ya vinculado a otra cuenta"':'')+'>'+esc(e.name)+' <span class="msg" style="margin:0">'+(t?'· ya vinculado':'· '+e.n+' liada'+(e.n===1?'':'s'))+'</span></button>';}).join(''):'<div class="msg">Nadie con ese nombre.</div>';
         Array.prototype.forEach.call($('onbL').querySelectorAll('.onbI'),function(b){b.onclick=function(){pick(b.getAttribute('data-n'));};});}
       function pick(nm,sure){if(!nm)return;var ex=mp[canon(nm)];if(ex)nm=ex.name;
         if(!sure&&!confirm(ex?'¿Eres '+nm+'?':'¿Registrarte como '+nm+'?'))return;
@@ -1036,14 +1036,14 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     if(!state.people.length){el.innerHTML='<div class="empty">Todavía no hay personas.</div>';return;}
     if(tEdit&&!state.people.some(function(x){return x.id===tEdit;}))tEdit=null;
     var ce=canEditTimes();
-    el.innerHTML=state.people.map(function(x){var w=pendingDel===x.id,nAw=(x.away||[]).length;var sv=sess(viewSid),spl=sv&&!x.gone&&isSplit(x,sv);return '<div class="row prow"><span class="pnm'+(x.gone?' gone':'')+'">'+esc(x.name)+hostMark(x.name)+(spl?' <span class="pchip">📍'+esc(pLast(x).loc)+'</span>':'')+(x.gone?' <span class="msg">· se fue a las '+hD(x.gone)+'</span>':(nAw?' <span class="msg">· '+nAw+' ausencia'+(nAw===1?'':'s')+'</span>':''))+'</span><span class="pbt">'+(ce?'<button class="s'+(tEdit===x.id?' go':'')+'" data-times="'+x.id+'" title="Editar llegada, salidas y vueltas">Horas</button>':'')+(canRen(x)?'<button class="s" data-pn="'+x.id+'" title="Corregir el nombre">✎</button>':'')+'<button class="s" data-gone="'+x.id+'">'+(x.gone?'Ha vuelto':'Se ha ido')+'</button>'+((isOwner||!db)?'<button class="s'+(w?' w':'')+'" data-del="'+x.id+'">'+(w?'¿Borrar con sus chorros?':'Quitar')+'</button>':'')+'</span></div>'+(pnEdit===x.id&&pnMerge&&pnMerge.from===x.id?'<div class="rtrow" style="margin:0 0 8px"><span class="msg" style="margin:0">'+esc(name(pnMerge.to))+' ya está en este chill. ¿Es la misma persona?</span><button class="go" data-pnmerge="1">Fusionar: pasar sus '+state.logs.filter(function(l){return l.pid===x.id;}).length+' chorros a '+esc(name(pnMerge.to))+'</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(pnEdit===x.id&&!pnMerge?'<div class="rtrow" style="margin:0 0 8px"><input id="pnIn" maxlength="40" value="'+esc(x.name)+'" aria-label="Nombre corregido"><label class="msg" style="margin:0;display:flex;gap:4px;align-items:center"><input type="checkbox" id="pnAll" checked style="width:auto"> en todos los chills</label><button class="go" data-pnsave="1">Guardar</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(tEdit===x.id&&tDraft?timesHtml(x):'');}).join('');
+    el.innerHTML=state.people.map(function(x){var w=pendingDel===x.id,nAw=(x.away||[]).length;var sv=sess(viewSid),spl=sv&&!x.gone&&isSplit(x,sv);return '<div class="row prow"><span class="pnm'+(x.gone?' gone':'')+'">'+esc(x.name)+hostMark(x.name)+(spl?' <span class="pchip">📍'+esc(pLast(x).loc)+'</span>':'')+(x.gone?' <span class="msg">· se fue a las '+hD(x.gone)+'</span>':(nAw?' <span class="msg">· '+nAw+' ausencia'+(nAw===1?'':'s')+'</span>':''))+'</span><span class="pbt">'+(ce?'<button class="s'+(tEdit===x.id?' go':'')+'" data-times="'+x.id+'" title="Editar llegada, salidas y vueltas">Horas</button>':'')+(canRen(x)?'<button class="s" data-pn="'+x.id+'" title="Corregir el nombre">✎</button>':'')+'<button class="s" data-gone="'+x.id+'">'+(x.gone?'Ha vuelto':'Se ha ido')+'</button>'+((isOwner||!db)?'<button class="s'+(w?' w':'')+'" data-del="'+x.id+'">'+(w?'¿Borrar con sus chorros?':'Quitar')+'</button>':'')+'</span></div>'+(pnEdit===x.id&&pnMerge&&pnMerge.from===x.id?'<div class="rtrow" style="margin:0 0 8px"><span class="msg" style="margin:0">'+esc(name(pnMerge.to))+' ya está en esta liada. ¿Es la misma persona?</span><button class="go" data-pnmerge="1">Fusionar: pasar sus '+state.logs.filter(function(l){return l.pid===x.id;}).length+' chorros a '+esc(name(pnMerge.to))+'</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(pnEdit===x.id&&!pnMerge?'<div class="rtrow" style="margin:0 0 8px"><input id="pnIn" maxlength="40" value="'+esc(x.name)+'" aria-label="Nombre corregido"><label class="msg" style="margin:0;display:flex;gap:4px;align-items:center"><input type="checkbox" id="pnAll" checked style="width:auto"> en todas las liadas</label><button class="go" data-pnsave="1">Guardar</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(tEdit===x.id&&tDraft?timesHtml(x):'');}).join('');
     el.querySelectorAll('[data-sk]').forEach(function(inp){var h=function(){var k=this.dataset.sk,x=tDraft.segs[+this.dataset.si];if(!x)return;if(k==='loc')x.loc=this.value;else{var v=this.value?new Date(this.value).getTime():null;if(this.value&&isNaN(v))return;if(k==='f'&&v)x.f=v;if(k==='t')x.t=v;}tDraft.err='';};inp.oninput=h;inp.onchange=h;});
     el.querySelectorAll('[data-tk]').forEach(function(inp){inp.onchange=function(){var v=new Date(this.value).getTime();if(isNaN(v))return;var k=this.dataset.tk;if(k==='at')tDraft.at=v;else if(k==='gone')tDraft.gone=v;else tDraft.away[+this.dataset.ti][k]=v;tDraft.err='';};});
   }
 
   function renderMatrix(){
     var el=$('matrix');
-    if(db&&!viewSid){el.innerHTML='<div class="empty">Ningún chill en curso.'+(isOwner?' Inicia una arriba.':' Aquí aparecerá la tabla cuando empiece.')+'</div>';return;}
+    if(db&&!viewSid){el.innerHTML='<div class="empty">Ninguna liada en curso.'+(isOwner?' Inicia una arriba.':' Aquí aparecerá la tabla cuando empiece.')+'</div>';return;}
     if(!state.people.length){el.innerHTML='<div class="empty">Añade personas para empezar a registrar chorros.</div>';return;}
     var data=state.people.map(function(x,k){var lg=state.logs.filter(function(l){return l.pid===x.id;}).sort(function(a,b){return a.ts-b.ts;}),tt=0;lg.forEach(function(l){tt+=l.amt;});return {p:x,k:k,logs:lg,tot:tt,n:lg.length};}).sort(function(a,b){return (b.tot-a.tot)||(b.n-a.n)||(a.k-b.k);});
     var cols=Math.max(1,Math.max.apply(null,data.map(function(d){return d.logs.length;})));
@@ -1220,10 +1220,10 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   }
   function openPerson(nm,only){
     if(!db)return;var m=$('shareModal'),k=canon(nm),oS=only&&sess(only);
-    m.hidden=false;m.innerHTML='<div class="sm-card pcard"><div class="sm-head"><b id="pcN">'+esc(nm)+'</b>'+(isOwner?'<button class="s" id="pcEd" type="button" title="Editar nombre">✎ Nombre</button>':'')+'<button class="s" id="smClose">Cerrar</button></div>'+(only?'<div class="msg" style="margin:-4px 0 8px">Solo en <b>'+esc(oS?sTitle(oS):'este chill')+'</b> · <button class="lnk" id="pcAll" type="button">Ver su total de todos los chills</button></div>':'')+(isOwner?'<div id="pcBox" hidden style="margin:0 0 10px"><div style="display:flex;gap:6px"><input id="pcIn" maxlength="40" value="'+esc(nm)+'" style="flex:1"><button class="go" id="pcGo" type="button" style="width:auto">Guardar</button></div><div class="msg" style="margin:4px 0 0" id="pcMsg">Cambia el nombre en todos sus chills, estadísticas y cuentas vinculadas.</div></div>':'')+'<div class="empty">Calculando…</div></div>';
+    m.hidden=false;m.innerHTML='<div class="sm-card pcard"><div class="sm-head"><b id="pcN">'+esc(nm)+'</b>'+(isOwner?'<button class="s" id="pcEd" type="button" title="Editar nombre">✎ Nombre</button>':'')+'<button class="s" id="smClose">Cerrar</button></div>'+(only?'<div class="msg" style="margin:-4px 0 8px">Solo en <b>'+esc(oS?sTitle(oS):'esta liada')+'</b> · <button class="lnk" id="pcAll" type="button">Ver su total de todas las liadas</button></div>':'')+(isOwner?'<div id="pcBox" hidden style="margin:0 0 10px"><div style="display:flex;gap:6px"><input id="pcIn" maxlength="40" value="'+esc(nm)+'" style="flex:1"><button class="go" id="pcGo" type="button" style="width:auto">Guardar</button></div><div class="msg" style="margin:4px 0 0" id="pcMsg">Cambia el nombre en todas sus liadas, estadísticas y cuentas vinculadas.</div></div>':'')+'<div class="empty">Calculando…</div></div>';
     if($('pcEd')){$('pcEd').onclick=function(){var b=$('pcBox');b.hidden=!b.hidden;if(!b.hidden)$('pcIn').focus();};
       $('pcGo').onclick=function(){var nn=$('pcIn').value.trim().replace(/\s+/g,' ');if(!nn||nn===nm){$('pcBox').hidden=true;return;}$('pcMsg').textContent='Guardando…';
-        renameGlobal(nm,nn).then(function(){say('Nombre cambiado: '+nm+' → '+nn+' en todos los chills.');openPerson(nn);},function(e){$('pcMsg').textContent=(e&&e.userMsg)||('No se pudo: '+(e&&e.message||e));});};}
+        renameGlobal(nm,nn).then(function(){say('Nombre cambiado: '+nm+' → '+nn+' en todas las liadas.');openPerson(nn);},function(e){$('pcMsg').textContent=(e&&e.userMsg)||('No se pudo: '+(e&&e.message||e));});};}
     var close=function(){m.hidden=true;m.innerHTML='';};$('smClose').onclick=close;m.onclick=function(e){if(e.target===m)close();};
     if($('pcAll'))$('pcAll').onclick=function(){openPerson(nm);};
     loadAll().then(function(D){
@@ -1237,11 +1237,11 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       rows.sort(function(a,b){return b.se.start-a.se.start;});
       if(!rows.length){m.querySelector('.empty').textContent='No hay datos de '+nm+'.';return;}
       var best=rows.reduce(function(a,b){return b.ml>a.ml?b:a;});
-      var kp=[['ml en total',fmt(tot.ml)],['Chorros',tot.n],['Chills',rows.length],['Horas',fmt(Math.round(tot.h*10)/10)],['ml por chill',fmt(Math.round(tot.ml/rows.length*100)/100)],['ml/hora',tot.h>=0.5?fmt(Math.round(tot.ml/tot.h*100)/100):'—'],['Mejor chill',fmt(best.ml)+' ml'],['Anfitrión',hosted+' chill'+(hosted===1?'':'s')]];
+      var kp=[['ml en total',fmt(tot.ml)],['Chorros',tot.n],['Liadas',rows.length],['Horas',fmt(Math.round(tot.h*10)/10)],['ml por liada',fmt(Math.round(tot.ml/rows.length*100)/100)],['ml/hora',tot.h>=0.5?fmt(Math.round(tot.ml/tot.h*100)/100):'—'],['Mejor liada',fmt(best.ml)+' ml'],['Anfitrión',hosted+' liada'+(hosted===1?'':'s')]];
       Object.keys(plH).forEach(function(k){if(!(k in places))places[k]=0;});var pl=Object.keys(places).sort(function(a,b){return places[b]-places[a]||(plH[b]||0)-(plH[a]||0);});
       var h='<div class="kpis">'+kp.map(function(x){return '<div class="kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>';}).join('')+'</div>';
       var mk=Object.keys(MC);if(mk.length)h+='<h4>Medallas</h4><div class="medals">'+mk.sort(function(a,b){return MC[b]-MC[a];}).map(function(x){return '<span class="medal">'+esc(x.replace('D+','D+…'))+' ×'+MC[x]+'</span>';}).join('')+'</div>';
-      h+='<h4>Chills</h4><div class="scroll"><table><thead><tr><th>Chill</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Horas</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+(only?esc(sTitle(r.se)):'<span data-pcard="'+esc(nm)+'" data-pcsid="'+r.se.id+'" title="Ver solo este chill">'+esc(sTitle(r.se))+'</span>')+'<div class="msg" style="margin:0">'+dmy(r.se.start)+(r.md.length?' · '+r.md.map(function(x){return x.split(' ')[0];}).join(' '):'')+'</div></td><td class="n">'+fmt(r.ml)+'</td><td class="n">'+r.n+'</td><td class="n">'+fmt(Math.round(r.h*10)/10)+'</td></tr>';}).join('')+'</tbody></table></div>';
+      h+='<h4>Liadas</h4><div class="scroll"><table><thead><tr><th>Liada</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Horas</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+(only?esc(sTitle(r.se)):'<span data-pcard="'+esc(nm)+'" data-pcsid="'+r.se.id+'" title="Ver solo esta liada">'+esc(sTitle(r.se))+'</span>')+'<div class="msg" style="margin:0">'+dmy(r.se.start)+(r.md.length?' · '+r.md.map(function(x){return x.split(' ')[0];}).join(' '):'')+'</div></td><td class="n">'+fmt(r.ml)+'</td><td class="n">'+r.n+'</td><td class="n">'+fmt(Math.round(r.h*10)/10)+'</td></tr>';}).join('')+'</tbody></table></div>';
       if(pl.length)h+='<h4>Sitios</h4><table><thead><tr><th>Sitio</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Horas</th></tr></thead><tbody>'+pl.map(function(x){return '<tr><td>📍 '+esc(x)+'</td><td class="n">'+fmt(places[x])+'</td><td class="n">'+(plN[x]||0)+'</td><td class="n">'+(plH[x]?fmt(Math.round(plH[x]*10)/10):'—')+'</td></tr>';}).join('')+'</tbody></table>';
       var c=m.querySelector('.empty');if(c)c.outerHTML=h;
     },function(e){fail(e);close();});
@@ -1251,7 +1251,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     return st.filter(function(x){return (x.t||end)-x.f>=60000&&x.keys.some(function(k){return x.g[k].length;});}).map(function(x){return '<div style="margin-top:6px"><b>'+hhmm(x.f)+'–'+hhmm(x.t||end)+'</b> · '+x.keys.filter(function(k){return x.g[k].length;}).map(function(k){return x.g[k].length+' '+esc(enLoc(k));}).join(', ')+'</div>';}).join('');}
   function placeStats(se){var P={},o=[];state.logs.forEach(function(l){var pl=l.loc||plocAt(pById(l.pid),se,l.ts)||'?',k=o.filter(function(z){return nrm(z)===nrm(pl);})[0];if(!k){k=pl;o.push(pl);P[pl]={ml:0,n:0,ps:{}};}P[k].ml+=l.amt;P[k].n++;P[k].ps[l.pid]=1;});
     return o.map(function(k){return {loc:k,ml:P[k].ml,n:P[k].n,np:Object.keys(P[k].ps).length};}).sort(function(a,b){return b.ml-a.ml;});}
-  function renderChRecs(){var b=$('chRecs');if(!b)return;var se=sess(viewSid);if(!se||!state.logs.length){b.innerHTML='';return;}try{b.innerHTML='<h2 style="margin:24px 0 8px">🏆 Récords del chill</h2><div class="rgrid">'+nightRecs().map(function(r){return '<div><div class="l">'+r[0]+'</div><div class="v" style="font-weight:600">'+esc(r[1])+'</div></div>';}).join('')+'</div>';}catch(e){b.innerHTML='';}}
+  function renderChRecs(){var b=$('chRecs');if(!b)return;var se=sess(viewSid);if(!se||!state.logs.length){b.innerHTML='';return;}try{b.innerHTML='<h2 style="margin:24px 0 8px">🏆 Récords de la liada</h2><div class="rgrid">'+nightRecs().map(function(r){return '<div><div class="l">'+r[0]+'</div><div class="v" style="font-weight:600">'+esc(r[1])+'</div></div>';}).join('')+'</div>';}catch(e){b.innerHTML='';}}
   function nightRecs(){
     var se=sess(viewSid),now=Date.now(),rows=state.people.map(function(p,k){var ls=state.logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),t=0;ls.forEach(function(l){t+=l.amt;});
       var arr=Math.min(p.at||se.start,ls.length?ls[0].ts:Infinity),dep=depOf(p,ls,se),h=Math.max(0,dep-arr-awayIn(p,arr,dep))/3600000,gs=0;for(var i=1;i<ls.length;i++)gs+=Math.max(0,ls[i].ts-ls[i-1].ts-awayIn(p,ls[i-1].ts,ls[i].ts));
@@ -1274,7 +1274,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     h+='<h3>Presencia</h3>';
     box.innerHTML=h;
   }
-  /* rutas del chill */
+  /* rutas de la liada */
   var routeSig='',routeMap=null;
   function routeEdges(se){
     var E={},order=[],add=function(l){if(!order.some(function(z){return nrm(z)===nrm(l);}))order.push(l);return order.filter(function(z){return nrm(z)===nrm(l);})[0];};
@@ -1334,13 +1334,13 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       g+='<path d="M'+sx+' '+cy+' Q'+((sx+ex)/2)+' '+(cy+hgt*2)+' '+ex+' '+cy+'" fill="none" style="stroke:'+col+'" stroke-width="'+(e.main?3.5:2)+'"'+(e.main?'':' stroke-dasharray="5 4"')+' marker-end="url(#ra'+ccol+')"><title>'+esc(e.fr)+' → '+esc(e.to)+' · '+hhmm(e.at)+(e.ps.length?' · '+esc(e.ps.join(', ')):'')+'</title></path>';
       g+='<text x="'+((sx+ex)/2)+'" y="'+(cy+hgt+(fw?-4:12))+'" text-anchor="middle" font-size="10" style="fill:var(--mut)">'+hhmm(e.at)+(e.ps.length&&!e.main?' · '+esc(e.ps.length>2?e.ps.length+' pers.':e.ps.join(', ')):'')+'</text>';});
     R.order.forEach(function(l,i){var lb=l.length>16?l.slice(0,15)+'…':l;g+='<circle cx="'+X(i)+'" cy="'+cy+'" r="9" style="fill:'+(isHouse(l)?'#f59e0b':'#3b82f6')+';stroke:var(--bg)" stroke-width="2"><title>'+esc(l)+'</title></circle><text x="'+X(i)+'" y="'+(cy+(i%2?28:-16))+'" text-anchor="middle" font-size="12" font-weight="600" style="fill:var(--ink)">'+(isHouse(l)?'🏠 ':'')+esc(lb)+'</text>';});
-    box.innerHTML='<div class="chart" style="overflow:hidden"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Rutas seguidas en el chill">'+g+'</svg></div>';
+    box.innerHTML='<div class="chart" style="overflow:hidden"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Rutas seguidas en la liada">'+g+'</svg></div>';
   }
   function renderGantt(){
     var box=$('ganttBox');if(!box)return;
     if(!box.clientWidth){ganttW=0;return;}ganttW=box.clientWidth;
     var s0=sess(viewSid);
-    if(!state.people.length||!s0){box.innerHTML='<div class="empty">Cuando haya gente en el chill, aquí verás quién estuvo y cuándo.</div>';return;}
+    if(!state.people.length||!s0){box.innerHTML='<div class="empty">Cuando haya gente en la liada, aquí verás quién estuvo y cuándo.</div>';return;}
     var live=isActive(viewSid),logs=state.logs.slice().sort(function(a,b){return a.ts-b.ts;});
     var x0=Math.min(s0.start,logs.length?logs[0].ts:s0.start),x1=live?Date.now():Math.max(s0.end||0,logs.length?logs[logs.length-1].ts:0,s0.start+1800000);
     state.people.forEach(function(p){if(p.gone&&p.gone>x1&&!live)x1=p.gone;});
@@ -1371,7 +1371,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(!r.p.gone&&live)g+='<text x="'+Math.min(X(r.dep)+4,W-2)+'" y="'+(y+4)+'" font-size="10" style="fill:var(--mut)"></text>';
     });
     if(live)g+='<line x1="'+X(x1)+'" x2="'+X(x1)+'" y1="'+(T-4)+'" y2="'+(Ht-B)+'" style="stroke:var(--warn)" stroke-width="1.5"/>';
-    box.innerHTML=(PL.length>1?'<div class="plg">'+PL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Presencia de cada persona en el chill">'+g+'</svg>';
+    box.innerHTML=(PL.length>1?'<div class="plg">'+PL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Presencia de cada persona en la liada">'+g+'</svg>';
   }
   function renderChart(){
     var box=$('chartBox');if(!box)return;
@@ -1415,7 +1415,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(ok)ys.forEach(function(o){var nm=o.sr.p.name;if(nm.length>9)nm=nm.slice(0,8)+'…';lab+='<text x="'+(X(x1)+8)+'" y="'+(o.y+4)+'" font-size="12" style="fill:var(--ink)"><tspan font-weight="600">'+esc(fmt(o.sr.tot))+'</tspan> '+esc(nm)+'</text>';});
     }
     var leg=ser.map(function(sr){return '<span><i class="dot" style="background:'+colorOf(sr.k)+'"></i>'+esc(sr.p.name)+' · '+fmt(sr.tot)+' ml</span>';}).join('');
-    box.innerHTML='<svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros acumulados por persona a lo largo del chill. La tabla de arriba tiene los mismos datos.">'+g+'<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mut)" stroke-width="1"/>'+xl+mdn+lines+dots+lab+
+    box.innerHTML='<svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros acumulados por persona a lo largo de la liada. La tabla de arriba tiene los mismos datos.">'+g+'<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mut)" stroke-width="1"/>'+xl+mdn+lines+dots+lab+
       '<line class="xh" x1="0" x2="0" y1="'+T+'" y2="'+(T+ph)+'" style="stroke:var(--mut)" stroke-width="1" visibility="hidden"/>'+
       '<rect class="ov" x="'+L+'" y="'+T+'" width="'+pw+'" height="'+ph+'" fill="transparent" style="touch-action:pan-y"/></svg><div class="legend">'+leg+'</div><div class="tip" hidden></div>';
     var svg=box.querySelector('svg'),ov=box.querySelector('.ov'),xh=box.querySelector('.xh'),tip=box.querySelector('.tip');
@@ -1447,14 +1447,14 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function renderAll(){peopleSig='';onData();renderEditor();renderSessionBar();}
 
   /* eventos */
-  function addPerson(){var inp=$('newName'),n=inp.value.trim();if(!n||!canAct())return;n=knownMatch(n);if(state.people.some(function(p){return canon(p.name)===canon(n);})){say(n+' ya está en este chill.');return;}opAddPerson(n).then(function(){inp.value='';if(known){var k=canon(n);if(!known[k])known[k]={name:n,n:1,at:Date.now(),pr:1,sids:{}};}renderKnown();},fail);}
+  function addPerson(){var inp=$('newName'),n=inp.value.trim();if(!n||!canAct())return;n=knownMatch(n);if(state.people.some(function(p){return canon(p.name)===canon(n);})){say(n+' ya está en esta liada.');return;}opAddPerson(n).then(function(){inp.value='';if(known){var k=canon(n);if(!known[k])known[k]={name:n,n:1,at:Date.now(),pr:1,sids:{}};}renderKnown();},fail);}
   $('addPerson').onclick=addPerson;
   $('newName').onkeydown=function(e){if(e.key==='Enter')addPerson();};
   $('newName').oninput=function(){renderKnown();};
   document.addEventListener('click',function(e){
     var t=e.target.closest?e.target.closest('button'):null;if(!t)return;
     if(t.dataset.times){
-      if(!canEditTimes()){say('Solo se pueden editar horarios en el chill en curso.');return;}
+      if(!canEditTimes()){say('Solo se pueden editar horarios en la liada en curso.');return;}
       if(tEdit===t.dataset.times){tEdit=null;tDraft=null;}else{var tp=null;state.people.forEach(function(x){if(x.id===t.dataset.times)tp=x;});if(tp)openTimes(tp);}
       renderPeople();return;
     }
@@ -1485,7 +1485,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     if(pendingDel){pendingDel=null;renderPeople();}
     if(t.dataset.edit){
       if(!canWrite){say('Solo tienes acceso de lectura.');return;}
-      if(db&&!isOwner&&!isActive(viewSid)){say('Los chills terminados solo se pueden consultar.');return;}
+      if(db&&!isOwner&&!isActive(viewSid)){say('Las liadas terminadas solo se pueden consultar.');return;}
       editing=t.dataset.edit;delLog=false;renderMatrix();renderEditor();
       var ed=$('editor');if(ed&&ed.scrollIntoView)ed.scrollIntoView({block:'nearest',behavior:'smooth'});
     }
@@ -1528,7 +1528,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var sin=p.gone?'Se fue':(n?dur(now-Math.max(last,lastBack(p))):'Sin chorros');
       return '<tr'+(p.gone?' class="gone-r"':'')+'><td class="name"><span class="rk">'+rk+'.</span>'+mv+'<i class="dot" style="background:'+colorOf(d.k)+'"></i><span data-pcard="'+esc(p.name)+'">'+esc(p.name)+'</span>'+hostMark(p.name)+'</td><td class="n'+capCls(d.tot,capOf(viewSid))+'">'+fmt(d.tot)+(capOf(viewSid)?' / '+fmt(capOf(viewSid)):'')+' ml</td><td class="n">'+ritmo+'</td><td class="n">'+n+'</td><td class="n">'+llegada+'</td><td class="n">'+partida+'</td><td class="n">'+(pres>0?dur(pres*3600000):'—')+'</td><td class="n opt">'+avg+'</td><td class="n opt">'+(n?hD(last):'—')+'</td>'+(live?'<td class="n'+(lt?' late-t':'')+'">'+(lt?'⚠ ':'')+sin+'</td>':'')+'</tr>';
     }).join('');
-    el.innerHTML='<table class="sumt"><thead><tr><th>Persona</th><th class="n">Total</th><th class="n" title="Mililitros por hora estando presente">Ritmo</th><th class="n">Chorros</th><th class="n" title="Hora en que se añadió a la persona">Llegada</th><th class="n" title="Hora en que se marcó «Se ha ido»">Partida</th><th class="n" title="Tiempo presente en el chill, sin contar ausencias">Duración</th><th class="n opt">Media entre chorros</th><th class="n opt">Último</th>'+(live?'<th class="n">Sin tomar</th>':'')+'</tr></thead><tbody>'+rows+'</tbody></table>';
+    el.innerHTML='<table class="sumt"><thead><tr><th>Persona</th><th class="n">Total</th><th class="n" title="Mililitros por hora estando presente">Ritmo</th><th class="n">Chorros</th><th class="n" title="Hora en que se añadió a la persona">Llegada</th><th class="n" title="Hora en que se marcó «Se ha ido»">Partida</th><th class="n" title="Tiempo presente en la liada, sin contar ausencias">Duración</th><th class="n opt">Media entre chorros</th><th class="n opt">Último</th>'+(live?'<th class="n">Sin tomar</th>':'')+'</tr></thead><tbody>'+rows+'</tbody></table>';
   }
 
   /* avisos grandes */
@@ -1672,7 +1672,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var box=$('trashBox');if(box.hidden)return;
     var items=db?trashItems:(state.trash||[]).filter(function(t){return true;});
     items=items.slice().sort(function(a,b){return b.del-a.del;});
-    if(!items.length){box.innerHTML='<div class="trash"><b>Eliminados</b><div class="empty">No hay nada eliminado en este chill.</div></div>';return;}
+    if(!items.length){box.innerHTML='<div class="trash"><b>Eliminados</b><div class="empty">No hay nada eliminado en esta liada.</div></div>';return;}
     resolveNames(items.map(function(t){return t.delBy;})).then(function(ch){if(ch)renderTrash();});
     box.innerHTML='<div class="trash"><b>Eliminados</b><div class="msg" style="margin:2px 0 8px">Pulsa Recuperar para devolverlo a la tabla.</div>'+items.map(function(t){
       var what=t.type==='log'?'<b>'+esc(t.pname)+'</b> · '+fmt(t.log.amt)+' ml a las '+hhmm(t.log.ts):'Persona <b>'+esc(t.pname)+'</b> con '+(t.logs||[]).length+' chorro'+((t.logs||[]).length===1?'':'s');
@@ -1772,22 +1772,24 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       function top(arr,f){var b=null;arr.forEach(function(x){if(b===null||f(x)>f(b))b=x;});if(!b)return b;var bv=f(b),t=arr.filter(function(x){return Math.abs(f(x)-bv)<1e-9;}),w=Object.create(b);w._t=t;return w;}
       function tieNames(o,fn){var n=(o._t||[o]).map(fn);return n.length>4?n.slice(0,3).join(', ')+' y '+(n.length-3)+' más':n.join(', ');}
       function hfmt(h){return h<1?Math.round(h*60)+' min':fmt(Math.round(h*10)/10)+' h';}
-      var kp=[['Chills',ev.length],['Chorros',tot.n],['Mililitros',fmt(tot.ml)+' ml'],['Personas distintas',Object.keys(P).length],['Horas de chill',hfmt(tot.h)]];
+      var kp=[['Liadas',ev.length],['Chorros',tot.n],['Mililitros',fmt(tot.ml)+' ml'],['Personas distintas',Object.keys(P).length],['Horas de liada',hfmt(tot.h)]];
       var h='<div class="stats"><h3>Totales</h3><div class="kpis">'+kp.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'</div></div>';}).join('')+'</div>';
       function rec(l,s,val){if(!s)return '';var T=s._t||[s];return '<div class="rec"><div class="l">'+l+'</div><div class="v">'+T.map(function(x){return esc(x.se?sTitle(x.se):x.name);}).join(', ')+' · '+val+'</div>'+(s.se?'<div class="d">'+T.map(function(x){return x.se?dmy(x.se.start):'';}).join(', ')+'</div>':'')+'</div>';}
       var e1=top(ev,function(s){return s.people;}),e2=top(ev,function(s){return s.ml;}),e3=top(ev,function(s){return s.dur;}),e4=top(ev,function(s){return s.n;}),e5=top(ev,function(s){return s.dur>H?s.ml/(s.dur/H):0;});
-      h+='<h3>Récords por chill</h3><div class="recs">'+rec('Más numeroso',e1,e1.people+' personas')+rec('Con más ml',e2,fmt(e2.ml)+' ml')+rec('Más largo',e3,dur(e3.dur))+rec('Con más chorros',e4,e4.n+' chorros')+(e5&&e5.dur>H?rec('Más intenso (ml/hora)',e5,fmt(Math.round(e5.ml/(e5.dur/H)*100)/100)+' ml/h'):'')+'</div>';
+      h+='<h3>Récords por liada</h3><div class="recs">'+rec('Más numeroso',e1,e1.people+' personas')+rec('Con más ml',e2,fmt(e2.ml)+' ml')+rec('Más largo',e3,dur(e3.dur))+rec('Con más chorros',e4,e4.n+' chorros')+(e5&&e5.dur>H?rec('Más intenso (ml/hora)',e5,fmt(Math.round(e5.ml/(e5.dur/H)*100)/100)+' ml/h'):'')+'</div>';
       var pl=Object.keys(P).map(function(k){return P[k];});
       function prec(l,o,val,extra){return o?'<div class="rec"><div class="l">'+l+'</div><div class="v">'+tieNames(o,function(x){return esc(x.name);})+' · '+val+'</div>'+(extra?'<div class="d">'+extra+'</div>':'')+'</div>':'';}
       var p1=top(pl,function(o){return o.ml;}),p2=top(pl,function(o){return o.n;}),p3=top(pl,function(o){return o.nch;}),p6=top(pl,function(o){return o.hours;}),p4=top(pl,function(o){return o.best;}),p5=top(pl.filter(function(o){return o.hours>=1;}),function(o){return o.ml/o.hours;});
-      h+='<h3>Récords por persona</h3><div class="recs">'+prec('Más ml en total',p1,fmt(p1.ml)+' ml')+prec('Más chorros',p2,p2.n+' chorros')+prec('Más chills',p3,p3.nch+' chill'+(p3.nch===1?'':'s'))+(p6&&p6.hours>0?prec('Más horas de chill',p6,hfmt(p6.hours)):'')+prec('Más ml en un solo chill',p4,fmt(p4.best)+' ml',p4.bestS?'Chill de '+esc(lugar(p4.bestS))+', '+dmy(p4.bestS.start):'')+(p5?prec('Mayor ritmo',p5,fmt(Math.round(p5.ml/p5.hours*100)/100)+' ml/h'):'')+'</div>';
+      h+='<h3>Récords por persona</h3><div class="recs">'+prec('Más ml en total',p1,fmt(p1.ml)+' ml')+prec('Más chorros',p2,p2.n+' chorros')+prec('Más liadas',p3,p3.nch+' liada'+(p3.nch===1?'':'s'))+(p6&&p6.hours>0?prec('Más horas de liada',p6,hfmt(p6.hours)):'')+prec('Más ml en una sola liada',p4,fmt(p4.best)+' ml',p4.bestS?'Chill de '+esc(lugar(p4.bestS))+', '+dmy(p4.bestS.start):'')+(p5?prec('Mayor ritmo',p5,fmt(Math.round(p5.ml/p5.hours*100)/100)+' ml/h'):'')+(function(){var g=pl.filter(function(o){return o.gn;}),p7=g.length?top(g,function(o){return -(o.gs/o.gn);}):null,m2=pl.filter(function(o){return o.nch>=2;}),p8=m2.length?top(m2,function(o){return o.ml/o.nch;}):null,w2=pl.filter(function(o){return o.worst!=null;}),p9=w2.length?top(w2,function(o){return o.worst;}):null;
+        return (p7?prec('Más frecuente (media entre chorros)',p7,dur(p7.gs/p7.gn)):'')+(p8?prec('Más ml por liada (2 liadas o más)',p8,fmt(Math.round(p8.ml/p8.nch*100)/100)+' ml'):'')+(p9?prec('Su peor liada es la más fuerte',p9,fmt(p9.worst)+' ml',p9.worstS?esc(sTitle(p9.worstS))+', '+dmy(p9.worstS.start):''):'');})()+'</div>';
       (function(){function bot(arr,f){var b=null;arr.forEach(function(x){var v=f(x);if(v==null)return;if(b===null||v<f(b))b=x;});if(!b)return b;var bv=f(b),w=Object.create(b);w._t=arr.filter(function(x){var v=f(x);return v!=null&&Math.abs(v-bv)<1e-9;});return w;}
         var evd=ev.filter(function(x){return x.n>0;});
         if(evd.length>1){var f1=bot(evd,function(x){return x.people;}),f2=bot(evd,function(x){return x.ml;}),f3=bot(evd,function(x){return x.dur;}),f4=bot(evd,function(x){return x.n;}),f5=bot(evd,function(x){return x.dur>H?x.ml/(x.dur/H):null;});
-          h+='<h3>🙃 Récords al revés · chills</h3><div class="recs">'+rec('Menos numeroso',f1,f1.people+' personas')+rec('Con menos ml',f2,fmt(f2.ml)+' ml')+rec('Más corto',f3,dur(f3.dur))+rec('Con menos chorros',f4,f4.n+' chorros')+(f5?rec('Menos intenso (ml/hora)',f5,fmt(Math.round(f5.ml/(f5.dur/H)*100)/100)+' ml/h'):'')+'</div>';}
+          h+='<h3>🙃 Récords al revés · liadas</h3><div class="recs">'+rec('Menos numeroso',f1,f1.people+' personas')+rec('Con menos ml',f2,fmt(f2.ml)+' ml')+rec('Más corto',f3,dur(f3.dur))+rec('Con menos chorros',f4,f4.n+' chorros')+(f5?rec('Menos intenso (ml/hora)',f5,fmt(Math.round(f5.ml/(f5.dur/H)*100)/100)+' ml/h'):'')+'</div>';}
         var plx=pl.filter(function(o){return o.n>0;});
         if(plx.length>1){var q1=bot(plx,function(o){return o.ml;}),q2=bot(plx,function(o){return o.n;}),q3=bot(plx,function(o){return o.nch;}),q6=bot(plx,function(o){return o.hours>0?o.hours:null;}),q4=bot(plx,function(o){return o.worst!=null?o.worst:null;}),q5=bot(plx.filter(function(o){return o.hours>=1;}),function(o){return o.ml/o.hours;});
-          var rv=prec('Menos ml en total',q1,fmt(q1.ml)+' ml')+prec('Menos chorros',q2,q2.n+(q2.n===1?' chorro':' chorros'))+prec('Menos chills',q3,q3.nch+' chill'+(q3.nch===1?'':'s'))+(q6?prec('Menos horas de chill',q6,hfmt(q6.hours)):'')+(q4?prec('Menos ml en un solo chill',q4,fmt(q4.worst)+' ml',q4.worstS?esc(sTitle(q4.worstS))+', '+dmy(q4.worstS.start):''):'')+(q5?prec('Menor ritmo',q5,fmt(Math.round(q5.ml/q5.hours*100)/100)+' ml/h'):'');
+          var rv=prec('Menos ml en total',q1,fmt(q1.ml)+' ml')+prec('Menos chorros',q2,q2.n+(q2.n===1?' chorro':' chorros'))+prec('Menos liadas',q3,q3.nch+' liada'+(q3.nch===1?'':'s'))+(q6?prec('Menos horas de liada',q6,hfmt(q6.hours)):'')+(q4?prec('Menos ml en una sola liada',q4,fmt(q4.worst)+' ml',q4.worstS?esc(sTitle(q4.worstS))+', '+dmy(q4.worstS.start):''):'')+(q5?prec('Menor ritmo',q5,fmt(Math.round(q5.ml/q5.hours*100)/100)+' ml/h'):'')+(function(){var g=plx.filter(function(o){return o.gn;}),q7=g.length?bot(g,function(o){return -(o.gs/o.gn);}):null,m2=plx.filter(function(o){return o.nch>=2;}),q8=m2.length?bot(m2,function(o){return o.ml/o.nch;}):null,q9=bot(plx,function(o){return o.best>0?o.best:null;});
+            return (q7?prec('Más pausado (media entre chorros)',q7,dur(q7.gs/q7.gn)):'')+(q8?prec('Menos ml por liada (2 liadas o más)',q8,fmt(Math.round(q8.ml/q8.nch*100)/100)+' ml'):'')+(q9?prec('Su mejor liada es la más floja',q9,fmt(q9.best)+' ml',q9.bestS?esc(sTitle(q9.bestS))+', '+dmy(q9.bestS.start):''):'');})();
           if(rv)h+='<h3>🙃 Récords al revés · personas</h3><div class="recs">'+rv+'</div>';}})();
       pl.sort(function(a,b){return (b.ml-a.ml)||(b.n-a.n);});
       var lastEv=null;ev.forEach(function(sv){if(sv.n>0&&(!lastEv||sv.se.start>lastEv.se.start))lastEv=sv;});
@@ -1797,16 +1799,16 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         Object.keys(PP).map(function(k){return PP[k];}).sort(function(a,b){return (b.ml-a.ml)||(b.n-a.n);}).forEach(function(o,i){prevPos[o.k]=i+1;});hasPrev=true;
       }
       function hArrow(o,i){if(!hasPrev)return '<span class="rkm"></span>';var k=canon(o.name),was=prevPos[k],pos=i+1;
-        if(was==null)return '<span class="rkm rknew" title="Nuevo: su primer chill">●</span>';
-        if(was>pos)return '<span class="rkm rkup" title="Sube '+(was-pos)+' tras el último chill">▲'+(was-pos)+'</span>';
-        if(was<pos)return '<span class="rkm rkdn" title="Baja '+(pos-was)+' tras el último chill">▼'+(pos-was)+'</span>';
-        return '<span class="rkm rkeq" title="Misma posición que antes del último chill">=</span>';}
+        if(was==null)return '<span class="rkm rknew" title="Nuevo: su primera liada">●</span>';
+        if(was>pos)return '<span class="rkm rkup" title="Sube '+(was-pos)+' tras la última liada">▲'+(was-pos)+'</span>';
+        if(was<pos)return '<span class="rkm rkdn" title="Baja '+(pos-was)+' tras la última liada">▼'+(pos-was)+'</span>';
+        return '<span class="rkm rkeq" title="Misma posición que antes de la última liada">=</span>';}
       var rk=0;
-      h+='<h3>Clasificación histórica</h3>'+(hasPrev?'<div class="msg" style="margin:-4px 0 6px">Las flechas comparan con la clasificación antes del último chill ('+esc(sTitle(lastEv.se))+', '+dmy(lastEv.se.start)+').</div>':'')+'<div class="scroll"><table class="sumt"><thead><tr><th>Persona</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Chills</th><th class="n">Horas</th><th class="n" title="Tiempo medio entre un chorro y el siguiente, sin contar ausencias">Media entre chorros</th><th class="n">ml por chill</th><th class="n">ml/hora</th><th class="n">Mejor chill</th><th class="n">Última vez</th></tr></thead><tbody>'+pl.map(function(o,i){
+      h+='<h3>Clasificación histórica</h3>'+(hasPrev?'<div class="msg" style="margin:-4px 0 6px">Las flechas comparan con la clasificación antes de la última liada ('+esc(sTitle(lastEv.se))+', '+dmy(lastEv.se.start)+').</div>':'')+'<div class="scroll"><table class="sumt"><thead><tr><th>Persona</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Liadas</th><th class="n">Horas</th><th class="n" title="Tiempo medio entre un chorro y el siguiente, sin contar ausencias">Media entre chorros</th><th class="n">ml por liada</th><th class="n">ml/hora</th><th class="n">Mejor liada</th><th class="n">Última vez</th></tr></thead><tbody>'+pl.map(function(o,i){
         if(i===0||o.ml!==pl[i-1].ml)rk=i+1;var sl=colMap[nrm(o.name)];if(typeof sl!=='number')sl=o.col;var c=(typeof sl==='number'&&sl<NC)?PAL[sl]:'var(--mut)';
         return '<tr><td class="name"><span class="rk">'+rk+'.</span>'+hArrow(o,i)+'<i class="dot" style="background:'+c+'"></i><span data-pcard="'+esc(o.name)+'">'+esc(o.name)+'</span></td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.n+'</td><td class="n">'+o.nch+'</td><td class="n">'+(o.hours>0?hfmt(o.hours):'—')+'</td><td class="n">'+(o.gn?dur(o.gs/o.gn):'—')+'</td><td class="n">'+fmt(Math.round(o.ml/o.nch*100)/100)+'</td><td class="n">'+(o.hours>=0.5?fmt(Math.round(o.ml/o.hours*100)/100):'—')+'</td><td class="n">'+fmt(o.best)+'</td><td class="n">'+(o.last?dmy(o.last):'—')+'</td></tr>';
       }).join('')+'</tbody></table></div>';
-      /* evolucion del acumulado chill a chill */
+      /* evolucion del acumulado liada a liada */
       var evC=ev.filter(function(sv){return sv.n>0;}).sort(function(a,b){return a.se.start-b.se.start;});
       if(evC.length>=2){
         var Wc=Math.max(320,Math.min(900,($('statsBox').clientWidth||600))),Hc=300,Lc=40,Rc=110,Tc=14,Bc=46,pwc=Wc-Lc-Rc,phc=Hc-Tc-Bc,nC=evC.length;
@@ -1822,13 +1824,13 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
           gc+='<path d="'+d+'" fill="none" style="stroke:'+sr.c+'" stroke-width="2" stroke-linejoin="round"/>';});
         var lbs=ser2.map(function(sr){return {y:Yc(sr.pts[nC-1]),sr:sr};}).sort(function(a,b){return a.y-b.y;}),lastY=-99;
         lbs.forEach(function(o){if(o.y-lastY<12)return;lastY=o.y;var nm=o.sr.o.name.length>10?o.sr.o.name.slice(0,9)+'…':o.sr.o.name;gc+='<text x="'+(Lc+pwc+6)+'" y="'+(o.y+4)+'" font-size="11" style="fill:var(--ink)"><tspan font-weight="600">'+fmt(o.sr.pts[nC-1])+'</tspan> '+esc(nm)+'</text>';});
-        h+='<h3>Evolución del acumulado</h3><div class="msg" style="margin:-4px 0 6px">Mililitros acumulados de cada persona después de cada chill. Cada punto es un chill en el que sumó.</div><div class="chart"><svg viewBox="0 0 '+Wc+' '+Hc+'" role="img" aria-label="Evolución del acumulado chill a chill">'+gc+dts+'</svg></div>';
+        h+='<h3>Evolución del acumulado</h3><div class="msg" style="margin:-4px 0 6px">Mililitros acumulados de cada persona después de cada liada. Cada punto es una liada en la que sumó.</div><div class="chart"><svg viewBox="0 0 '+Wc+' '+Hc+'" role="img" aria-label="Evolución del acumulado liada a liada">'+gc+dts+'</svg></div>';
       }
       /* ranking de anfitriones */
       var HO={};ev.forEach(function(sv){var tl=locTimeline(sv.se);tl.forEach(function(seg,j){var to=j+1<tl.length?tl[j+1].at:Infinity,hs=Object.keys(P).filter(function(k){return isHostOf(seg.loc,k);}).sort();if(!hs.length)return;var key=hs.join('|'),o=HO[key]||(HO[key]={hs:hs,names:hs.map(function(k){return P[k].name;}),ch:{},ml:0,n:0,g:{}});o.ch[sv.se.id]=1;
         D.logs.forEach(function(l){if(l.sid===sv.se.id&&l.ts>=seg.at-60000&&l.ts<to&&pById[l.pid]&&(!l.loc||nrm(l.loc)===nrm(seg.loc))){o.ml+=l.amt;o.n++;var gk=canon(pById[l.pid].name);if(hs.indexOf(gk)<0)o.g[gk]=1;}});});});
       var hl=Object.keys(HO).map(function(k){var o=HO[k];o.nch=Object.keys(o.ch).length;o.ng=Object.keys(o.g).length;return o;}).sort(function(a,b){return (b.nch-a.nch)||(b.ml-a.ml);});
-      if(hl.length)h+='<h3>🏠 Anfitriones</h3><div class="scroll"><table class="sumt"><thead><tr><th>Anfitrión</th><th class="n">Chills</th><th class="n">ml en su casa</th><th class="n">Chorros</th><th class="n">Invitados</th></tr></thead><tbody>'+hl.map(function(o,i){return '<tr><td class="name"><span class="rk">'+(i+1)+'.</span>'+o.names.map(function(nm){return '<span data-pcard="'+esc(nm)+'">'+esc(nm)+'</span>';}).join(' y ')+'</td><td class="n">'+o.nch+'</td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.n+'</td><td class="n">'+o.ng+'</td></tr>';}).join('')+'</tbody></table></div>';
+      if(hl.length)h+='<h3>🏠 Anfitriones</h3><div class="scroll"><table class="sumt"><thead><tr><th>Anfitrión</th><th class="n">Liadas</th><th class="n">ml en su casa</th><th class="n">Chorros</th><th class="n">Invitados</th></tr></thead><tbody>'+hl.map(function(o,i){return '<tr><td class="name"><span class="rk">'+(i+1)+'.</span>'+o.names.map(function(nm){return '<span data-pcard="'+esc(nm)+'">'+esc(nm)+'</span>';}).join(' y ')+'</td><td class="n">'+o.nch+'</td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.n+'</td><td class="n">'+o.ng+'</td></tr>';}).join('')+'</tbody></table></div>';
       /* por ubicacion */
       function locAt(se,t){var tl=locTimeline(se),r=tl.length?tl[0].loc:'';tl.forEach(function(x){if(x.at<=t)r=x.loc;});return r;}
       var LC={};function lget(n){var k=nrm(n);return LC[k]||(LC[k]={name:n,ch:{},n:0,ml:0,pp:{}});}
@@ -1859,7 +1861,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         if(slot>=34||i%Math.ceil(34/slot)===0)g+='<text x="'+cx+'" y="'+(Ht-32)+'" text-anchor="middle" font-size="11" style="fill:var(--mut)">'+dmy(s.se.start).slice(0,5)+'</text>'+wrap2(sTitle(s.se),Math.max(6,Math.floor(Math.min(slot,140)/5.6))).map(function(t,j){return '<text x="'+cx+'" y="'+(Ht-19+j*12)+'" text-anchor="middle" font-size="10" style="fill:var(--mut)">'+esc(t)+'</text>';}).join('');
       });
       g+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mut)"/>';
-      h+='<h3 style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+{ml:'Mililitros',n:'Chorros',h:'Duración (h)'}[MPC]+' por chill<span class="segb">'+[['ml','ml'],['n','Chorros'],['h','Duración']].map(function(x){return '<button type="button" data-mpc="'+x[0]+'" class="'+(MPC===x[0]?'on':'')+'">'+x[1]+'</button>';}).join('')+'</span></h3><div class="msg" style="margin:-4px 0 6px">Toca una barra para ver el resumen de ese chill.</div>'+(LPL.length>1?'<div class="plg">'+LPL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<div class="bars"><svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros totales de cada chill">'+g+'</svg></div>'+(ev.length>24?'<div class="msg">Se muestran los últimos 24 chills.</div>':'')+'</div>';
+      h+='<h3 style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+{ml:'Mililitros',n:'Chorros',h:'Duración (h)'}[MPC]+' por liada<span class="segb">'+[['ml','ml'],['n','Chorros'],['h','Duración']].map(function(x){return '<button type="button" data-mpc="'+x[0]+'" class="'+(MPC===x[0]?'on':'')+'">'+x[1]+'</button>';}).join('')+'</span></h3><div class="msg" style="margin:-4px 0 6px">Toca una barra para ver el resumen de esa liada.</div>'+(LPL.length>1?'<div class="plg">'+LPL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<div class="bars"><svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros totales de cada liada">'+g+'</svg></div>'+(ev.length>24?'<div class="msg">Se muestran los últimos 24 liadas.</div>':'')+'</div>';
       box.innerHTML=h;
       if(statsKeepY!==null){var ky=statsKeepY;statsKeepY=null;box.style.minHeight='';try{window.scrollTo(0,ky);}catch(e){}}
       box.querySelectorAll('[data-mpc]').forEach(function(b){b.onclick=function(){MPC=b.dataset.mpc;statsKeepY=window.scrollY;renderStats();};});
@@ -1897,28 +1899,28 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       case 'addp':return w+' añadió a '+P;
       case 'gone':return w+' marcó que '+P+' se ha ido';
       case 'back':return w+' marcó que '+P+' ha vuelto';
-      case 'start':return w+' inició el chill'+(a.name?' <b>'+esc(a.name)+'</b>':'');
-      case 'end':return w+' finalizó el chill';
+      case 'start':return w+' inició la liada'+(a.name?' <b>'+esc(a.name)+'</b>':'');
+      case 'end':return w+' finalizó la liada';
       case 'locren':return w+' renombró la ubicación: '+esc(a.from||'?')+' → <b>'+esc(a.loc||'')+'</b>';
       case 'bulk':return w+' cargó de golpe <b>'+(a.n||0)+' chorros</b> ('+fmt(a.amt||0)+' ml) a <b>'+esc(a.pname||'?')+'</b>';
       case 'route':return w+' editó el nombre y recorrido: <b>'+esc(a.name||'')+'</b> ('+esc(a.loc||'')+')';
       case 'merge':return w+' fusionó a '+esc(a.from||'?')+' con <b>'+esc(a.pname||'')+'</b> ('+(a.n||0)+' chorros)';
-      case 'pren':return w+' corrigió un nombre: '+esc(a.from||'?')+' → <b>'+esc(a.pname||'')+'</b>'+(a.all?' (en todos los chills)':'');
+      case 'pren':return w+' corrigió un nombre: '+esc(a.from||'?')+' → <b>'+esc(a.pname||'')+'</b>'+(a.all?' (en todas las liadas)':'');
       case 'loc':return a.who?w+' movió a '+esc(a.who)+' a <b>'+esc(a.loc||'')+'</b>':w+' cambió la ubicación: '+esc(a.from||'?')+' → <b>'+esc(a.loc||'')+'</b>';
       case 'cap':return w+(a.cap?' puso un tope de <b>'+fmt(a.cap)+' ml</b> por persona':' quitó el tope por persona');
       case 'times':return w+' editó los horarios de llegada y salida de '+P;
-      case 'delchill':return w+' eliminó el chill <b>'+esc(a.name||'')+'</b>';
-      case 'restchill':return w+' recuperó el chill <b>'+esc(a.name||'')+'</b>';
-      case 'reopen':return w+' reabrió el chill <b>'+esc(a.name||'')+'</b>';
-      case 'sched':return w+' cambió el horario del chill: '+dmy(a.s)+' '+hhmm(a.s)+(a.e?' – '+dmy(a.e)+' '+hhmm(a.e):'');
-      case 'auto':return 'El chill se cerró automáticamente tras '+(a.h||'?')+' h sin chorros';
+      case 'delchill':return w+' eliminó la liada <b>'+esc(a.name||'')+'</b>';
+      case 'restchill':return w+' recuperó la liada <b>'+esc(a.name||'')+'</b>';
+      case 'reopen':return w+' reabrió la liada <b>'+esc(a.name||'')+'</b>';
+      case 'sched':return w+' cambió el horario de la liada: '+dmy(a.s)+' '+hhmm(a.s)+(a.e?' – '+dmy(a.e)+' '+hhmm(a.e):'');
+      case 'auto':return 'La liada se cerró automáticamente tras '+(a.h||'?')+' h sin chorros';
     }
     return w+' hizo un cambio';
   }
   function renderAct(){
     var box=$('actBox');if(!box||box.hidden)return;
     var items=(db?actItems:(state.activity||[])).slice().sort(function(a,b){return b.at-a.at;}).slice(0,400);
-    if(!items.length){box.innerHTML='<div class="trash"><b>Actividad</b><div class="empty">Todavía no hay actividad registrada en este chill.</div></div>';return;}
+    if(!items.length){box.innerHTML='<div class="trash"><b>Actividad</b><div class="empty">Todavía no hay actividad registrada en esta liada.</div></div>';return;}
     resolveNames(items.map(function(a){return a.by;})).then(function(ch){if(ch)renderAct();});
     var lastDay='';
     box.innerHTML='<div class="trash"><b>Actividad</b><div class="msg" style="margin:2px 0 6px">Lo más reciente arriba.</div><div class="actl">'+items.map(function(a){
@@ -1982,7 +1984,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var F='"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif';
     g.fillStyle=DK.bg;g.fillRect(0,0,W,Ht);
     g.fillStyle=DK.acc;g.font='600 30px '+F;g.fillText('Chorrómetro',pad,84);
-    var tt=sTitle(se)||'Chill',fs=60,mw=W-2*pad;g.font='600 '+fs+'px '+F;while(g.measureText(tt).width>mw&&fs>34){fs-=2;g.font='600 '+fs+'px '+F;}while(g.measureText(tt).width>mw&&tt.length>4)tt=tt.slice(0,-2).replace(/\s+$/,'')+'…';
+    var tt=sTitle(se)||'Liada',fs=60,mw=W-2*pad;g.font='600 '+fs+'px '+F;while(g.measureText(tt).width>mw&&fs>34){fs-=2;g.font='600 '+fs+'px '+F;}while(g.measureText(tt).width>mw&&tt.length>4)tt=tt.slice(0,-2).replace(/\s+$/,'')+'…';
     g.fillStyle=DK.ink;g.fillText(tt,pad,160);
     var sub=dmy(se.start)+' · '+hhmm(se.start)+'–'+hhmm(end)+' · '+dur(end-se.start),sp2=sidePlaces(se);g.font='30px '+F;if(sp2.length){var ex=' · además: '+sp2.join(', ');if(g.measureText(sub+ex).width<=mw)sub+=ex;}
     g.fillStyle=DK.mut;g.fillText(sub,pad,210);
@@ -2055,7 +2057,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       g.fillStyle=DK.bg;g.fillRect(0,0,W,Ht);
       g.fillStyle=DK.acc;g.font='600 30px '+F;g.fillText('Chorrómetro · Clasificación histórica',pad,76);
       g.fillStyle=DK.ink;g.font='600 44px '+F;var ti=sTitle(d.se);while(g.measureText(ti).width>W-2*pad&&ti.length>4)ti=ti.slice(0,-2)+'…';g.fillText(ti,pad,136);
-      g.fillStyle=DK.mut;g.font='28px '+F;g.fillText(t<T0?'Antes de este chill':(k<1?'Sumando los chorros de '+dmy(d.se.start)+'…':'Después de este chill'),pad,182);
+      g.fillStyle=DK.mut;g.font='28px '+F;g.fillText(t<T0?'Antes de esta liada':(k<1?'Sumando los chorros de '+dmy(d.se.start)+'…':'Después de esta liada'),pad,182);
       var newRow=N;d.list.slice().sort(function(x,y){return (x.b?x.b.i:1e9)-(y.b?y.b.i:1e9);}).forEach(function(x){if(!x.b)x._ni=newRow++;});
       d.list.slice().sort(function(x,y){return (y.a.i)-(x.a.i);}).forEach(function(x){
         var y0=top+(x.b?x.b.i:x._ni)*rowH,y1=top+x.a.i*rowH,yy=y0+(y1-y0)*k,ml=(x.b?x.b.ml:0)+(x.a.ml-(x.b?x.b.ml:0))*k;
@@ -2082,7 +2084,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     m.querySelector('.sm-card').appendChild(box);
     histRank(viewSid).then(function(d){
       if(!d||!d.list.length){box.innerHTML='';return;}
-      if(!d.hasBefore){box.innerHTML='<h4>Clasificación histórica</h4><div class="msg">Este fue el primer chill, no hay posiciones anteriores con las que comparar.</div>';return;}
+      if(!d.hasBefore){box.innerHTML='<h4>Clasificación histórica</h4><div class="msg">Esta fue la primera liada, no hay posiciones anteriores con las que comparar.</div>';return;}
       var A=animCanvas(d);box.innerHTML='<h4>Clasificación histórica: antes → después</h4>';box.appendChild(A.c);
       var bt=document.createElement('div');bt.className='sm-btns';bt.innerHTML='<button class="s" id="anRe">▶ Repetir</button><button class="p" id="anVid">Guardar vídeo</button>';box.appendChild(bt);
       var msg=document.createElement('div');msg.className='msg';box.appendChild(msg);
@@ -2103,18 +2105,18 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   }
   function pad2(n){return n<10?'0'+n:''+n;}
   function openShare(){
-    if(!state.logs.length&&!state.people.length){say('Este chill todavía no tiene datos para el resumen.');return;}
+    if(!state.logs.length&&!state.people.length){say('Esta liada todavía no tiene datos para el resumen.');return;}
     var c=buildShare(),url=c.toDataURL('image/png'),m=$('shareModal');
-    m.hidden=false;m.innerHTML='<div class="sm-card"><div class="sm-head"><b>🖼️ '+esc(sumTitle(sess(viewSid)))+'</b><button class="s" id="smClose">Cerrar</button></div><img src="'+url+'" alt="Resumen del chill"><div class="sm-btns"><button class="p" id="smShare">Compartir</button><button class="s" id="smSave">Guardar imagen</button></div><div class="msg" id="smMsg">Si no se abre el menú de compartir, mantén pulsada la imagen para guardarla o copiarla.</div></div>';
-    var se=sess(viewSid),fn='chill-'+((se&&curLoc(se))||'resumen').replace(/[^a-z0-9áéíóúñ]+/gi,'-').toLowerCase()+'-'+dmy(se?se.start:Date.now()).replace(/\//g,'-')+'.png';
+    m.hidden=false;m.innerHTML='<div class="sm-card"><div class="sm-head"><b>🖼️ '+esc(sumTitle(sess(viewSid)))+'</b><button class="s" id="smClose">Cerrar</button></div><img src="'+url+'" alt="Resumen de la liada"><div class="sm-btns"><button class="p" id="smShare">Compartir</button><button class="s" id="smSave">Guardar imagen</button></div><div class="msg" id="smMsg">Si no se abre el menú de compartir, mantén pulsada la imagen para guardarla o copiarla.</div></div>';
+    var se=sess(viewSid),fn='liada-'+((se&&curLoc(se))||'resumen').replace(/[^a-z0-9áéíóúñ]+/gi,'-').toLowerCase()+'-'+dmy(se?se.start:Date.now()).replace(/\//g,'-')+'.png';
     $('smClose').onclick=function(){m.hidden=true;m.innerHTML='';};
     m.onclick=function(e){if(e.target===m){m.hidden=true;m.innerHTML='';}};
-    if(se&&state.logs.length){var MD=medalsFor(se,state.people,state.logs),mdh=state.people.filter(function(p){return MD[canon(p.name)];}).map(function(p){return '<div style="margin-top:6px"><b>'+esc(p.name)+'</b>'+medalsHtml(MD[canon(p.name)])+'</div>';}).join('');if(mdh){var md=document.createElement('div');md.className='sm-anim';md.innerHTML='<h4>🏅 Medallas del chill</h4>'+mdh;m.querySelector('.sm-card').appendChild(md);}}
+    if(se&&state.logs.length){var MD=medalsFor(se,state.people,state.logs),mdh=state.people.filter(function(p){return MD[canon(p.name)];}).map(function(p){return '<div style="margin-top:6px"><b>'+esc(p.name)+'</b>'+medalsHtml(MD[canon(p.name)])+'</div>';}).join('');if(mdh){var md=document.createElement('div');md.className='sm-anim';md.innerHTML='<h4>🏅 Medallas de la liada</h4>'+mdh;m.querySelector('.sm-card').appendChild(md);}}
     if(se){var gh=groupsHtml(se);if(gh){var gd=document.createElement('div');gd.className='sm-anim';gd.innerHTML='<h4>📍 Grupos y sitios</h4>'+gh;m.querySelector('.sm-card').appendChild(gd);}}
     if(db&&se)setupAnim(m,se);
     function blob(){return new Promise(function(res){c.toBlob(res,'image/png');});}
     $('smShare').onclick=function(){blob().then(function(b){var f=new File([b],fn,{type:'image/png'});
-      if(navigator.canShare&&navigator.canShare({files:[f]}))return navigator.share({files:[f],title:se?sTitle(se):'Chill'}).catch(function(err){if(err&&err.name!=='AbortError')$('smMsg').textContent='No se pudo abrir el menú de compartir aquí. Usa "Guardar imagen" o mantén pulsada la imagen.';});
+      if(navigator.canShare&&navigator.canShare({files:[f]}))return navigator.share({files:[f],title:se?sTitle(se):'Liada'}).catch(function(err){if(err&&err.name!=='AbortError')$('smMsg').textContent='No se pudo abrir el menú de compartir aquí. Usa "Guardar imagen" o mantén pulsada la imagen.';});
       $('smMsg').textContent='Este navegador no permite compartir desde aquí. Usa "Guardar imagen" o mantén pulsada la imagen.';});};
     $('smSave').onclick=function(){blob().then(function(b){saveFile(fn,b);});};
   }
@@ -2176,20 +2178,20 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('screen'))setScreen(false);});
   var wasFs=false;document.addEventListener('fullscreenchange',function(){if(document.fullscreenElement){wasFs=true;return;}if(wasFs&&document.body.classList.contains('screen')){wasFs=false;setScreen(false);}});
   setInterval(tickScreen,20000);
-  /* historial de chills */
+  /* historial de liadas */
   function renderHistory(){
     var box=$('histBox');box.innerHTML='<div class="empty">Cargando historial…</div>';
     Promise.all([db.collection('logs').limit(1000).get(),db.collection('people').limit(1000).get()]).then(function(r){
       var pn={};r[1].docs.forEach(function(d){pn[d.id]=d.data().name;});
       var by={};r[0].docs.forEach(function(d){var x=d.data();if(!x.sid)return;var o=by[x.sid]||(by[x.sid]={n:0,tot:0,pp:{}});o.n++;o.tot+=x.amt||0;o.pp[x.pid]=(o.pp[x.pid]||0)+(x.amt||0);});
-      if(!sessions.length&&!delSessions.length){box.innerHTML='<div class="empty">Todavía no hay chills.</div>';return;}
+      if(!sessions.length&&!delSessions.length){box.innerHTML='<div class="empty">Todavía no hay liadas.</div>';return;}
       var rows=sessions.map(function(se){
         var o=by[se.id]||{n:0,tot:0,pp:{}},topId=null,topV=0;for(var k in o.pp)if(o.pp[k]>topV){topV=o.pp[k];topId=k;}
         var cur=isActive(se.id),lugar=(locTimeline(se).length>1&&locPath(se).indexOf(' → ')>=0?'Ruta ':'')+locPath(se);
         return '<tr'+(cur?' class="cur"':'')+'><td>'+dmy(se.start)+'</td><td>'+esc(lugar)+(cur?' <span class="msg">(en curso)</span>':'')+'</td><td class="n">'+dur((se.end||Date.now())-se.start)+'</td><td class="n">'+o.n+'</td><td class="n">'+fmt(o.tot)+' ml</td><td>'+(topId?esc(pn[topId]||'—')+' <span class="msg">'+fmt(topV)+' ml</span>':'—')+'</td><td><button class="s" data-hv="'+se.id+'">Ver</button></td></tr>';
       }).join('');
       box.innerHTML='<div class="scroll"><table class="hist"><thead><tr><th>Fecha</th><th>Lugar</th><th class="n">Duración</th><th class="n">Chorros</th><th class="n">Total</th><th>Quién tomó más</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-      if(delSessions.length)box.innerHTML+='<div class="trash" style="margin-top:12px"><b>Chills eliminados</b><div class="msg" style="margin:2px 0 6px">Puedes recuperarlos o borrarlos para siempre con todos sus datos.</div>'+delSessions.map(function(x){return '<div class="trow"><div>'+esc(sTitle(x))+'<div class="msg" style="margin:0">'+dmy(x.start)+' · eliminado el '+dmy(x.deleted)+' a las '+hhmm(x.deleted)+'</div></div><div class="tbtn"><button class="s go" data-hrest="'+x.id+'">Recuperar</button><button class="s" data-hpurge="'+x.id+'">Borrar del todo</button></div></div>';}).join('')+'</div>';
+      if(delSessions.length)box.innerHTML+='<div class="trash" style="margin-top:12px"><b>Liadas eliminadas</b><div class="msg" style="margin:2px 0 6px">Puedes recuperarlos o borrarlos para siempre con todos sus datos.</div>'+delSessions.map(function(x){return '<div class="trow"><div>'+esc(sTitle(x))+'<div class="msg" style="margin:0">'+dmy(x.start)+' · eliminado el '+dmy(x.deleted)+' a las '+hhmm(x.deleted)+'</div></div><div class="tbtn"><button class="s go" data-hrest="'+x.id+'">Recuperar</button><button class="s" data-hpurge="'+x.id+'">Borrar del todo</button></div></div>';}).join('')+'</div>';
     },function(){box.innerHTML='<div class="empty">No se pudo cargar el historial.</div>';});
   }
   /* pestañas */
@@ -2212,20 +2214,20 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
 
   /* glosario de medallas */
   var MEDAL_HELP=[
-    ['En cada chill',[
-      ['🥇','Más ml','Quien más mililitros toma en el chill.'],
-      ['🔢','Más chorros','Quien más chorros toma en el chill (en número).'],
-      ['🎯','Primer chorro','El primer chorro del chill.'],
-      ['🌙','Último chorro','El último chorro del chill.'],
+    ['En cada liada',[
+      ['🥇','Más ml','Quien más mililitros toma en la liada.'],
+      ['🔢','Más chorros','Quien más chorros toma en la liada (en número).'],
+      ['🎯','Primer chorro','El primer chorro de la liada.'],
+      ['🌙','Último chorro','El último chorro de la liada.'],
       ['🔑','El primero','El primero en llegar (con 3 personas o más; si llegan a la vez, todos).'],
       ['🚪','El último','El último en irse, cuando todo ha terminado.'],
-      ['🏠','Anfitrión','El chill pasa por su casa.'],
+      ['🏠','Anfitrión','La liada pasa por su casa.'],
       ['📝','Apuntador','Quien más chorros anota a otros (mínimo 3).'],
-      ['🛋️','Vago','Quien menos chorros apunta en la app, entre quienes tienen cuenta (mínimo 3 con cuenta en el chill).']]],
+      ['🛋️','Vago','Quien menos chorros apunta en la app, entre quienes tienen cuenta (mínimo 3 con cuenta en la liada).']]],
     ['Duración',[
-      ['🦉','Noche completa','8 horas o más en el chill, sin contar ausencias.'],
-      ['🏕️','Maratón +24 h','24 horas o más en el chill.'],
-      ['⚡','Visita exprés','Menos de 6 horas y al menos un chorro (chill terminado).'],
+      ['🦉','Noche completa','8 horas o más en la liada, sin contar ausencias.'],
+      ['🏕️','Maratón +24 h','24 horas o más en la liada.'],
+      ['⚡','Visita exprés','Menos de 6 horas y al menos un chorro (liada terminada).'],
       ['🌅','Llegó al D+N','Siguió tomando chorros al día siguiente (D+1), o al otro (D+2)…'],
       ['🪃','Bumerán','Se fue y volvió.']]],
     ['Ritmo',[
@@ -2233,7 +2235,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🔥','Doblete','Dos chorros seguidos con 30 minutos o menos entre ellos.'],
       ['🎩','Hat-trick','Tres chorros en 1 h 30 min o menos.'],
       ['🚀','Arranque fuerte','Más ml en su primera hora desde que llegó.'],
-      ['🏁','Sprint final','Más ml en la última hora del chill.'],
+      ['🏁','Sprint final','Más ml en la última hora de la liada.'],
       ['🐢','Tortuga','El que más espacia sus chorros de media (mínimo 3 chorros).'],
       ['🏜️','Sequía','El hueco más largo sin chorro estando presente.'],
       ['⏰','Puntual','Más chorros justo cuando le tocaba (±5 min del intervalo de aviso).'],
@@ -2254,16 +2256,16 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['👯','Sincronizado con…','Las dos personas que más veces toman chorro a la vez (menos de 2 min). Se la llevan las dos.']]],
     ['Sitios',[
       ['🧭','Nómada','Tomó chorros en 3 sitios o más.'],
-      ['💯','Pleno','Estuvo en todos los sitios del chill. Si el grupo se dividió, vale cualquiera de las ramas; los caminos en solitario de otros no cuentan.'],
-      ['🌍','Explorador','Primera vez de esa persona en un sitio (no cuenta en su primer chill).'],
+      ['💯','Pleno','Estuvo en todos los sitios de la liada. Si el grupo se dividió, vale cualquiera de las ramas; los caminos en solitario de otros no cuentan.'],
+      ['🌍','Explorador','Primera vez de esa persona en un sitio (no cuenta en su primera liada).'],
       ['🎉','De estreno','Estaba en los primeros 30 minutos del primer chill en una casa o alojamiento.']]],
     ['Historial',[
-      ['🆕','Debut','Su primer chill.'],
-      ['📈','Récord personal','Supera su máximo de ml de chills anteriores.'],
-      ['🔁','Fijo','Ha venido a los últimos 5 chills seguidos.']]]
+      ['🆕','Debut','Su primera liada.'],
+      ['📈','Récord personal','Supera su máximo de ml de liadas anteriores.'],
+      ['🔁','Fijo','Ha venido a los últimos 5 liadas seguidas.']]]
   ];
   function renderMedalsHelp(){var b=$('medalsBox');if(b.dataset.done)return;b.dataset.done='1';
-    b.innerHTML='<h2>🏅 Medallas</h2><div class="msg">Se reparten al final de cada chill y aparecen en el resumen y en la ficha de cada persona. Si hay empate, se la llevan todos los empatados.</div>'+
+    b.innerHTML='<h2>🏅 Medallas</h2><div class="msg">Se reparten al final de cada liada y aparecen en el resumen y en la ficha de cada persona. Si hay empate, se la llevan todos los empatados.</div>'+
       MEDAL_HELP.map(function(g){return '<h3 style="margin:18px 0 6px">'+g[0]+'</h3><div class="mhl">'+g[1].map(function(m){return '<div class="mhi"><span class="mhe">'+m[0]+'</span><div><b>'+esc(m[1])+'</b><div class="msg" style="margin:2px 0 0">'+esc(m[2])+'</div></div></div>';}).join('')+'</div>';}).join('');}
   /* lugares */
   var PTYPES=[['casa','🏠 Casa'],['bar','🍻 Bar'],['disco','🪩 Discoteca / fiesta'],['rest','🍽️ Restaurante'],['fuera','🏖️ Playa / aire libre'],['spa','🧖 Spa / sauna'],['aloj','🏨 Alojamiento'],['transp','🚆 Transporte'],['evento','🎪 Evento'],['otro','❓ Otro']];
@@ -2295,7 +2297,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var box=$('placesBox');if(!db){box.innerHTML='<div class="empty">Los lugares necesitan la versión conectada.</div>';return;}
     if(!plData){box.innerHTML='<div class="empty">Cargando lugares…</div>';Promise.all([loadAll(),db.collection('places').get()]).then(function(r){placesMeta={};r[1].docs.forEach(function(d){placesMeta[d.id]=d.data();});plData=r[0];renderPlaces();},function(e){box.innerHTML='<div class="empty">No se pudieron cargar los lugares.</div>';});return;}
     var L=placeStatsAll(plData),ed=canWrite,withLoc=L.filter(function(o){return o.meta.lat!=null;});
-    var h='<h2>📍 Lugares</h2><div class="msg">Cada sitio donde ha habido chill, con su ubicación y tipo. Con la ubicación puesta aparecen en el mapa.</div>'+
+    var h='<h2>📍 Lugares</h2><div class="msg">Cada sitio donde ha habido liada, con su ubicación y tipo. Con la ubicación puesta aparecen en el mapa.</div>'+
       '<div class="pltop"><select id="plMetric"><option value="ml"'+(plMetric==='ml'?' selected':'')+'>Mililitros</option><option value="n"'+(plMetric==='n'?' selected':'')+'>Nº de chorros</option><option value="nch"'+(plMetric==='nch'?' selected':'')+'>Nº de visitas</option><option value="h"'+(plMetric==='h'?' selected':'')+'>Horas</option></select><select id="plMode"><option value="circ"'+(plMode==='circ'?' selected':'')+'>Círculos</option><option value="heat"'+(plMode==='heat'?' selected':'')+'>Mapa de calor</option></select><span class="msg" style="margin:0">'+withLoc.length+' de '+L.length+' con ubicación</span></div>'+
       '<div id="plMap"></div>';
     function wnames(w){var n=w.map(function(o){return esc(o.meta.name||o.name);});return n.length>3?n.slice(0,3).join(', ')+' <span class="msg" style="margin:0">y '+(n.length-3)+' más</span>':n.join(', ');}
@@ -2345,7 +2347,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var nk=plKey(nn),ren=nrm(nn)!==nrm(old);
       var p0=ren?renamePlaceAll(old,nn):Promise.resolve();
       p0.then(function(){var w=[db.doc('places/'+nk).set(Object.assign({},placesMeta[nk]&&ren?placesMeta[nk]:{},doc))];if(ren&&nk!==o.k&&placesMeta[o.k])w.push(db.doc('places/'+o.k).delete());return Promise.all(w);}).then(function(){
-        placesMeta[nk]=doc;if(ren&&nk!==o.k)delete placesMeta[o.k];plOpen=null;if(ren){plData=null;logAct({act:'locren',from:old,loc:nn});}renderPlaces();say(ren?'Lugar renombrado a '+nn+' en todos los chills.':'Lugar guardado.');},fail);
+        placesMeta[nk]=doc;if(ren&&nk!==o.k)delete placesMeta[o.k];plOpen=null;if(ren){plData=null;logAct({act:'locren',from:old,loc:nn});}renderPlaces();say(ren?'Lugar renombrado a '+nn+' en todas las liadas.':'Lugar guardado.');},fail);
     };
   }
   function renamePlaceAll(old,nn){
@@ -2414,7 +2416,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       return db.collection('people').where('sid','==',sid).get().then(function(s){return Promise.all(s.docs.filter(function(d){return d.data().gone&&Math.abs(d.data().gone-oldEnd)<2000;}).map(function(d){return db.doc('people/'+d.id).update({gone:null});}));});
     }).then(function(){logAct({act:'reopen',sid:sid,name:sTitle(se)});follow=true;try{localStorage.setItem('fichajes-view',sid);}catch(e){}say(sTitle(se)+' vuelve a estar en curso.');renderSessionBar();onData();},fail);
   }
-  /* eliminar chills */
+  /* eliminar liadas */
   function deleteChill(sid){
     var se=sess(sid);if(!se||!db)return;
     var now=Date.now(),upd={deleted:now};if(!se.end)upd.end=now;
@@ -2429,7 +2431,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var se=null;delSessions.forEach(function(x){if(x.id===sid)se=x;});
     var cols=['logs','people','trash','activity'];
     Promise.all(cols.map(function(c){return db.collection(c).where('sid','==',sid).get().then(function(s){return Promise.all(s.docs.map(function(d){return db.doc(c+'/'+d.id).delete();}));});}))
-      .then(function(){return db.doc('sessions/'+sid).delete();}).then(function(){say((se?sTitle(se):'Chill')+' borrado definitivamente.');renderHistory();},fail);
+      .then(function(){return db.doc('sessions/'+sid).delete();}).then(function(){say((se?sTitle(se):'Liada')+' borrado definitivamente.');renderHistory();},fail);
   }
   var purgePendingS=null;
   $('histBox').addEventListener('click',function(e){
@@ -2470,10 +2472,10 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var ps=r[0].docs.filter(function(d){return !d.data().sid;}),ls=r[1].docs.filter(function(d){return !d.data().sid;});
       if(!ps.length&&!ls.length)return;
       var b=$('import');b.hidden=false;
-      b.innerHTML='Hay datos de antes de los chills ('+ps.length+' personas, '+ls.length+' chorros). <button id="doMig">Guardarlos como un chill anterior</button>';
+      b.innerHTML='Hay datos de antes de las liadas ('+ps.length+' personas, '+ls.length+' chorros). <button id="doMig">Guardarlos como una liada anterior</button>';
       $('doMig').onclick=function(){
         var ts=ls.map(function(d){return d.data().ts;}).filter(Boolean),a=ts.length?Math.min.apply(null,ts):Date.now(),z=ts.length?Math.max.apply(null,ts):Date.now(),s=db.collection('sessions').doc();
-        s.set({name:'Datos anteriores',start:a,end:z}).then(function(){return Promise.all(ps.map(function(d){return db.doc('people/'+d.id).update({sid:s.id});}).concat(ls.map(function(d){return db.doc('logs/'+d.id).update({sid:s.id});})));}).then(function(){b.hidden=true;say('Datos anteriores guardados como un chill.');},fail);
+        s.set({name:'Datos anteriores',start:a,end:z}).then(function(){return Promise.all(ps.map(function(d){return db.doc('people/'+d.id).update({sid:s.id});}).concat(ls.map(function(d){return db.doc('logs/'+d.id).update({sid:s.id});})));}).then(function(){b.hidden=true;say('Datos anteriores guardados como una liada.');},fail);
       };
     },function(){});
   }
@@ -2508,12 +2510,12 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var g=$('gate'),grid=$('mainGrid');if(!g||!grid)return;
     var ok=canSee();grid.hidden=!ok;g.hidden=ok;if(ok){g.innerHTML='';return;}
     var a=sess(activeSid),h;
-    if(!activeSid)h='<div class="empty">Todavía no hay ningún chill en curso. Aquí aparecerá cuando el organizador inicie uno.</div>';
+    if(!activeSid)h='<div class="empty">Todavía no hay ninguna liada en curso. Aquí aparecerá cuando el organizador inicie uno.</div>';
     else if(!myId)h='<div class="empty">No se ha podido identificar tu cuenta. Tienes que entrar con tu cuenta de Claude y el organizador tiene que darte permiso de colaborador (ahora mismo solo puedes ver). Cuando lo tengas, recarga la página.</div>';
     else if(myStatus==='pending')h='<p>Solicitud enviada. Esperando a que el organizador la apruebe.</p><div class="msg">Esta pantalla se actualiza sola en cuanto te aprueben.</div>';
     else if(myStatus==='rejected')h='<p>El organizador no ha aprobado tu solicitud.</p><button class="p" id="joinBtn">Volver a solicitarlo</button>';
-    else h='<p>Hay un chill en curso'+(a?': <b>'+esc(sTitle(a))+'</b>':'')+'. Solicita unirte para ver la tabla y fichar.</p><button class="p" id="joinBtn">Solicitar unirse</button>';
-    g.innerHTML='<section class="gate"><h2>Unirse al chill</h2>'+h+'</section>';
+    else h='<p>Hay una liada en curso'+(a?': <b>'+esc(sTitle(a))+'</b>':'')+'. Solicita unirte para ver la tabla y fichar.</p><button class="p" id="joinBtn">Solicitar unirse</button>';
+    g.innerHTML='<section class="gate"><h2>Unirse a la liada</h2>'+h+'</section>';
   }
   function renderReq(){
     var el=$('reqBox');
@@ -2524,7 +2526,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     function row(j,btns){return '<div class="row" style="align-items:center;justify-content:space-between;padding:4px 0"><span>'+esc(whoName(j.uid)||'Alguien')+'</span><span>'+btns+'</span></div>';}
     var h='';
     if(pend.length)h+='<b>Solicitudes para unirse ('+pend.length+')</b>'+pend.map(function(j){return row(j,'<button class="go" data-ap="'+j.id+'">Aprobar</button> <button class="s" data-rj="'+j.id+'">Rechazar</button>');}).join('');
-    if(appr.length)h+='<div class="msg" style="margin-top:'+(pend.length?10:0)+'px">Aprobados en este chill ('+appr.length+')</div>'+appr.map(function(j){return row(j,'<button class="s" data-rj="'+j.id+'">Quitar</button>');}).join('');
+    if(appr.length)h+='<div class="msg" style="margin-top:'+(pend.length?10:0)+'px">Aprobados en esta liada ('+appr.length+')</div>'+appr.map(function(j){return row(j,'<button class="s" data-rj="'+j.id+'">Quitar</button>');}).join('');
     el.hidden=false;el.innerHTML=h;
   }
   function subJoins(){
@@ -2566,7 +2568,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var box=$('qrBox');
     if(!box.hidden){box.hidden=true;$('qrBtn').textContent='🔳 Mostrar QR';return;}
     box.hidden=false;$('qrBtn').textContent='🔳 Ocultar QR';
-    box.innerHTML='<div class="qrw"><div class="qr" id="qrImg"></div><p>Escanéalo para abrir la página y entrar en el chill en curso.<br>'+esc(PAGE_URL)+'</p></div>';
+    box.innerHTML='<div class="qrw"><div class="qr" id="qrImg"></div><p>Escanéalo para abrir la página y entrar en la liada en curso.<br>'+esc(PAGE_URL)+'</p></div>';
     try{new QRCode($('qrImg'),{text:PAGE_URL,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});}
     catch(e){$('qrImg').textContent='No se pudo generar el QR. Comparte este enlace directamente.';}
   };
