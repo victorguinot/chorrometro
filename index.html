@@ -1131,13 +1131,13 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var mx=0;rows.forEach(function(r){if(r.tot>mx)mx=r.tot;});if(mx>0)rows.forEach(function(r){if(r.tot===mx)add(r,'🥇 Más ml');});
     var all=logs.slice().sort(function(a,b){return a.ts-b.ts;});
     if(all.length){var f=all[0],l=all[all.length-1];rows.forEach(function(r){if(r.p.id===f.pid)add(r,'🎯 Primer chorro');if(r.p.id===l.pid&&all.length>1)add(r,'🌙 Último chorro');});}
-    var bg=null;rows.forEach(function(r){if(r.gap>0&&(!bg||r.gap<bg.gap))bg=r;});if(bg)add(bg,'💨 Más frecuente');
+    var bg=null;rows.forEach(function(r){if(r.gap>0&&(bg===null||r.gap<bg))bg=r.gap;});if(bg!==null)rows.forEach(function(r){if(r.gap>0&&Math.abs(r.gap-bg)<1)add(r,'💨 Más frecuente');});
     var d0=new Date(se.start);d0.setHours(0,0,0,0);
     var fin=!!se.end&&!isActive(se.id),ar=rows.filter(function(r){return r.ls.length||r.h>0;});
     if(ar.length>2){var fa=null,la=null;ar.forEach(function(r){var a=arrOf(r.p,r.ls,se),d=depOf(r.p,r.ls,se);r.a0=a;r.d0=d;if(!fa||a<fa.a0)fa=r;if(!la||d>la.d0)la=r;});
-      if(fa&&ar.filter(function(r){return r.a0===fa.a0;}).length===1)add(fa,'🔑 Abrió el chill');if(fin&&la&&ar.filter(function(r){return r.d0===la.d0;}).length===1)add(la,'🚪 Cerró el chill');}
+      if(fa)ar.forEach(function(r){if(r.a0===fa.a0)add(r,'🔑 Abrió el chill');});if(fin&&la)ar.forEach(function(r){if(r.d0===la.d0)add(r,'🚪 Cerró el chill');});}
     var reg={};logs.forEach(function(l){var n=l.by&&(regMap[l.by]||acctMap[l.by]);if(!n)return;var rk=canon(n),pr=null;rows.forEach(function(r){if(r.p.id===l.pid)pr=r;});if(pr&&pr.k!==rk)reg[rk]=(reg[rk]||0)+1;});
-    var rb=null;Object.keys(reg).forEach(function(k){if(reg[k]>=3&&(!rb||reg[k]>reg[rb]))rb=k;});if(rb)rows.forEach(function(r){if(r.k===rb)add(r,'📝 Apuntador');});
+    var rbv=0;Object.keys(reg).forEach(function(k){if(reg[k]>=3&&reg[k]>rbv)rbv=reg[k];});if(rbv)rows.forEach(function(r){if(reg[r.k]===rbv)add(r,'📝 Apuntador');});
     rows.forEach(function(r){
       if(r.h>=24)add(r,'🏕️ Maratón +24 h');else if(r.h>=8)add(r,'🦉 Noche completa');else if(fin&&r.h>0&&r.h<6&&r.ls.length)add(r,'⚡ Visita exprés');
       if((r.p.away||[]).some(function(x){return x.t;}))add(r,'🪃 Bumerán');
@@ -1146,7 +1146,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(r.ls.some(function(l){var hh=new Date(l.ts).getHours();return hh>=6&&hh<8;}))add(r,'🌄 Hasta el amanecer');var mo=0;r.ls.forEach(function(l){var d=new Date(l.ts);d.setHours(0,0,0,0);mo=Math.max(mo,Math.round((d-d0)/86400000));});if(mo>=1)add(r,'🌅 Llegó al D+'+mo);
       if(locTimeline(se).some(function(x){return isHostOf(x.loc,r.k);}))add(r,'🏠 Anfitrión');});
     /* ritmo y cantidad */
-    function best(fn,min,label){var bv=null,br=[];rows.forEach(function(r){var v=fn(r);if(v==null||v<=(min||0))return;if(bv===null||v>bv+1e-9){bv=v;br=[r];}else if(Math.abs(v-bv)<1e-9)br.push(r);});if(br.length===1)add(br[0],label);}
+    function best(fn,min,label){var bv=null,br=[];rows.forEach(function(r){var v=fn(r);if(v==null||v<=(min||0))return;if(bv===null||v>bv+1e-9){bv=v;br=[r];}else if(Math.abs(v-bv)<1e-9)br.push(r);});br.forEach(function(r){add(r,label);});}
     var endT=se.end||Date.now();
     best(function(r){if(!r.ls.length)return null;var a=arrOf(r.p,r.ls,se),t=0;r.ls.forEach(function(l){if(l.ts>=a&&l.ts<a+3600000)t+=l.amt;});return t;},0,'🚀 Arranque fuerte');
     if(fin)best(function(r){var t=0;r.ls.forEach(function(l){if(l.ts>endT-3600000&&l.ts<=endT)t+=l.amt;});return t;},0,'🏁 Sprint final');
@@ -1173,13 +1173,13 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var cnt={},has={};Object.keys(ids).forEach(function(i){var k=canon(ids[i]);if(rows.some(function(r){return r.k===k;})){has[k]=1;cnt[k]=cnt[k]||0;}});
       logs.forEach(function(l){var n=l.by&&ids[l.by];if(n&&has[canon(n)])cnt[canon(n)]++;});
       var ks=Object.keys(cnt);if(ks.length<3)return;var mn=Math.min.apply(null,ks.map(function(k){return cnt[k];})),w=ks.filter(function(k){return cnt[k]===mn;});
-      if(w.length===1)rows.forEach(function(r){if(r.k===w[0]&&(r.ls.length||r.h>0))add(r,'🛋️ Vago');});})();
+      rows.forEach(function(r){if(w.indexOf(r.k)>=0&&(r.ls.length||r.h>0))add(r,'🛋️ Vago');});})();
     /* momentos */
     rows.forEach(function(r){if(r.ls.some(function(l){var d=new Date(l.ts);return d.getHours()===0&&d.getMinutes()<10;}))add(r,'🕛 Campanadas');});
     var mad=all.filter(function(l){var d=new Date(l.ts);return d-d0>=86400000&&d.getHours()>=6;})[0];if(mad)rows.forEach(function(r){if(r.p.id===mad.pid)add(r,'🌞 Madrugador');});
     var SY={};for(var i=0;i<all.length;i++)for(var j=i+1;j<all.length&&all[j].ts-all[i].ts<=120000;j++){if(all[j].pid===all[i].pid)continue;var pa=[all[i].pid,all[j].pid].sort().join('|');SY[pa]=(SY[pa]||0)+1;}
-    var syb=null,syv=1,syt=false;Object.keys(SY).forEach(function(k){if(SY[k]>syv){syv=SY[k];syb=k;syt=false;}else if(SY[k]===syv&&syb)syt=true;});
-    if(syb&&!syt){var ids=syb.split('|'),rr=ids.map(function(id){return rows.filter(function(r){return r.p.id===id;})[0];});if(rr[0]&&rr[1]){add(rr[0],'👯 Sincronizado con '+rr[1].p.name);add(rr[1],'👯 Sincronizado con '+rr[0].p.name);}}
+    var syv=1;Object.keys(SY).forEach(function(k){if(SY[k]>syv)syv=SY[k];});
+    Object.keys(SY).forEach(function(k){if(SY[k]!==syv||syv<2)return;var ids=k.split('|'),rr=ids.map(function(id){return rows.filter(function(r){return r.p.id===id;})[0];});if(rr[0]&&rr[1]){add(rr[0],'👯 Sincronizado con '+rr[1].p.name);add(rr[1],'👯 Sincronizado con '+rr[0].p.name);}});
     /* historial */
     if(H&&H.sess&&H.people&&H.logs){
       var prev=H.sess.filter(function(x){return x.id!==se.id&&x.start<se.start;}).sort(function(a,b){return b.start-a.start;}),pS={};prev.forEach(function(x){pS[x.id]=1;});
@@ -2176,7 +2176,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🥇','Más ml','Quien más mililitros toma en el chill.'],
       ['🎯','Primer chorro','El primer chorro del chill.'],
       ['🌙','Último chorro','El último chorro del chill.'],
-      ['🔑','Abrió el chill','El primero en llegar (con 3 personas o más).'],
+      ['🔑','Abrió el chill','El primero en llegar (con 3 personas o más; si llegan a la vez, todos).'],
       ['🚪','Cerró el chill','El último en irse, cuando el chill ha terminado.'],
       ['🏠','Anfitrión','El chill pasa por su casa.'],
       ['📝','Apuntador','Quien más chorros anota a otros (mínimo 3).'],
@@ -2222,7 +2222,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🔁','Fijo','Ha venido a los últimos 5 chills seguidos.']]]
   ];
   function renderMedalsHelp(){var b=$('medalsBox');if(b.dataset.done)return;b.dataset.done='1';
-    b.innerHTML='<h2>🏅 Medallas</h2><div class="msg">Se reparten al final de cada chill y aparecen en el resumen y en la ficha de cada persona. Si dos personas empatan, nadie se lleva esa medalla.</div>'+
+    b.innerHTML='<h2>🏅 Medallas</h2><div class="msg">Se reparten al final de cada chill y aparecen en el resumen y en la ficha de cada persona. Si hay empate, se la llevan todos los empatados.</div>'+
       MEDAL_HELP.map(function(g){return '<h3 style="margin:18px 0 6px">'+g[0]+'</h3><div class="mhl">'+g[1].map(function(m){return '<div class="mhi"><span class="mhe">'+m[0]+'</span><div><b>'+esc(m[1])+'</b><div class="msg" style="margin:2px 0 0">'+esc(m[2])+'</div></div></div>';}).join('')+'</div>';}).join('');}
   /* lugares */
   var PTYPES=[['casa','🏠 Casa'],['bar','🍻 Bar'],['disco','🪩 Discoteca / fiesta'],['rest','🍽️ Restaurante'],['fuera','🏖️ Playa / aire libre'],['spa','🧖 Spa / sauna'],['aloj','🏨 Alojamiento'],['transp','🚆 Transporte'],['evento','🎪 Evento'],['otro','❓ Otro']];
