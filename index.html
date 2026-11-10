@@ -98,7 +98,7 @@ body.screen .nbox .dot{width:16px;height:16px}
 .bulk textarea{height:120px;font:15px/1.5 ui-monospace,Menlo,monospace}
 .bulk ul{list-style:none;padding:0;margin:8px 0;font-size:14px}.bulk li{padding:3px 0;border-bottom:1px solid var(--line)}.bulk li.bad{color:var(--warn)}
 .host{font-size:.85em;margin-left:2px}.host.was{opacity:.45;filter:grayscale(1)}
-.rt{flex-direction:column;align-items:stretch!important}.rt input{width:100%}.rtrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}.rtrow input{flex:1 1 140px;width:auto}.rtn{color:var(--mut);min-width:18px}
+.rt{flex-direction:column;align-items:stretch!important}.rt input{width:100%}.rtrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}.rtrow input{flex:1 1 110px;width:auto;min-width:0}.rtrow input[type=datetime-local]{flex:1 1 170px}.rtn{color:var(--mut);min-width:18px}
 .bn-me{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 22%,var(--surf));transform:scale(1.04)}.bn-me .bn-t{color:var(--warn);font-size:1.25em}.bn-me .bn-bar{background:var(--warn)}
 .bn-end{border-color:var(--acc)}.bn-end .bn-bar{background:var(--acc)}.bn-end button{margin-top:8px}
 .pcard h4{margin:14px 0 6px;font-size:14px}.pcard .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}.pcard .kpi{background:var(--bg);border-radius:8px;padding:8px}.pcard .kpi .l{font-size:12px;color:var(--mut)}.pcard .kpi .v{font-weight:600;font-size:18px}
@@ -336,6 +336,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
 .rconn{display:flex;align-items:center;gap:10px;padding:6px 0 6px 18px;min-height:56px}.rconn .rline{width:0;align-self:stretch;border-left:3px dashed #8b5cf6}.rconn .rcl{font-size:12px;color:var(--mut);line-height:1.6}
 @media (min-width:820px){.rmulti{flex-direction:row;align-items:stretch}.rconn{flex-direction:column;justify-content:center;padding:0 8px;min-width:120px;max-width:170px;text-align:center}.rconn .rline{border-left:0;border-top:3px dashed #8b5cf6;align-self:auto;width:100%;height:0}.rpt{text-align:center}}
 .rgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:6px}.rgrid>div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}.rgrid .l{font-size:12px;color:var(--mut)}.rgrid .v{font-weight:700;margin:3px 0 2px;overflow-wrap:anywhere}@media (max-width:820px){.rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rtmv{display:inline-flex;gap:2px;flex:none}.rtmv button{width:auto;padding:4px 8px;margin:0}
 </style>
 </head>
 <body>
@@ -603,6 +604,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var se=sess(viewSid);if(!se||!isOwner||!rtDraft)return;var msg=$('rtMsg');
     var tl=rtDraft.locs.map(function(x){return {loc:x.loc.trim(),at:x.at};});tl[0].at=se.start;
     if(tl.some(function(x){return !x.loc;})){msg.textContent='Pon nombre a todos los sitios (o quita los vacíos).';return;}
+    for(var j=1;j<tl.length;j++)if(!tl[j].at){msg.textContent='Pon la hora a la que llegasteis a '+tl[j].loc+' (sitio '+(j+1)+').';return;}
     var lim=se.end||Date.now();
     for(var i=1;i<tl.length;i++){if(tl[i].at<=tl[i-1].at){msg.textContent='Las horas tienen que ir en orden: el sitio '+(i+1)+' empieza antes que el '+i+'.';return;}if(tl[i].at>lim+60000){msg.textContent='El sitio '+(i+1)+' empieza después del final de la liada.';return;}}
     tl=tl.filter(function(x,i){return i===0||canon(x.loc)!==canon(tl[i-1].loc)||true;});
@@ -742,8 +744,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       if(v)h+='<button id="rtBtn">'+(rtOpen?'Cancelar recorrido':'Editar nombre y recorrido')+'</button>';
       if(v&&rtOpen){if(!rtDraft||rtDraft.sid!==v.id)rtDraft={sid:v.id,title:v.title||'',locs:locTimeline(v).map(function(x){return {loc:x.loc,at:x.at};})};if(!rtDraft.locs.length)rtDraft.locs=[{loc:'',at:v.start}];
         h+='<div class="srow rt"><label style="flex:1 1 100%">Nombre de la liada (opcional, si lo dejas vacío se pone solo) <input id="rtTitle" maxlength="50" placeholder="'+esc(sTitle(Object.assign({},v,{title:''})))+'" value="'+esc(rtDraft.title)+'"></label>'+
-          rtDraft.locs.map(function(x,i){return '<div class="rtrow"><span class="rtn">'+(i+1)+'.</span><input data-rtl="'+i+'" maxlength="30" placeholder="Sitio" value="'+esc(x.loc)+'">'+(i===0?'<span class="msg" style="margin:0">desde el inicio</span>':'<input type="datetime-local" data-rtt="'+i+'" value="'+localInput(x.at)+'">')+(i>0?'<button class="s" data-rtd="'+i+'" title="Quitar este sitio">✕</button>':'')+'</div>';}).join('')+
-          '<div class="rtrow"><button class="s" id="rtAdd">+ Añadir sitio</button><button class="go" id="rtGo">Guardar</button></div><div class="msg" id="rtMsg" style="margin:0"></div></div>';}
+          rtDraft.locs.map(function(x,i){var nL=rtDraft.locs.length;return '<div class="rtrow"><span class="rtn">'+(i+1)+'.</span><input data-rtl="'+i+'" list="rtDl" maxlength="30" placeholder="Sitio" value="'+esc(x.loc)+'">'+(i===0?'<span class="msg" style="margin:0">desde el inicio</span>':'<input type="datetime-local" data-rtt="'+i+'" value="'+(x.at?localInput(x.at):'')+'"'+(x.at?'':' style="outline:2px solid var(--warn)" title="Pon la hora a la que llegasteis aquí"')+'>')+'<span class="rtmv"><button class="s" data-rtu="'+i+'" title="Subir"'+(i===0?' disabled':'')+'>↑</button><button class="s" data-rtw="'+i+'" title="Bajar"'+(i===nL-1?' disabled':'')+'>↓</button>'+(nL>1?'<button class="s" data-rtd="'+i+'" title="Quitar este sitio">✕</button>':'')+'</span></div>';}).join('')+
+          '<datalist id="rtDl">'+allLocs().map(function(l){return '<option value="'+esc(l)+'">';}).join('')+'</datalist><div class="rtrow"><button class="s" id="rtAdd0">+ Añadir al principio</button><button class="s" id="rtAdd">+ Añadir al final</button><button class="go" id="rtGo">Guardar</button></div><div class="msg" id="rtMsg" style="margin:0"></div></div>';}
       if(v&&schOpen)h+='<div class="srow"><label>Inicio <input type="datetime-local" id="schS" value="'+localInput(v.start)+'"></label>'+(v.end?'<label>Fin <input type="datetime-local" id="schE" value="'+localInput(v.end)+'"></label>':'<span class="msg" style="margin:0">Sigue en curso (sin hora de fin)</span>')+'<button class="'+(schKey?'w':'go')+'" id="schGo">'+(schKey?'Guardar igualmente':'Guardar horario')+'</button>'+(schWarn?'<span class="msg" style="margin:0;color:var(--warn)">'+esc(schWarn)+'</span>':'')+'</div>';
       if(v&&!live)h+='<button id="sReo" class="go">Reabrir liada</button>';
       if(v)h+='<button id="sDel" class="w" title="Eliminar esta liada">'+(delPending===v.id?'¿Eliminar '+esc(sTitle(v))+'? Pulsa otra vez':'Eliminar liada')+'</button>';
@@ -773,7 +775,14 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     if($('rtGo')){
       var rd=function(){rtDraft.title=$('rtTitle').value;document.querySelectorAll('[data-rtl]').forEach(function(e){rtDraft.locs[+e.dataset.rtl].loc=e.value;});document.querySelectorAll('[data-rtt]').forEach(function(e){var t=new Date(e.value).getTime();if(!isNaN(t))rtDraft.locs[+e.dataset.rtt].at=t;});};
       $('rtAdd').onclick=function(){rd();var se=sess(viewSid),last=rtDraft.locs[rtDraft.locs.length-1];rtDraft.locs.push({loc:'',at:Math.min(Math.max(last.at+3600000,se.start),se.end||Date.now())});renderSessionBar();};
-      document.querySelectorAll('[data-rtd]').forEach(function(b){b.onclick=function(){rd();rtDraft.locs.splice(+b.dataset.rtd,1);renderSessionBar();};});
+      document.querySelectorAll('[data-rtd]').forEach(function(b){b.onclick=function(){rd();rtDraft.locs.splice(+b.dataset.rtd,1);fixFirst();renderSessionBar();};});
+      function fixFirst(){var se2=sess(viewSid);rtDraft.locs.forEach(function(x,i){if(i>0&&se2&&x.at!=null&&x.at<=se2.start+1000)x.at=null;});}
+      function mvRow(i,j){rd();var L=rtDraft.locs;if(j<0||j>=L.length)return;var a=L[i],b=L[j];var ta=a.at,tb=b.at;L[i]=b;L[j]=a;
+        if(i===0||j===0){var se2=sess(viewSid);L[0].at=se2?se2.start:L[0].at;var other=i===0?j:i;L[other].at=(i===0?tb:ta);if(L[other].at!=null&&se2&&L[other].at<=se2.start+1000)L[other].at=null;}
+        renderSessionBar();}
+      document.querySelectorAll('[data-rtu]').forEach(function(b){b.onclick=function(){var i=+b.dataset.rtu;mvRow(i,i-1);};});
+      document.querySelectorAll('[data-rtw]').forEach(function(b){b.onclick=function(){var i=+b.dataset.rtw;mvRow(i,i+1);};});
+      if($('rtAdd0'))$('rtAdd0').onclick=function(){rd();var se2=sess(viewSid);rtDraft.locs.unshift({loc:'',at:se2.start});if(rtDraft.locs[1])rtDraft.locs[1].at=null;renderSessionBar();var f=document.querySelector('[data-rtl="0"]');if(f)f.focus();};
       $('rtGo').onclick=function(){rd();saveRoute();};
     }
     if($('schGo'))$('schGo').onclick=function(){
