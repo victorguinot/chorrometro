@@ -411,7 +411,8 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     if(cur&&isHostOf(cur,k))return ' <span class="host" title="Anfitrión: el chill está en su casa">🏠</span>';
     if(tl.some(function(x){return isHostOf(x.loc,k);}))return ' <span class="host was" title="Fue anfitrión en este chill">🏠</span>';
     if(!tl.length&&se.loc&&isHostOf(se.loc,k))return ' <span class="host" title="Anfitrión">🏠</span>';return '';}
-  function sTitle(se){if(!se)return 'Chill';if(se.title)return se.title;var p=locPath(se);return p.indexOf(' → ')>=0?'Ruta '+p:(se.name||('Chill de '+p));}
+  function sTitle(se){if(!se)return 'Chill';if(se.title)return se.title;var st=mainPath(se),n=sidePlaces(se).length;if(!st.length)return se.name||'Chill';
+    var b=st.length>1?'Ruta '+(st.length>3?st[0]+' → … → '+st[st.length-1]:st.join(' → ')):(se.name||('Chill de '+st[0]));return b+(n?' · +'+n+(n===1?' sitio':' sitios'):'');}
   var PLC=['#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#14b8a6','#84cc16'];
   function pById(id){for(var i=0;i<state.people.length;i++)if(state.people[i].id===id)return state.people[i];return null;}
   function plocAt(p,se,ts){var m=null;((p&&p.moves)||[]).forEach(function(x){if(x.at<=ts+60000)m=x;});return (m&&m.loc)||locAtTs(se,ts);}
@@ -428,7 +429,9 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
       var sig=keys.map(function(k){return k+':'+g[k].length;}).join('|'),o=st[st.length-1];if(o&&o.sig===sig)return;if(o)o.t=t;st.push({f:t,t:null,g:g,keys:keys,sig:sig});});
     return st;}
   function routeStr(se,people){var out=[],prev=[];groupStates(se,people).forEach(function(s){var ks=s.keys.map(nrm);if(prev.length&&ks.every(function(k){return prev.indexOf(k)>=0;}))return;out.push(s.keys.join(' / '));prev=ks;});return out.join(' → ');}
-  function locPath(se){if(se&&se.rpath)return se.rpath;var out=[];locTimeline(se).forEach(function(x){if(!out.length||nrm(out[out.length-1])!==nrm(x.loc))out.push(x.loc);});return out.join(' → ');}
+  function mainPath(se){var out=[];locTimeline(se).forEach(function(x){if(!out.length||nrm(out[out.length-1])!==nrm(x.loc))out.push(x.loc);});return out;}
+  function sidePlaces(se){if(!se||!se.rpath)return [];var mp=mainPath(se).map(nrm),o=[];se.rpath.split(/ → | \/ /).forEach(function(x){x=x.trim();if(x&&mp.indexOf(nrm(x))<0&&!o.some(function(z){return nrm(z)===nrm(x);}))o.push(x);});return o;}
+  function locPath(se){var sp=sidePlaces(se);return mainPath(se).join(' → ')+(sp.length?' · aparte: '+sp.join(', '):'');}
   function allLocs(){var locs=[];sessions.forEach(function(x){locTimeline(x).forEach(function(y){var l=(y.loc||'').trim();if(l&&!locs.some(function(z){return nrm(z)===nrm(l);}))locs.push(l);});});return locs;}
   var mySids={};
   function loadMine(){
