@@ -1648,26 +1648,21 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
         h+='<h3>Por ubicación</h3><div class="recs">'+lrec('Sitio con más chills',l1,l1.nch+' chill'+(l1.nch===1?'':'s'))+lrec('Sitio con más ml',l2,fmt(l2.ml)+' ml')+lrec('Sitio con más gente',l3,l3.np+' personas')+'</div>';
         h+='<div class="scroll" style="margin-top:8px"><table class="sumt"><thead><tr><th>Lugar</th><th class="n">Chills</th><th class="n">Chorros</th><th class="n">ml</th><th class="n">Personas</th></tr></thead><tbody>'+ll.map(function(o){return '<tr><td class="name">'+esc(o.name)+'</td><td class="n">'+o.nch+'</td><td class="n">'+o.n+'</td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.np+'</td></tr>';}).join('')+'</tbody></table></div>';
       }
-      if(isOwner||!db){
-      /* unir nombres */
-      var raw=[];D.people.forEach(function(p){var n=(p.name||'').trim();if(n&&!raw.some(function(x){return nrm(x)===nrm(n);}))raw.push(n);});raw.sort(function(a,b){return a.localeCompare(b,'es');});
-      var merged=Object.keys(aliasMap);
-      h+='<h3>Unir nombres</h3><div class="msg" style="margin:0 0 8px">Si una misma persona aparece con dos nombres, únelos para que las estadísticas la cuenten una sola vez.</div>'+
-        '<div class="row" style="flex-wrap:wrap;align-items:center"><select id="alA" style="width:auto">'+raw.map(function(n){return '<option>'+esc(n)+'</option>';}).join('')+'</select><span>es la misma persona que</span><select id="alB" style="width:auto">'+raw.map(function(n,i){return '<option'+(i===1?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select><button class="s go" id="alGo">Unir</button></div>'+
-        (merged.length?'<div style="margin-top:8px">'+merged.map(function(k){return '<div class="trow"><span>'+esc(aliasRaw[k]||(raw.filter(function(x){return nrm(x)===k;})[0])||k)+' → <b>'+esc(aliasMap[k])+'</b></span><button class="s" data-unal="'+esc(k)+'">Separar</button></div>';}).join('')+'</div>':'');
-      }
       var evs=ev.slice().sort(function(a,b){return a.se.start-b.se.start;}).slice(-24);
-      var W=Math.max(280,(box.clientWidth||600)-30),Ht=200,L=34,R=6,T=18,B=34,pw=W-L-R,ph=Ht-T-B,mx=Math.max.apply(null,evs.map(function(s){return s.ml;}).concat([1]));
+      var LPL=[],LPI=function(l){for(var i=0;i<LPL.length;i++)if(nrm(LPL[i])===nrm(l))return i;LPL.push(l);return LPL.length-1;};
+      evs.forEach(function(s){var m={},o=[];D.logs.forEach(function(l){if(l.sid!==s.se.id)return;var ln=l.loc||locAtTs(s.se,l.ts)||'?',k=o.filter(function(z){return nrm(z)===nrm(ln);})[0];if(!k){k=ln;o.push(ln);m[ln]=0;}m[k]+=l.amt;});s.parts=o.map(function(k){return {loc:k,ml:m[k],ci:LPI(k)};});});
+      function wrap2(t,n){t=t.replace(/^(Ruta|Chill de) /,'');if(t.length<=n)return [t];var ws=t.split(' '),l1='';while(ws.length&&(l1+(l1?' ':'')+ws[0]).length<=n)l1+=(l1?' ':'')+ws.shift();if(!l1){l1=t.slice(0,n);ws=[t.slice(n)];}var l2=ws.join(' ');if(l2.length>n)l2=l2.slice(0,n-1)+'…';return l2?[l1,l2]:[l1];}
+      var W=Math.max(280,(box.clientWidth||600)-30),Ht=214,L=34,R=6,T=18,B=48,pw=W-L-R,ph=Ht-T-B,mx=Math.max.apply(null,evs.map(function(s){return s.ml;}).concat([1]));
       var st=mx<=4?1:(mx<=10?2:(mx<=25?5:(mx<=60?10:20))),tp=Math.ceil(mx/st)*st,slot=pw/evs.length,bw=Math.min(24,slot*0.6);
       function Y(v){return T+ph-v/tp*ph;}
       var g='';for(var v=0;v<=tp+1e-9;v+=st)g+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" style="stroke:var(--line)"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" style="fill:var(--mut)">'+v+'</text>';
       evs.forEach(function(s,i){var cx=L+slot*i+slot/2,x=cx-bw/2,y=Y(s.ml),hh=Y(0)-y,r=Math.min(4,hh,bw/2);
-        g+='<g><title>'+esc(sTitle(s.se))+' · '+dmy(s.se.start)+'\n'+fmt(s.ml)+' ml · '+s.n+' chorros · '+s.people+' personas · '+dur(s.dur)+'</title>'+(hh>0?'<path d="M'+x+' '+Y(0)+' L'+x+' '+(y+r)+' Q'+x+' '+y+' '+(x+r)+' '+y+' L'+(x+bw-r)+' '+y+' Q'+(x+bw)+' '+y+' '+(x+bw)+' '+(y+r)+' L'+(x+bw)+' '+Y(0)+' Z" style="fill:var(--c1)"/>':'')+'<rect x="'+(L+slot*i)+'" y="'+T+'" width="'+slot+'" height="'+ph+'" fill="transparent"/></g>';
+        g+='<g><title>'+esc(sTitle(s.se))+' · '+dmy(s.se.start)+'\n'+fmt(s.ml)+' ml · '+s.n+' chorros · '+s.people+' personas · '+dur(s.dur)+'</title>'+(hh>0?'<clipPath id="bc'+i+'"><path d="M'+x+' '+Y(0)+' L'+x+' '+(y+r)+' Q'+x+' '+y+' '+(x+r)+' '+y+' L'+(x+bw-r)+' '+y+' Q'+(x+bw)+' '+y+' '+(x+bw)+' '+(y+r)+' L'+(x+bw)+' '+Y(0)+' Z"/></clipPath><g clip-path="url(#bc'+i+')">'+(function(){var acc=0,o='';(s.parts||[]).forEach(function(q){var y1=Y(acc),y2=Y(acc+q.ml);acc+=q.ml;o+='<rect x="'+x+'" y="'+y2+'" width="'+bw+'" height="'+Math.max(0,y1-y2)+'" style="fill:'+(LPL.length>1?PLC[q.ci%PLC.length]:'var(--c1)')+'"><title>'+esc(q.loc)+': '+fmt(q.ml)+' ml</title></rect>';});return o;})()+'</g>':'')+'<rect x="'+(L+slot*i)+'" y="'+T+'" width="'+slot+'" height="'+ph+'" fill="transparent"/></g>';
         if(slot>=30)g+='<text x="'+cx+'" y="'+(y-5)+'" text-anchor="middle" font-size="11" font-weight="600" style="fill:var(--ink)">'+fmt(s.ml)+'</text>';
-        if(slot>=34||i%Math.ceil(34/slot)===0)g+='<text x="'+cx+'" y="'+(Ht-18)+'" text-anchor="middle" font-size="11" style="fill:var(--mut)">'+dmy(s.se.start).slice(0,5)+'</text><text x="'+cx+'" y="'+(Ht-5)+'" text-anchor="middle" font-size="10" style="fill:var(--mut)">'+esc(lugar(s.se).slice(0,8))+'</text>';
+        if(slot>=34||i%Math.ceil(34/slot)===0)g+='<text x="'+cx+'" y="'+(Ht-32)+'" text-anchor="middle" font-size="11" style="fill:var(--mut)">'+dmy(s.se.start).slice(0,5)+'</text>'+wrap2(sTitle(s.se),Math.max(6,Math.floor(Math.min(slot,140)/5.6))).map(function(t,j){return '<text x="'+cx+'" y="'+(Ht-19+j*12)+'" text-anchor="middle" font-size="10" style="fill:var(--mut)">'+esc(t)+'</text>';}).join('');
       });
       g+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mut)"/>';
-      h+='<h3>Mililitros por chill</h3><div class="bars"><svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros totales de cada chill">'+g+'</svg></div>'+(ev.length>24?'<div class="msg">Se muestran los últimos 24 chills.</div>':'')+'</div>';
+      h+='<h3>Mililitros por chill</h3>'+(LPL.length>1?'<div class="plg">'+LPL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<div class="bars"><svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros totales de cada chill">'+g+'</svg></div>'+(ev.length>24?'<div class="msg">Se muestran los últimos 24 chills.</div>':'')+'</div>';
       box.innerHTML=h;
     },function(){box.innerHTML='<div class="stats"><div class="empty">No se pudieron cargar las estadísticas.</div></div>';});
   }
