@@ -1274,14 +1274,15 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       needLeaflet().then(function(){
         if(routeMap){try{routeMap.remove();}catch(e){}}var Lf=window.L,map=Lf.map('routeMapEl',{scrollWheelZoom:false});routeMap=map;
         Lf.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',maxZoom:19,className:'osmT'}).addTo(map);
-        var pts=R.order.map(function(l){var m=pm(l);return [m.lat,m.lng];});
-        R.edges.forEach(function(e,i){var a=pts[ci(e.fr)],b=pts[ci(e.to)];if(!a||!b||(a[0]===b[0]&&a[1]===b[1]))return;
+        var pts=R.order.map(function(l){var m=pm(l);return [m.lat,m.lng];}),pend=R.order.map(function(l){var m=pm(l);return m.lat2!=null?[m.lat2,m.lng2]:[m.lat,m.lng];});
+        R.order.forEach(function(l,i){var m=pm(l);if(m.lat2!=null)Lf.polyline([pts[i],pend[i]],{color:'#8b5cf6',weight:4,dashArray:'8 6'}).bindTooltip('🛤️ '+esc(l)).addTo(map);});
+        R.edges.forEach(function(e,i){var a=pend[ci(e.fr)],b=pts[ci(e.to)];if(!a||!b||(a[0]===b[0]&&a[1]===b[1]))return;
           var mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],off=e.main?0:0.12,c=[mx-dy*off,my+dx*off],line=[a];for(var t=0.1;t<1;t+=0.1){var u=1-t;line.push([u*u*a[0]+2*u*t*c[0]+t*t*b[0],u*u*a[1]+2*u*t*c[1]+t*t*b[1]]);}line.push(b);
           var col=e.main?'#3b82f6':PLC[(i+1)%PLC.length];Lf.polyline(line,{color:col,weight:e.main?5:3,opacity:.9,dashArray:e.main?null:'6 6'}).bindTooltip(esc(e.fr)+' → '+esc(e.to)+' · '+hhmm(e.at)+(e.ps.length?' · '+esc(e.ps.join(', ')):''),{sticky:true}).addTo(map);
           var p1=map.latLngToLayerPoint?null:null,mid=line[5],m2=line[6],ang=Math.atan2(-(m2[0]-mid[0]),m2[1]-mid[1])*180/Math.PI;
           Lf.marker(mid,{interactive:false,icon:Lf.divIcon({className:'rArrow',html:'<div style="transform:rotate('+ang+'deg);color:'+col+'">➤</div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);});
-        R.order.forEach(function(l,i){Lf.circleMarker(pts[i],{radius:7,color:'#fff',weight:2,fillColor:isHouse(l)?'#f59e0b':'#3b82f6',fillOpacity:1}).bindTooltip(esc(l),{permanent:true,direction:'top',offset:[0,-6],className:'rLbl'}).addTo(map);});
-        map.fitBounds(Lf.latLngBounds(pts).pad(0.3),{maxZoom:16});
+        R.order.forEach(function(l,i){if(pm(l).lat2!=null)Lf.circleMarker(pend[i],{radius:5,color:'#fff',weight:2,fillColor:'#8b5cf6',fillOpacity:1}).addTo(map);Lf.circleMarker(pts[i],{radius:7,color:'#fff',weight:2,fillColor:isHouse(l)?'#f59e0b':'#3b82f6',fillOpacity:1}).bindTooltip(esc(l),{permanent:true,direction:'top',offset:[0,-6],className:'rLbl'}).addTo(map);});
+        map.fitBounds(Lf.latLngBounds(pts.concat(pend)).pad(0.3),{maxZoom:16});
       },function(){box.innerHTML='<div class="empty">No se pudo cargar el mapa.</div>';});
       return;
     }
@@ -2183,10 +2184,11 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       '<div class="pltop"><select id="plMetric"><option value="ml"'+(plMetric==='ml'?' selected':'')+'>Mililitros</option><option value="n"'+(plMetric==='n'?' selected':'')+'>Nº de chorros</option><option value="nch"'+(plMetric==='nch'?' selected':'')+'>Nº de chills</option><option value="h"'+(plMetric==='h'?' selected':'')+'>Horas</option></select><select id="plMode"><option value="circ"'+(plMode==='circ'?' selected':'')+'>Círculos</option><option value="heat"'+(plMode==='heat'?' selected':'')+'>Mapa de calor</option></select><span class="msg" style="margin:0">'+withLoc.length+' de '+L.length+' con ubicación</span></div>'+
       '<div id="plMap"></div>';
     h+=L.map(function(o){var m=o.meta,op=plOpen===o.k;return '<div class="plc"><div class="ph"><b>'+esc(m.name||o.name)+'</b><span class="msg" style="margin:0">'+(m.type?ptype(m.type)+' · ':'')+fmt(o.ml)+' ml · '+o.n+' chorros · '+o.nch+' '+kindWord(o.meta.name||o.name,o.nch)+' · '+o.npp+' pers. · '+fmt(Math.round(o.h*10)/10)+' h</span></div>'+
-      '<div class="msg" style="margin:4px 0 0">'+(m.lat!=null?'📍 '+(m.addr?esc(m.addr)+' · ':'')+m.lat.toFixed(5)+', '+m.lng.toFixed(5):'Sin ubicación')+'</div>'+
+      '<div class="msg" style="margin:4px 0 0">'+(m.lat!=null?(m.lat2!=null?'🛤️ '+esc(m.addr||(m.lat.toFixed(3)+', '+m.lng.toFixed(3)))+' → '+esc(m.addr2||(m.lat2.toFixed(3)+', '+m.lng2.toFixed(3))):'📍 '+(m.addr?esc(m.addr)+' · ':'')+m.lat.toFixed(5)+', '+m.lng.toFixed(5)):'Sin ubicación')+'</div>'+
       (ed?(op?'<div class="pf"><input id="plN" value="'+esc(m.name||o.name)+'" maxlength="40" placeholder="Nombre"><select id="plT"><option value="">Tipo…</option>'+PTYPES.map(function(t){return '<option value="'+t[0]+'"'+(m.type===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
-        '<div class="pf"><input id="plQ" placeholder="Dirección o pega un enlace de Google Maps / coordenadas" value="'+esc(m.addr||'')+'"><button class="s" id="plFind" type="button">🔎 Buscar</button><button class="s" id="plGeo" type="button">📍 Estoy aquí</button></div><div class="plres" id="plRes"></div>'+
-        '<div class="pf"><span class="msg" style="margin:0" id="plCur">'+(m.lat!=null?'Ubicación: '+m.lat.toFixed(5)+', '+m.lng.toFixed(5):'Sin ubicación todavía')+'</span></div>'+
+        '<div class="pf"><b id="plL1" style="font-size:13px">'+(m.type==='transp'?'Origen':'Ubicación')+'</b></div><div class="pf"><input id="plQ" placeholder="Dirección o pega un enlace de Google Maps / coordenadas" value="'+esc(m.addr||'')+'"><button class="s" id="plFind" type="button">🔎 Buscar</button><button class="s" id="plGeo" type="button">📍 Estoy aquí</button></div><div class="plres" id="plRes"></div>'+
+        '<div class="pf"><span class="msg" style="margin:0" id="plCur"></span></div>'+
+        '<div id="plDst"'+(m.type==='transp'?'':' hidden')+'><div class="pf"><b style="font-size:13px">Destino</b><span class="msg" style="margin:0">Para trayectos (tren, avión, coche…): se dibuja una línea de origen a destino.</span></div><div class="pf"><input id="plQ2" placeholder="Estación, aeropuerto, ciudad o coordenadas" value="'+esc(m.addr2||'')+'"><button class="s" id="plFind2" type="button">🔎 Buscar</button><button class="s" id="plGeo2" type="button">📍 Estoy aquí</button></div><div class="plres" id="plRes2"></div><div class="pf"><span class="msg" style="margin:0" id="plCur2"></span></div></div>'+
         '<div class="pf"><button class="p" id="plSave" type="button">Guardar</button><button class="s" id="plX" type="button">Cancelar</button>'+(m.lat!=null?'<button class="lnk" id="plClr" type="button">Quitar ubicación</button>':'')+'</div><div class="msg" id="plMsg"></div>'
         :'<div class="pf"><button class="s" data-pled="'+esc(o.k)+'" type="button">✎ Editar</button></div>'):'')+'</div>';}).join('')||'<div class="empty">Aún no hay lugares.</div>';
     box.innerHTML=h;
@@ -2196,21 +2198,26 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     drawMap(L);
   }
   function bindPlEdit(o){
-    var m=o.meta,cur={lat:m.lat!=null?m.lat:null,lng:m.lng!=null?m.lng:null,addr:m.addr||''};
-    function show(){$('plCur').textContent=cur.lat!=null?'Ubicación: '+cur.lat.toFixed(5)+', '+cur.lng.toFixed(5)+(cur.addr?' · '+cur.addr:''):'Sin ubicación todavía';}
+    var m=o.meta,cur={lat:m.lat!=null?m.lat:null,lng:m.lng!=null?m.lng:null,addr:m.addr||''},cur2={lat:m.lat2!=null?m.lat2:null,lng:m.lng2!=null?m.lng2:null,addr:m.addr2||''};
+    function slot(sx,c){
+      function show(){$('plCur'+sx).textContent=c.lat!=null?(sx?'Destino: ':'Ubicación: ')+c.lat.toFixed(5)+', '+c.lng.toFixed(5)+(c.addr?' · '+c.addr:''):(sx?'Sin destino todavía':'Sin ubicación todavía');}
+      $('plFind'+sx).onclick=function(){var q=$('plQ'+sx).value.trim()||(sx?'':$('plN').value.trim()),cc=parseCoords(q),rs=$('plRes'+sx);if(!q)return;if(cc){c.lat=cc.lat;c.lng=cc.lng;show();rs.innerHTML='';return;}
+        if(/^https?:\/\//.test(q)){rs.innerHTML='<div class="msg">No encuentro coordenadas en ese enlace. En Google Maps, abre el sitio y copia el enlace largo de la barra de direcciones (el que lleva @41.3…,2.1…), o mantén pulsado el punto y copia las coordenadas.</div>';return;}
+        rs.innerHTML='<div class="msg">Buscando…</div>';
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=es&q='+encodeURIComponent(q)).then(function(r){return r.json();}).then(function(a){
+          if(!a||!a.length){rs.innerHTML='<div class="msg">Sin resultados. Prueba con calle y ciudad, o pega coordenadas.</div>';return;}
+          rs.innerHTML=a.map(function(x,i){return '<button class="s" data-r="'+i+'" type="button">'+esc(x.display_name)+'</button>';}).join('');
+          rs.querySelectorAll('[data-r]').forEach(function(bt){bt.onclick=function(){var x=a[+bt.dataset.r];c.lat=+x.lat;c.lng=+x.lon;c.addr=x.display_name.split(',').slice(0,3).join(',');show();rs.innerHTML='';};});
+        },function(){rs.innerHTML='<div class="msg">No se pudo buscar ahora. Pega coordenadas o usa «Estoy aquí».</div>';});};
+      $('plGeo'+sx).onclick=function(){if(!navigator.geolocation){say('Este dispositivo no da la ubicación.');return;}$('plCur'+sx).textContent='Obteniendo ubicación…';navigator.geolocation.getCurrentPosition(function(pos){c.lat=pos.coords.latitude;c.lng=pos.coords.longitude;c.addr='';show();},function(){$('plCur'+sx).textContent='No se pudo obtener la ubicación (revisa los permisos).';},{enableHighAccuracy:true,timeout:15000});};
+      show();return show;
+    }
+    var show=slot('',cur),show2=slot('2',cur2);
+    $('plT').onchange=function(){var t=this.value==='transp';$('plDst').hidden=!t;$('plL1').textContent=t?'Origen':'Ubicación';};
     $('plX').onclick=function(){plOpen=null;renderPlaces();};
-    $('plFind').onclick=function(){var q=$('plQ').value.trim()||$('plN').value.trim(),c=parseCoords(q);if(c){cur.lat=c.lat;cur.lng=c.lng;show();$('plRes').innerHTML='';return;}
-      if(/^https?:\/\//.test(q)){$('plRes').innerHTML='<div class="msg">No encuentro coordenadas en ese enlace. En Google Maps, abre el sitio y copia el enlace largo de la barra de direcciones (el que lleva @41.3…,2.1…), o mantén pulsado el punto y copia las coordenadas.</div>';return;}
-      $('plRes').innerHTML='<div class="msg">Buscando…</div>';
-      fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=es&q='+encodeURIComponent(q)).then(function(r){return r.json();}).then(function(a){
-        if(!a||!a.length){$('plRes').innerHTML='<div class="msg">Sin resultados. Prueba con calle y ciudad, o pega coordenadas.</div>';return;}
-        $('plRes').innerHTML=a.map(function(x,i){return '<button class="s" data-r="'+i+'" type="button">'+esc(x.display_name)+'</button>';}).join('');
-        $('plRes').querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){var x=a[+b.dataset.r];cur.lat=+x.lat;cur.lng=+x.lon;cur.addr=x.display_name.split(',').slice(0,3).join(',');show();$('plRes').innerHTML='';};});
-      },function(){$('plRes').innerHTML='<div class="msg">No se pudo buscar ahora. Pega coordenadas o usa «Estoy aquí».</div>';});};
-    $('plGeo').onclick=function(){if(!navigator.geolocation){say('Este dispositivo no da la ubicación.');return;}$('plCur').textContent='Obteniendo ubicación…';navigator.geolocation.getCurrentPosition(function(pos){cur.lat=pos.coords.latitude;cur.lng=pos.coords.longitude;show();},function(){$('plCur').textContent='No se pudo obtener la ubicación (revisa los permisos).';},{enableHighAccuracy:true,timeout:15000});};
-    if($('plClr'))$('plClr').onclick=function(){cur.lat=null;cur.lng=null;cur.addr='';show();};
+    if($('plClr'))$('plClr').onclick=function(){cur.lat=null;cur.lng=null;cur.addr='';cur2.lat=null;cur2.lng=null;cur2.addr='';show();show2();};
     $('plSave').onclick=function(){
-      var nn=$('plN').value.trim().replace(/\s+/g,' '),old=m.name||o.name,doc={name:nn,type:$('plT').value||null,lat:cur.lat,lng:cur.lng,addr:cur.addr||null,at:Date.now()};
+      var nn=$('plN').value.trim().replace(/\s+/g,' '),old=m.name||o.name,tp=$('plT').value||null,doc={name:nn,type:tp,lat:cur.lat,lng:cur.lng,addr:cur.addr||null,lat2:tp==='transp'?cur2.lat:null,lng2:tp==='transp'?cur2.lng:null,addr2:tp==='transp'?(cur2.addr||null):null,at:Date.now()};
       if(!nn){$('plMsg').textContent='Pon un nombre.';return;}
       $('plMsg').textContent='Guardando…';
       var nk=plKey(nn),ren=nrm(nn)!==nrm(old);
@@ -2235,10 +2242,11 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',maxZoom:19,className:'osmT'}).addTo(map);
       var mx=Math.max.apply(null,pts.map(function(o){return o[plMetric]||0;}).concat([1e-9]));
       var unit={ml:' ml',n:' chorros',nch:' chills',h:' h'}[plMetric];
-      if(plMode==='heat'&&window.L.heatLayer){window.L.heatLayer(pts.map(function(o){return [o.meta.lat,o.meta.lng,Math.max(0.05,(o[plMetric]||0)/mx)];}),{radius:35,blur:25,maxZoom:15,max:1}).addTo(map);
+      if(plMode==='heat'&&window.L.heatLayer){window.L.heatLayer(pts.map(function(o){return [o.meta.lat2!=null?(o.meta.lat+o.meta.lat2)/2:o.meta.lat,o.meta.lat2!=null?(o.meta.lng+o.meta.lng2)/2:o.meta.lng,Math.max(0.05,(o[plMetric]||0)/mx)];}),{radius:35,blur:25,maxZoom:15,max:1}).addTo(map);
         pts.forEach(function(o){window.L.circleMarker([o.meta.lat,o.meta.lng],{radius:3,color:'#fff',weight:1,fillOpacity:1}).bindPopup('<b>'+esc(o.meta.name||o.name)+'</b><br>'+fmt(Math.round((o[plMetric]||0)*10)/10)+unit).addTo(map);});}
-      else pts.forEach(function(o){var v=o[plMetric]||0,r=6+Math.sqrt(v/mx)*26;window.L.circleMarker([o.meta.lat,o.meta.lng],{radius:r,color:'#3b82f6',weight:2,fillColor:'#3b82f6',fillOpacity:.35}).bindPopup('<b>'+esc(o.meta.name||o.name)+'</b>'+(o.meta.type?'<br>'+ptype(o.meta.type):'')+'<br>'+fmt(Math.round(v*10)/10)+unit+'<br>'+o.nch+' chills · '+o.npp+' personas').addTo(map);});
-      var b=window.L.latLngBounds(pts.map(function(o){return [o.meta.lat,o.meta.lng];}));map.fitBounds(b.pad(0.25),{maxZoom:15});
+      pts.forEach(function(o){if(o.meta.lat2!=null)window.L.polyline([[o.meta.lat,o.meta.lng],[o.meta.lat2,o.meta.lng2]],{color:'#8b5cf6',weight:3,dashArray:'8 6',opacity:.85}).bindTooltip('🛤️ '+esc(o.meta.name||o.name)).addTo(map);});
+      if(plMode!=='heat')pts.forEach(function(o){var v=o[plMetric]||0,r=6+Math.sqrt(v/mx)*26;if(o.meta.lat2!=null){var mp=[(o.meta.lat+o.meta.lat2)/2,(o.meta.lng+o.meta.lng2)/2];window.L.circleMarker(mp,{radius:Math.min(r,14),color:'#8b5cf6',weight:2,fillColor:'#8b5cf6',fillOpacity:.35}).bindPopup('<b>🛤️ '+esc(o.meta.name||o.name)+'</b><br>'+fmt(Math.round(v*10)/10)+unit).addTo(map);return;}window.L.circleMarker([o.meta.lat,o.meta.lng],{radius:r,color:'#3b82f6',weight:2,fillColor:'#3b82f6',fillOpacity:.35}).bindPopup('<b>'+esc(o.meta.name||o.name)+'</b>'+(o.meta.type?'<br>'+ptype(o.meta.type):'')+'<br>'+fmt(Math.round(v*10)/10)+unit+'<br>'+o.nch+' chills · '+o.npp+' personas').addTo(map);});
+      var bb=[];pts.forEach(function(o){bb.push([o.meta.lat,o.meta.lng]);if(o.meta.lat2!=null)bb.push([o.meta.lat2,o.meta.lng2]);});var b=window.L.latLngBounds(bb);map.fitBounds(b.pad(0.25),{maxZoom:15});
     },function(){el.innerHTML='<div class="empty" style="padding:40px 10px">No se pudo cargar el mapa.</div>';});
   }
 
