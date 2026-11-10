@@ -329,6 +329,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
 .pltop{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.pltop select,.pltop input{width:auto}
 @media (prefers-color-scheme:dark){#plMap .osmT{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
 .rArrow div{font-size:16px;line-height:18px;text-align:center;text-shadow:0 0 2px #000}.rLbl{font-weight:600;font-size:11px;padding:1px 5px}
+.segb{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:999px;overflow:hidden}.segb button{width:auto;margin:0;padding:4px 12px;border:0;border-radius:0;background:transparent;color:var(--mut);font-size:12px;font-weight:600}.segb button.on{background:var(--ink);color:var(--bg)}
+.mhl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}.mhi{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px}.mhe{font-size:24px;line-height:1}
 </style>
 </head>
 <body>
@@ -345,8 +347,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   <label class="alopt" id="scRow" style="margin-top:-8px" hidden><input type="checkbox" id="scOn"> <span id="scTxt">Lanzar mi atajo ChorriTime con mis chorros</span></label>
   <div id="gate" hidden></div>
   <div class="banner" id="reqBox" hidden></div>
-  <nav class="tabs" id="tabs"><button data-tab="chill" class="on">💧 Chill</button><button data-tab="stats" data-btn="statsBtn" hidden>📊 Estadísticas</button><button data-tab="places" data-btn="statsBtn" hidden>📍 Lugares</button><button data-tab="hist" data-btn="histBtn" hidden>🗂️ Historial</button><button data-tab="act" data-btn="actBtn" hidden>🕓 Actividad</button><button data-tab="trash" data-btn="trashBtn" hidden>🗑️ Eliminados</button></nav>
-  <div id="tabPane"><div id="statsBox" hidden></div><div id="placesBox" hidden></div><div id="histBox" hidden></div><div id="trashBox" hidden></div><div id="actBox" hidden></div></div>
+  <nav class="tabs" id="tabs"><button data-tab="chill" class="on">💧 Chill</button><button data-tab="stats" data-btn="statsBtn" hidden>📊 Estadísticas</button><button data-tab="places" data-btn="statsBtn" hidden>📍 Lugares</button><button data-tab="medals">🏅 Medallas</button><button data-tab="hist" data-btn="histBtn" hidden>🗂️ Historial</button><button data-tab="act" data-btn="actBtn" hidden>🕓 Actividad</button><button data-tab="trash" data-btn="trashBtn" hidden>🗑️ Eliminados</button></nav>
+  <div id="tabPane"><div id="statsBox" hidden></div><div id="placesBox" hidden></div><div id="medalsBox" hidden></div><div id="histBox" hidden></div><div id="trashBox" hidden></div><div id="actBox" hidden></div></div>
   <div class="grid" id="mainGrid">
     <div>
       <section>
@@ -1121,7 +1123,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function arrOf(p,ls,se){var a=(p.at&&p.at>1e12)?p.at:se.start;if(ls.length&&ls[0].ts<a)a=ls[0].ts;return a;}
   function depOf(p,ls,se){var last=ls.length?ls[ls.length-1].ts:null;if(p.gone)return Math.max(p.gone,last||0);if(se.end)return last!=null?Math.max(last,Math.min(last+GRACE,se.end)):se.end;return Date.now();}
   /* medallas */
-  var HIST=null;
+  var HIST=null,MPC='ml';
   function medalsFor(se,people,logs,H){H=H||HIST;
     var M={},rows=people.map(function(p){var ls=logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),t=0;ls.forEach(function(l){t+=l.amt;});var arr=arrOf(p,ls,se),dep=depOf(p,ls,se);
       var gs=0;for(var i=1;i<ls.length;i++)gs+=Math.max(0,ls[i].ts-ls[i-1].ts-awayIn(p,ls[i-1].ts,ls[i].ts));return {p:p,k:canon(p.name),ls:ls,tot:t,h:Math.max(0,dep-arr-awayIn(p,arr,dep))/3600000,gap:ls.length>=3?gs/(ls.length-1):0};});
@@ -1129,7 +1131,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var mx=0;rows.forEach(function(r){if(r.tot>mx)mx=r.tot;});if(mx>0)rows.forEach(function(r){if(r.tot===mx)add(r,'🥇 Más ml');});
     var all=logs.slice().sort(function(a,b){return a.ts-b.ts;});
     if(all.length){var f=all[0],l=all[all.length-1];rows.forEach(function(r){if(r.p.id===f.pid)add(r,'🎯 Primer chorro');if(r.p.id===l.pid&&all.length>1)add(r,'🌙 Último chorro');});}
-    var bg=null;rows.forEach(function(r){if(r.gap>0&&(!bg||r.gap<bg.gap))bg=r;});if(bg)add(bg,'⚡ Más frecuente');
+    var bg=null;rows.forEach(function(r){if(r.gap>0&&(!bg||r.gap<bg.gap))bg=r;});if(bg)add(bg,'💨 Más frecuente');
     var d0=new Date(se.start);d0.setHours(0,0,0,0);
     var fin=!!se.end&&!isActive(se.id),ar=rows.filter(function(r){return r.ls.length||r.h>0;});
     if(ar.length>2){var fa=null,la=null;ar.forEach(function(r){var a=arrOf(r.p,r.ls,se),d=depOf(r.p,r.ls,se);r.a0=a;r.d0=d;if(!fa||a<fa.a0)fa=r;if(!la||d>la.d0)la=r;});
@@ -1792,20 +1794,26 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       }
       var evs=ev.slice().sort(function(a,b){return a.se.start-b.se.start;}).slice(-24);
       var LPL=[],LPI=function(l){for(var i=0;i<LPL.length;i++)if(nrm(LPL[i])===nrm(l))return i;LPL.push(l);return LPL.length-1;};
-      evs.forEach(function(s){var m={},o=[];D.logs.forEach(function(l){if(l.sid!==s.se.id)return;var ln=l.loc||locAtTs(s.se,l.ts)||'?',k=o.filter(function(z){return nrm(z)===nrm(ln);})[0];if(!k){k=ln;o.push(ln);m[ln]=0;}m[k]+=l.amt;});s.parts=o.map(function(k){return {loc:k,ml:m[k],ci:LPI(k)};});});
+      evs.forEach(function(s){var m={},o=[];D.logs.forEach(function(l){if(l.sid!==s.se.id)return;var ln=l.loc||locAtTs(s.se,l.ts)||'?',k=o.filter(function(z){return nrm(z)===nrm(ln);})[0];if(!k){k=ln;o.push(ln);m[ln]=0;}m[k]+=l.amt;});var cn={},hr={};D.logs.forEach(function(l){if(l.sid!==s.se.id)return;var ln=l.loc||locAtTs(s.se,l.ts)||'?',k=o.filter(function(z){return nrm(z)===nrm(ln);})[0]||ln;cn[k]=(cn[k]||0)+1;});
+        var tl=locTimeline(s.se),e0=s.se.end||Date.now();tl.forEach(function(x,j){var e=j+1<tl.length?tl[j+1].at:e0,k=o.filter(function(z){return nrm(z)===nrm(x.loc);})[0];if(!k){k=x.loc;o.push(k);m[k]=0;}hr[k]=(hr[k]||0)+Math.max(0,e-x.at)/3600000;});
+        s.parts=o.map(function(k){return {loc:k,ml:m[k]||0,n:cn[k]||0,h:hr[k]||0,ci:LPI(k)};});s.val=MPC==='n'?s.n:(MPC==='h'?s.dur/3600000:s.ml);s.parts.forEach(function(q){q.v=MPC==='n'?q.n:(MPC==='h'?q.h:q.ml);});
+        if(MPC==='h'){var hs=0;s.parts.forEach(function(q){hs+=q.v;});if(hs>0)s.parts.forEach(function(q){q.v=q.v*s.val/hs;});}});
+      var MU={ml:' ml',n:' chorros',h:' h'}[MPC],fv=function(v){return MPC==='h'?fmt(Math.round(v*10)/10):fmt(Math.round(v*100)/100);};
       function wrap2(t,n){t=t.replace(/^(Ruta|Chill de) /,'');if(t.length<=n)return [t];var ws=t.split(' '),l1='';while(ws.length&&(l1+(l1?' ':'')+ws[0]).length<=n)l1+=(l1?' ':'')+ws.shift();if(!l1){l1=t.slice(0,n);ws=[t.slice(n)];}var l2=ws.join(' ');if(l2.length>n)l2=l2.slice(0,n-1)+'…';return l2?[l1,l2]:[l1];}
-      var W=Math.max(280,(box.clientWidth||600)-30),Ht=214,L=34,R=6,T=18,B=48,pw=W-L-R,ph=Ht-T-B,mx=Math.max.apply(null,evs.map(function(s){return s.ml;}).concat([1]));
-      var st=mx<=4?1:(mx<=10?2:(mx<=25?5:(mx<=60?10:20))),tp=Math.ceil(mx/st)*st,slot=pw/evs.length,bw=Math.min(24,slot*0.6);
+      var W=Math.max(280,(box.clientWidth||600)-30),Ht=214,L=34,R=6,T=18,B=48,pw=W-L-R,ph=Ht-T-B,mx=Math.max.apply(null,evs.map(function(s){return s.val;}).concat([1]));
+      var st=mx<=4?1:(mx<=10?2:(mx<=25?5:(mx<=60?10:(mx<=150?25:(mx<=400?50:100))))),tp=Math.ceil(mx/st)*st,slot=pw/evs.length,bw=Math.min(24,slot*0.6);
       function Y(v){return T+ph-v/tp*ph;}
       var g='';for(var v=0;v<=tp+1e-9;v+=st)g+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" style="stroke:var(--line)"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" style="fill:var(--mut)">'+v+'</text>';
-      evs.forEach(function(s,i){var cx=L+slot*i+slot/2,x=cx-bw/2,y=Y(s.ml),hh=Y(0)-y,r=Math.min(4,hh,bw/2);
-        g+='<g><title>'+esc(sTitle(s.se))+' · '+dmy(s.se.start)+'\n'+fmt(s.ml)+' ml · '+s.n+' chorros · '+s.people+' personas · '+dur(s.dur)+'</title>'+(hh>0?'<clipPath id="bc'+i+'"><path d="M'+x+' '+Y(0)+' L'+x+' '+(y+r)+' Q'+x+' '+y+' '+(x+r)+' '+y+' L'+(x+bw-r)+' '+y+' Q'+(x+bw)+' '+y+' '+(x+bw)+' '+(y+r)+' L'+(x+bw)+' '+Y(0)+' Z"/></clipPath><g clip-path="url(#bc'+i+')">'+(function(){var acc=0,o='';(s.parts||[]).forEach(function(q){var y1=Y(acc),y2=Y(acc+q.ml);acc+=q.ml;o+='<rect x="'+x+'" y="'+y2+'" width="'+bw+'" height="'+Math.max(0,y1-y2)+'" style="fill:'+(LPL.length>1?PLC[q.ci%PLC.length]:'var(--c1)')+'"><title>'+esc(q.loc)+': '+fmt(q.ml)+' ml</title></rect>';});return o;})()+'</g>':'')+'<rect x="'+(L+slot*i)+'" y="'+T+'" width="'+slot+'" height="'+ph+'" fill="transparent"/></g>';
-        if(slot>=30)g+='<text x="'+cx+'" y="'+(y-5)+'" text-anchor="middle" font-size="11" font-weight="600" style="fill:var(--ink)">'+fmt(s.ml)+'</text>';
+      evs.forEach(function(s,i){var cx=L+slot*i+slot/2,x=cx-bw/2,y=Y(s.val),hh=Y(0)-y,r=Math.min(4,hh,bw/2);
+        g+='<g><title>'+esc(sTitle(s.se))+' · '+dmy(s.se.start)+'\n'+fmt(s.ml)+' ml · '+s.n+' chorros · '+s.people+' personas · '+dur(s.dur)+'</title>'+(hh>0?'<clipPath id="bc'+i+'"><path d="M'+x+' '+Y(0)+' L'+x+' '+(y+r)+' Q'+x+' '+y+' '+(x+r)+' '+y+' L'+(x+bw-r)+' '+y+' Q'+(x+bw)+' '+y+' '+(x+bw)+' '+(y+r)+' L'+(x+bw)+' '+Y(0)+' Z"/></clipPath><g clip-path="url(#bc'+i+')">'+(function(){var acc=0,o='';(s.parts||[]).forEach(function(q){if(!q.v)return;var y1=Y(acc),y2=Y(acc+q.v);acc+=q.v;o+='<rect x="'+x+'" y="'+y2+'" width="'+bw+'" height="'+Math.max(0,y1-y2)+'" style="fill:'+(LPL.length>1?PLC[q.ci%PLC.length]:'var(--c1)')+'"><title>'+esc(q.loc)+': '+fv(q.v)+MU+'</title></rect>';});return o;})()+'</g>':'')+'<rect x="'+(L+slot*i)+'" y="'+T+'" width="'+slot+'" height="'+(Ht-T)+'" fill="transparent" data-chsum="'+s.se.id+'" style="cursor:pointer"/></g>';
+        if(slot>=30)g+='<text x="'+cx+'" y="'+(y-5)+'" text-anchor="middle" font-size="11" font-weight="600" style="fill:var(--ink);pointer-events:none">'+fv(s.val)+'</text>';
         if(slot>=34||i%Math.ceil(34/slot)===0)g+='<text x="'+cx+'" y="'+(Ht-32)+'" text-anchor="middle" font-size="11" style="fill:var(--mut)">'+dmy(s.se.start).slice(0,5)+'</text>'+wrap2(sTitle(s.se),Math.max(6,Math.floor(Math.min(slot,140)/5.6))).map(function(t,j){return '<text x="'+cx+'" y="'+(Ht-19+j*12)+'" text-anchor="middle" font-size="10" style="fill:var(--mut)">'+esc(t)+'</text>';}).join('');
       });
       g+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mut)"/>';
-      h+='<h3>Mililitros por chill</h3>'+(LPL.length>1?'<div class="plg">'+LPL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<div class="bars"><svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros totales de cada chill">'+g+'</svg></div>'+(ev.length>24?'<div class="msg">Se muestran los últimos 24 chills.</div>':'')+'</div>';
+      h+='<h3 style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+{ml:'Mililitros',n:'Chorros',h:'Duración (h)'}[MPC]+' por chill<span class="segb">'+[['ml','ml'],['n','Chorros'],['h','Duración']].map(function(x){return '<button type="button" data-mpc="'+x[0]+'" class="'+(MPC===x[0]?'on':'')+'">'+x[1]+'</button>';}).join('')+'</span></h3><div class="msg" style="margin:-4px 0 6px">Toca una barra para ver el resumen de ese chill.</div>'+(LPL.length>1?'<div class="plg">'+LPL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<div class="bars"><svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros totales de cada chill">'+g+'</svg></div>'+(ev.length>24?'<div class="msg">Se muestran los últimos 24 chills.</div>':'')+'</div>';
       box.innerHTML=h;
+      box.querySelectorAll('[data-mpc]').forEach(function(b){b.onclick=function(){MPC=b.dataset.mpc;renderStats();};});
+      box.querySelectorAll('[data-chsum]').forEach(function(r){r.onclick=function(){showSummaryOf(r.dataset.chsum);};});
     },function(){box.innerHTML='<div class="stats"><div class="empty">No se pudieron cargar las estadísticas.</div></div>';});
   }
   var aliasRaw={};
@@ -2138,10 +2146,10 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   var TABBOX={stats:['statsBox','statsBtn'],hist:['histBox','histBtn'],act:['actBox','actBtn'],trash:['trashBox','trashBtn']};
   function setTab(t){
     Object.keys(TABBOX).forEach(function(k){var bx=$(TABBOX[k][0]);if(k!==t&&!bx.hidden)$(TABBOX[k][1]).onclick();});
-    $('placesBox').hidden=t!=='places';
+    $('placesBox').hidden=t!=='places';$('medalsBox').hidden=t!=='medals';if(t==='medals')renderMedalsHelp();
     if(TABBOX[t]&&$(TABBOX[t][0]).hidden)$(TABBOX[t][1]).onclick();
     if(t==='places')renderPlaces();
-    curTab=t;document.body.classList.remove('tab-chill','tab-stats','tab-hist','tab-act','tab-trash','tab-places');document.body.classList.add('tab-'+t);
+    curTab=t;document.body.classList.remove('tab-chill','tab-stats','tab-hist','tab-act','tab-trash','tab-places','tab-medals');document.body.classList.add('tab-'+t);
     document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.tab===t);});
     try{window.scrollTo(0,0);}catch(e){}
   }
@@ -2150,6 +2158,56 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   ['statsBtn','histBtn','actBtn','trashBtn'].forEach(function(id){var b=$(id);try{new MutationObserver(syncTabs).observe(b,{attributes:true,attributeFilter:['hidden']});}catch(e){}});
   syncTabs();
 
+  /* glosario de medallas */
+  var MEDAL_HELP=[
+    ['En cada chill',[
+      ['🥇','Más ml','Quien más mililitros toma en el chill.'],
+      ['🎯','Primer chorro','El primer chorro del chill.'],
+      ['🌙','Último chorro','El último chorro del chill.'],
+      ['🔑','Abrió el chill','El primero en llegar (con 3 personas o más).'],
+      ['🚪','Cerró el chill','El último en irse, cuando el chill ha terminado.'],
+      ['🏠','Anfitrión','El chill pasa por su casa.'],
+      ['📝','Apuntador','Quien más chorros anota a otros (mínimo 3).']]],
+    ['Duración',[
+      ['🦉','Noche completa','8 horas o más en el chill, sin contar ausencias.'],
+      ['🏕️','Maratón +24 h','24 horas o más en el chill.'],
+      ['⚡','Visita exprés','Menos de 6 horas y al menos un chorro (chill terminado).'],
+      ['🌅','Llegó al D+N','Siguió tomando chorros al día siguiente (D+1), o al otro (D+2)…'],
+      ['🪃','Bumerán','Se fue y volvió.']]],
+    ['Ritmo',[
+      ['💨','Más frecuente','El menor tiempo medio entre chorros.'],
+      ['🔥','Doblete','Dos chorros seguidos con 15 minutos o menos entre ellos.'],
+      ['🎩','Hat-trick','Tres chorros en 1 h 30 min o menos.'],
+      ['🚀','Arranque fuerte','Más ml en su primera hora desde que llegó.'],
+      ['🏁','Sprint final','Más ml en la última hora del chill.'],
+      ['🐢','Tortuga','El que más espacia sus chorros de media (mínimo 3 chorros).'],
+      ['🏜️','Sequía','El hueco más largo sin chorro estando presente.'],
+      ['⏰','Puntual','Más chorros justo cuando le tocaba (±5 min del intervalo de aviso).'],
+      ['🕐','Reloj suizo','Ritmo medio más cercano a 1 hora (entre 45 y 75 min, 4 chorros o más).'],
+      ['🌀','Impuntual','Los intervalos entre chorros más irregulares (4 chorros o más).']]],
+    ['Cantidad',[
+      ['💎','Chorro gordo','El chorro más grande de la noche.'],
+      ['🤏','Gotita','El chorro más pequeño.'],
+      ['📏','Ritmo de crucero','Más ml por hora presente (mínimo 3 horas).'],
+      ['💧','Dosis fija','Repite casi siempre la misma cantidad (60 % o más, 4 chorros o más).'],
+      ['🎲','Errante','Las cantidades más variadas (4 chorros o más).']]],
+    ['Momentos',[
+      ['🕛','Campanadas','Un chorro entre las 00:00 y las 00:10.'],
+      ['🌄','Hasta el amanecer','Algún chorro entre las 6:00 y las 8:00.'],
+      ['🌞','Madrugador','El primer chorro del día siguiente a partir de las 6:00.'],
+      ['👯','Sincronizados','Las dos personas que más veces toman chorro a la vez (menos de 2 min). Se la llevan las dos.']]],
+    ['Sitios',[
+      ['🧭','Nómada','Tomó chorros en 3 sitios o más.'],
+      ['🌍','Explorador','Primera vez de esa persona en un sitio (no cuenta en su primer chill).'],
+      ['🎉','De estreno','Estaba en los primeros 30 minutos del primer chill en una casa o alojamiento.']]],
+    ['Historial',[
+      ['🆕','Debut','Su primer chill.'],
+      ['📈','Récord personal','Supera su máximo de ml de chills anteriores.'],
+      ['🔁','Fijo','Ha venido a los últimos 5 chills seguidos.']]]
+  ];
+  function renderMedalsHelp(){var b=$('medalsBox');if(b.dataset.done)return;b.dataset.done='1';
+    b.innerHTML='<h2>🏅 Medallas</h2><div class="msg">Se reparten al final de cada chill y aparecen en el resumen y en la ficha de cada persona. Si dos personas empatan, nadie se lleva esa medalla.</div>'+
+      MEDAL_HELP.map(function(g){return '<h3 style="margin:18px 0 6px">'+g[0]+'</h3><div class="mhl">'+g[1].map(function(m){return '<div class="mhi"><span class="mhe">'+m[0]+'</span><div><b>'+esc(m[1])+'</b><div class="msg" style="margin:2px 0 0">'+esc(m[2])+'</div></div></div>';}).join('')+'</div>';}).join('');}
   /* lugares */
   var PTYPES=[['casa','🏠 Casa'],['bar','🍻 Bar'],['disco','🪩 Discoteca / fiesta'],['rest','🍽️ Restaurante'],['fuera','🏖️ Playa / aire libre'],['spa','🧖 Spa / sauna'],['aloj','🏨 Alojamiento'],['transp','🚆 Transporte'],['evento','🎪 Evento'],['otro','❓ Otro']];
   function ptype(k){for(var i=0;i<PTYPES.length;i++)if(PTYPES[i][0]===k)return PTYPES[i][1];return '';}
