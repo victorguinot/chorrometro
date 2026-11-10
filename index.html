@@ -1176,7 +1176,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         if(prev.length&&!was.length&&(r.ls.length||r.h>0))add(r,'🆕 Debut');
         if(was.length&&r.tot>0){var mxp=0;was.forEach(function(x){mxp=Math.max(mxp,pTot[r.k+'@'+x.id]||0);});if(mxp>0&&r.tot>mxp)add(r,'📈 Récord personal');}
         if(prev.length>=4&&prev.slice(0,4).every(function(x){return byS[x.id]&&byS[x.id][r.k];}))add(r,'🔁 Fijo');
-        var mpS=mainPath(se).map(nrm);if(prev.length&&r.ls.some(function(l){var pl=nrm(l.loc||plocAt(r.p,se,l.ts)||'');return pl&&!places[pl]&&mpS.indexOf(pl)<0;}))add(r,'🌍 Explorador');
+        if(prev.length&&r.ls.some(function(l){var pl=nrm(l.loc||plocAt(r.p,se,l.ts)||'');return pl&&!places[pl];}))add(r,'🌍 Explorador');
       });
     }
     return M;
