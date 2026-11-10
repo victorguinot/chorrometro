@@ -368,7 +368,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     <section id="chillSec">
       <h2>Chorros del chill</h2>
       <div id="sbar" class="sbar" hidden></div>
-      <div class="tools"><span class="sp"></span><button class="s" id="statsBtn" hidden>Estadísticas</button><button class="s" id="histBtn" hidden>Historial</button><button class="s" id="trashBtn" hidden>Eliminados</button><button class="s" id="actBtn" hidden>Actividad</button><button class="s" id="scrBtn">📺 Modo pantalla</button><button class="s" id="qrBtn">🔳 Mostrar QR</button><button class="s" id="copyCsv" hidden>📋 Copiar CSV</button><button class="s" id="shareBtn" hidden>🖼️ Resumen para compartir</button><button class="s" id="bkBtn" hidden>💾 Copia de seguridad</button><button class="s" id="asUserBtn" hidden>👁️ Ver como usuario</button></div>
+      <div class="tools"><span class="sp"></span><button class="s" id="statsBtn" hidden>Estadísticas</button><button class="s" id="histBtn" hidden>Historial</button><button class="s" id="trashBtn" hidden>Eliminados</button><button class="s" id="actBtn" hidden>Actividad</button><button class="s" id="scrBtn">📺 Modo pantalla</button><button class="s" id="qrBtn">🔳 Mostrar QR</button><button class="s" id="copyCsv" hidden>📋 Copiar CSV</button><button class="s" id="shareBtn" hidden>🖼️ Resumen</button><button class="s" id="bkBtn" hidden>💾 Copia de seguridad</button><button class="s" id="asUserBtn" hidden>👁️ Ver como usuario</button></div>
       <div id="csvBox"></div>
       <div id="qrBox" hidden></div>
       <div id="editor"></div>
@@ -429,6 +429,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function sTitle(se){if(!se)return 'Chill';if(se.title)return se.title;var st=mainPath(se),n=sidePlaces(se).length;if(!st.length)return se.name||'Chill';
     var b=st.length>1?'Ruta '+(st.length>3?st[0]+' → … → '+st[st.length-1]:st.join(' → ')):(se.name||('Chill de '+st[0]));var sp=sidePlaces(se),kc={};sp.forEach(function(l){var w=kindOf(l);kc[w]=(kc[w]||0)+1;});return b+Object.keys(kc).map(function(w){return ' · +'+kc[w]+' '+(kc[w]===1?w:w+'s');}).join('');}
   function kindOf(loc){var m=(typeof placesMeta!=='undefined'&&loc&&placesMeta[plKey(loc)])||null;if(m&&m.type==='disco')return 'fiesta';if(m&&m.type==='transp')return 'viaje';if(m&&m.type==='aloj')return 'chill';return isHouse(loc)?'chill':'visita';}
+  function sumTitle(se){if(!se)return 'Resumen';if(mainPath(se).length>1)return 'Resumen de la ruta';var k=kindOf(mainPath(se)[0]);return {chill:'Resumen del chill',fiesta:'Resumen de la fiesta',viaje:'Resumen del viaje',visita:'Resumen de la visita'}[k]||'Resumen del chill';}
   function kindWord(loc,n){var w=kindOf(loc);return n===1?w:w+'s';}
   var PLC=['#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#14b8a6','#84cc16'];
   function pById(id){for(var i=0;i<state.people.length;i++)if(state.people[i].id===id)return state.people[i];return null;}
@@ -1945,8 +1946,10 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var F='"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif';
     g.fillStyle=DK.bg;g.fillRect(0,0,W,Ht);
     g.fillStyle=DK.acc;g.font='600 30px '+F;g.fillText('Chorrómetro',pad,84);
-    g.fillStyle=DK.ink;g.font='600 60px '+F;g.fillText(sTitle(se)||'Chill',pad,160);
-    g.fillStyle=DK.mut;g.font='30px '+F;g.fillText(dmy(se.start)+' · '+hhmm(se.start)+'–'+hhmm(end)+' · '+dur(end-se.start)+(locTimeline(se).length>1?' · '+locPath(se):''),pad,210);
+    var tt=sTitle(se)||'Chill',fs=60,mw=W-2*pad;g.font='600 '+fs+'px '+F;while(g.measureText(tt).width>mw&&fs>34){fs-=2;g.font='600 '+fs+'px '+F;}while(g.measureText(tt).width>mw&&tt.length>4)tt=tt.slice(0,-2).replace(/\s+$/,'')+'…';
+    g.fillStyle=DK.ink;g.fillText(tt,pad,160);
+    var sub=dmy(se.start)+' · '+hhmm(se.start)+'–'+hhmm(end)+' · '+dur(end-se.start),sp2=sidePlaces(se);g.font='30px '+F;if(sp2.length){var ex=' · además: '+sp2.join(', ');if(g.measureText(sub+ex).width<=mw)sub+=ex;}
+    g.fillStyle=DK.mut;g.fillText(sub,pad,210);
     var kp=[[fmt(tot)+' ml','en total'],[String(n),'chorros'],[String(rows.length),'personas'],[rows.length?fmt(Math.round(tot/rows.length*100)/100)+' ml':'—','por persona']];
     kp.forEach(function(k,i){var x=pad+i*240;g.fillStyle=DK.surf;rr(g,x,240,300,0,0);g.fillStyle=DK.ink;g.font='600 44px '+F;g.fillText(k[0],x,286);g.fillStyle=DK.mut;g.font='26px '+F;g.fillText(k[1],x,318);});
     var y=top+40;
@@ -2066,7 +2069,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   function openShare(){
     if(!state.logs.length&&!state.people.length){say('Este chill todavía no tiene datos para el resumen.');return;}
     var c=buildShare(),url=c.toDataURL('image/png'),m=$('shareModal');
-    m.hidden=false;m.innerHTML='<div class="sm-card"><div class="sm-head"><b>🖼️ Resumen para compartir</b><button class="s" id="smClose">Cerrar</button></div><img src="'+url+'" alt="Resumen del chill"><div class="sm-btns"><button class="p" id="smShare">Compartir</button><button class="s" id="smSave">Guardar imagen</button></div><div class="msg" id="smMsg">Si no se abre el menú de compartir, mantén pulsada la imagen para guardarla o copiarla.</div></div>';
+    m.hidden=false;m.innerHTML='<div class="sm-card"><div class="sm-head"><b>🖼️ '+esc(sumTitle(sess(viewSid)))+'</b><button class="s" id="smClose">Cerrar</button></div><img src="'+url+'" alt="Resumen del chill"><div class="sm-btns"><button class="p" id="smShare">Compartir</button><button class="s" id="smSave">Guardar imagen</button></div><div class="msg" id="smMsg">Si no se abre el menú de compartir, mantén pulsada la imagen para guardarla o copiarla.</div></div>';
     var se=sess(viewSid),fn='chill-'+((se&&curLoc(se))||'resumen').replace(/[^a-z0-9áéíóúñ]+/gi,'-').toLowerCase()+'-'+dmy(se?se.start:Date.now()).replace(/\//g,'-')+'.png';
     $('smClose').onclick=function(){m.hidden=true;m.innerHTML='';};
     m.onclick=function(e){if(e.target===m){m.hidden=true;m.innerHTML='';}};
