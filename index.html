@@ -314,6 +314,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
 .onbL{display:flex;flex-direction:column;gap:6px;max-height:46vh;overflow:auto;margin-top:8px}.onbI{text-align:left;width:100%}.onbI[disabled]{opacity:.45}
 .mvw{flex-direction:column;align-items:flex-start}.mvl{display:flex;flex-wrap:wrap;gap:6px 14px}.mvi{display:flex;align-items:center;gap:5px;font-weight:400}.pchip{font-size:.78em;padding:1px 7px;border-radius:9px;background:var(--line);color:var(--ink);white-space:nowrap}
 .plg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin:0 0 6px;color:var(--mut)}.plg span{display:flex;align-items:center;gap:5px}.plg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.npc h4{margin:12px 0 4px}.npr{display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:5px 0;font-weight:400;text-align:left}.npr input[type=checkbox]{width:18px;height:18px;flex:none;margin:0}.npr select{width:auto}.mvi input[type=checkbox]{width:16px;height:16px;flex:none;margin:0}
 </style>
 </head>
 <body>
@@ -326,8 +327,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
   <div class="msg" id="toast" role="status"></div>
   <div id="alerts"></div>
   <label class="alopt"><input type="checkbox" id="alOn"> Avisar cuando pasen más de <select id="alMin" aria-label="Tiempo sin tomar"><option value="30">30 min</option><option value="60">1 h</option><option value="90">1,5 h</option><option value="120">2 h</option></select> sin tomar</label>
-  <label class="alopt" style="margin-top:-8px"><input type="checkbox" id="sndOn"> Sonar cuando alguien registre un chorro</label>
-  <label class="alopt" style="margin-top:-8px"><input type="checkbox" id="almOn"> Alarma cuando a alguien le toque</label>
+  <div class="alopt" style="margin-top:-8px"><button class="s" id="npBtn" type="button">🔔 Ajustar avisos</button></div>
   <label class="alopt" id="scRow" style="margin-top:-8px" hidden><input type="checkbox" id="scOn"> <span id="scTxt">Lanzar mi atajo ChorriTime con mis chorros</span></label>
   <div id="gate" hidden></div>
   <div class="banner" id="reqBox" hidden></div>
@@ -1335,7 +1335,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
   /* avisos grandes */
   function bigNote(kind,html){
     var box=$('notes'),scr=document.body.classList.contains('screen');
-    var ms=(kind==='turno'||kind==='me'||kind==='end')?(scr?45000:30000):(scr?30000:20000);
+    var ms=(kind==='turno'||kind==='me'||kind==='end')?(scr?45000:30000):(scr?30000:20000),df={short:0.4,normal:1,long:2}[NP.dur]||1;ms=Math.round(ms*df);
     var n=document.createElement('div');n.className='bn bn-'+kind;n.setAttribute('role','alert');
     n.innerHTML=html+'<div class="bn-bar" style="animation-duration:'+ms+'ms"></div>';
     n.onclick=function(e){var b=e.target.closest&&e.target.closest('[data-sum]');if(b)showSummaryOf(b.dataset.sum);n.remove();};
@@ -1358,21 +1358,23 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     });
   }
   function notifyDoor(e){
+    if(NP[e.k==='new'?'arr':e.k]===false)return;
     var c=(typeof e.col==='number'&&e.col<NC)?PAL[e.col]:'var(--mut)',back=e.k==='back',nw=e.k==='new';
     bigNote(nw?'new':(back?'back':'gone'),'<div class="bn-t">'+(nw?'🎉 ¡Ha llegado alguien nuevo!':(back?'🚪 Ha vuelto':'🚪 Se ha ido'))+'</div><div class="bn-m"><i class="dot" style="background:'+c+'"></i><b>'+esc(e.n)+'</b> <span class="bn-s">a las '+hhmm(e.t)+'</span></div>');
     if(sndOn&&Date.now()-lastDing>1200){lastDing=Date.now();ding();}
+    try{if(NP.vib&&navigator.vibrate)navigator.vibrate(60);}catch(er){}
   }
   function notifyNew(x){
     if(x.bulk)return;
+    var mp0=myPerson();if(NP[mp0&&mp0.id===x.pid?'mine':'others']===false)return;
     var nm=name(x.pid);
     var pi=-1;state.people.forEach(function(q,i){if(q.id===x.pid)pi=i;});
     bigNote('chorro','<div class="bn-t">💧 Nuevo chorro</div><div class="bn-m">'+(pi>=0?'<i class="dot" style="background:'+colorOf(pi)+'"></i>':'')+'<b>'+esc(nm)+'</b> · '+fmt(x.amt)+' ml <span class="bn-s">a las '+hhmm(x.ts)+'</span></div>'+(x.by&&whoName(x.by)?'<div class="bn-s">Lo registró '+esc(whoName(x.by))+'</div>':''));
     if(!sndOn||Date.now()-lastDing<1200)return;
     lastDing=Date.now();ding();
-    try{if(navigator.vibrate)navigator.vibrate(60);}catch(e){}
+    try{if(NP.vib&&navigator.vibrate)navigator.vibrate(60);}catch(e){}
   }
-  $('sndOn').checked=sndOn;
-  $('sndOn').onchange=function(){sndOn=this.checked;try{localStorage.setItem('fichajes-snd',sndOn?'1':'0');}catch(e){}if(sndOn)ding();};
+
   document.addEventListener('pointerdown',function(){if(sndOn)audio();},{passive:true});
   /* alarma cuando a alguien le toca */
   var almOn=false,prevLate=null,prevLateSid=null,baseAt=0;
@@ -1393,12 +1395,40 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     var nuevos=list.filter(function(x){return prevLate.indexOf(x.p.id)<0;});
     prevLate=ids;
     if(!nuevos.length)return;
-    var mp=myPerson();if(mp&&nuevos.some(function(x){return x.p.id===mp.id;})){bigNote('me','<div class="bn-t">⏰ ¡Te toca, '+esc(mp.name)+'!</div><div class="bn-s">Llevas más de '+(cfg.min>=60?dur(cfg.min*60000):cfg.min+' min')+' sin chorro.</div>');try{if(navigator.vibrate)navigator.vibrate([200,100,200,100,200]);}catch(e){}if(almOn)alarm();nuevos=nuevos.filter(function(x){return x.p.id!==mp.id;});if(!nuevos.length)return;}
+    var mp=myPerson();if(mp&&nuevos.some(function(x){return x.p.id===mp.id;})){if(NP.myturn!==false)bigNote('me','<div class="bn-t">⏰ ¡Te toca, '+esc(mp.name)+'!</div><div class="bn-s">Llevas más de '+(cfg.min>=60?dur(cfg.min*60000):cfg.min+' min')+' sin chorro.</div>');try{if(NP.myturn!==false&&NP.vib&&navigator.vibrate)navigator.vibrate([200,100,200,100,200]);}catch(e){}if(almOn)alarm();nuevos=nuevos.filter(function(x){return x.p.id!==mp.id;});if(!nuevos.length)return;}
+    if(NP.turns===false)return;
     bigNote('turno','<div class="bn-t">⏰ Le toca</div><div class="bn-m">'+nuevos.map(function(x){var pi=state.people.indexOf(x.p);return '<span class="bn-p"><i class="dot" style="background:'+colorOf(pi)+'"></i><b>'+esc(x.p.name)+'</b></span>';}).join(' ')+'</div><div class="bn-s">Más de '+(cfg.min<60?cfg.min+' min':fmt(cfg.min/60)+' h')+' sin tomar</div>');
-    if(almOn){alarm();try{if(navigator.vibrate)navigator.vibrate([150,80,150]);}catch(e){}}
+    if(almOn){alarm();try{if(NP.vib&&navigator.vibrate)navigator.vibrate([150,80,150]);}catch(e){}}
   }
-  $('almOn').checked=almOn;
-  $('almOn').onchange=function(){almOn=this.checked;try{localStorage.setItem('fichajes-alm',almOn?'1':'0');}catch(e){}if(almOn)alarm();};
+  /* preferencias de avisos */
+  var NP_DEF={others:true,mine:true,arr:true,gone:true,back:true,turns:true,myturn:true,dur:'normal',snd:false,vib:true,alarm:false},NP={},npOrg=null,npOwn=false;
+  function npLoad(){var o=null;try{o=JSON.parse(localStorage.getItem('fichajes-np'));}catch(e){}npOwn=!!o;var b=Object.assign({},NP_DEF,npOrg||{});
+    if(!o){try{if(localStorage.getItem('fichajes-snd')==='1')b.snd=true;if(localStorage.getItem('fichajes-alm')==='1')b.alarm=true;}catch(e){}}
+    NP=Object.assign(b,o||{});sndOn=!!NP.snd;almOn=!!NP.alarm;}
+  npLoad();
+  var NP_ROWS=[['others','💧 Chorros de los demás'],['mine','💧 Mis propios chorros'],['arr','🎉 Llega alguien nuevo'],['gone','🚪 Alguien se va'],['back','🚪 Alguien vuelve'],['turns','⏰ A alguien le toca'],['myturn','⏰ Me toca a mí']];
+  function openNP(){
+    var m=$('shareModal');m.hidden=false;
+    var close=function(){m.hidden=true;m.innerHTML='';};
+    function draw(){
+      m.innerHTML='<div class="sm-card npc"><div class="sm-head"><b>🔔 Avisos</b><button class="s" id="npX">Cerrar</button></div>'+
+        '<div class="msg" style="margin:0 0 6px">'+(npOwn?'Usas tus propios ajustes en este dispositivo.':(npOrg?'Usas los ajustes del organizador.':'Usas los ajustes por defecto.'))+'</div>'+
+        '<h4>Qué avisos ver</h4>'+NP_ROWS.map(function(r){return '<label class="npr"><input type="checkbox" data-np="'+r[0]+'"'+(NP[r[0]]?' checked':'')+'> '+r[1]+'</label>';}).join('')+
+        '<h4>Cómo</h4><label class="npr">Duración <select id="npDur"><option value="short"'+(NP.dur==='short'?' selected':'')+'>Corta (8 s)</option><option value="normal"'+(NP.dur==='normal'?' selected':'')+'>Normal (20 s)</option><option value="long"'+(NP.dur==='long'?' selected':'')+'>Larga (40 s)</option></select></label>'+
+        '<label class="npr"><input type="checkbox" data-np="snd"'+(NP.snd?' checked':'')+'> 🔊 Sonido con cada aviso</label>'+
+        '<label class="npr"><input type="checkbox" data-np="vib"'+(NP.vib?' checked':'')+'> 📳 Vibrar (Android)</label>'+
+        '<label class="npr"><input type="checkbox" data-np="alarm"'+(NP.alarm?' checked':'')+'> 🚨 Alarma fuerte cuando a alguien le toque</label>'+
+        '<div class="sm-btns" style="flex-wrap:wrap">'+(npOwn?'<button class="s" id="npReset">Volver a los del organizador</button>':'')+((isOwner&&db)?'<button class="p" id="npOrg">Guardar como predeterminado para todos</button>':'')+'</div><div class="msg" id="npMsg"></div></div>';
+      $('npX').onclick=close;m.onclick=function(e){if(e.target===m)close();};
+      m.querySelectorAll('[data-np]').forEach(function(c){c.onchange=function(){NP[this.dataset.np]=this.checked;save();if(this.dataset.np==='snd'&&this.checked)ding();if(this.dataset.np==='alarm'&&this.checked)alarm();};});
+      $('npDur').onchange=function(){NP.dur=this.value;save();bigNote('chorro','<div class="bn-t">🔔 Así se ve un aviso</div><div class="bn-s">Duración '+this.options[this.selectedIndex].text.toLowerCase()+'</div>');};
+      if($('npReset'))$('npReset').onclick=function(){try{localStorage.removeItem('fichajes-np');}catch(e){}npLoad();draw();};
+      if($('npOrg'))$('npOrg').onclick=function(){var o={};Object.keys(NP_DEF).forEach(function(k){o[k]=NP[k];});db.doc('meta/settings').set({notif:o},{merge:true}).then(function(){npOrg=o;$('npMsg').textContent='Guardado: quien no haya cambiado sus avisos usará estos.';},fail);};
+    }
+    function save(){var o={};Object.keys(NP_DEF).forEach(function(k){o[k]=NP[k];});try{localStorage.setItem('fichajes-np',JSON.stringify(o));}catch(e){}npOwn=true;sndOn=!!NP.snd;almOn=!!NP.alarm;var mm=$('npMsg');if(mm)mm.textContent='Guardado en este dispositivo.';}
+    draw();
+  }
+  $('npBtn').onclick=openNP;
   document.addEventListener('pointerdown',function(){if(almOn)audio();},{passive:true});
   /* papelera */
   function opTrashLog(id){
@@ -2044,6 +2074,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
         db.doc('colors/map').onSnapshot(function(s){colMap=s.exists?(function(d){var o={};for(var k in d)o[k]=d[k];return o;})(s.data()):{};peopleSig='';onData();},function(){});
         $('statsBtn').hidden=false;loadMine();
         $('scRow').hidden=false;scLabel();
+        db.doc('meta/settings').onSnapshot(function(s){var x=s.exists?s.data():null;npOrg=(x&&x.notif)||null;npLoad();},function(){});
         if(isOwner){$('histBtn').hidden=false;$('shareBtn').hidden=false;$('bkBtn').hidden=false;$('actBtn').hidden=false;$('scRow').hidden=false;$('trashBtn').hidden=false;$('copyCsv').hidden=false;db.doc('meta/settings').onSnapshot(function(s){var x=s.exists?s.data():null;autoH=(x&&x.autoCloseH)||0;renderSessionBar();autoCheck();},function(){});}
       });
     });
