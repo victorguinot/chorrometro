@@ -1103,7 +1103,17 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     if(all.length){var f=all[0],l=all[all.length-1];rows.forEach(function(r){if(r.p.id===f.pid)add(r,'🎯 Primer chorro');if(r.p.id===l.pid&&all.length>1)add(r,'🌙 Último chorro');});}
     var bg=null;rows.forEach(function(r){if(r.gap>0&&(!bg||r.gap<bg.gap))bg=r;});if(bg)add(bg,'⏱️ Más constante');
     var d0=new Date(se.start);d0.setHours(0,0,0,0);
-    rows.forEach(function(r){if(r.h>=8)add(r,'🦉 Noche completa');var mo=0;r.ls.forEach(function(l){var d=new Date(l.ts);d.setHours(0,0,0,0);mo=Math.max(mo,Math.round((d-d0)/86400000));});if(mo>=1)add(r,'🌅 Llegó al D+'+mo);
+    var fin=!!se.end&&!isActive(se.id),ar=rows.filter(function(r){return r.ls.length||r.h>0;});
+    if(ar.length>2){var fa=null,la=null;ar.forEach(function(r){var a=arrOf(r.p,r.ls,se),d=depOf(r.p,r.ls,se);r.a0=a;r.d0=d;if(!fa||a<fa.a0)fa=r;if(!la||d>la.d0)la=r;});
+      if(fa&&ar.filter(function(r){return r.a0===fa.a0;}).length===1)add(fa,'🔑 Abrió el chill');if(fin&&la&&ar.filter(function(r){return r.d0===la.d0;}).length===1)add(la,'🚪 Cerró el chill');}
+    var reg={};logs.forEach(function(l){var n=l.by&&(regMap[l.by]||acctMap[l.by]);if(!n)return;var rk=canon(n),pr=null;rows.forEach(function(r){if(r.p.id===l.pid)pr=r;});if(pr&&pr.k!==rk)reg[rk]=(reg[rk]||0)+1;});
+    var rb=null;Object.keys(reg).forEach(function(k){if(reg[k]>=3&&(!rb||reg[k]>reg[rb]))rb=k;});if(rb)rows.forEach(function(r){if(r.k===rb)add(r,'📝 Apuntador');});
+    rows.forEach(function(r){
+      if(r.h>=24)add(r,'🏕️ Maratón +24 h');else if(r.h>=8)add(r,'🦉 Noche completa');else if(fin&&r.h>0&&r.h<6&&r.ls.length)add(r,'⚡ Visita exprés');
+      if((r.p.away||[]).some(function(x){return x.t;}))add(r,'🪃 Bumerán');
+      var pl={};r.ls.forEach(function(l){pl[nrm(l.loc||plocAt(r.p,se,l.ts)||'')]=1;});if(Object.keys(pl).length>=3)add(r,'🧭 Nómada');
+      for(var i=1;i<r.ls.length;i++)if(r.ls[i].ts-r.ls[i-1].ts<=15*60000){add(r,'🔥 Doblete');break;}
+      if(r.ls.some(function(l){var hh=new Date(l.ts).getHours();return hh>=6&&hh<8;}))add(r,'🌄 Hasta el amanecer');var mo=0;r.ls.forEach(function(l){var d=new Date(l.ts);d.setHours(0,0,0,0);mo=Math.max(mo,Math.round((d-d0)/86400000));});if(mo>=1)add(r,'🌅 Llegó al D+'+mo);
       if(locTimeline(se).some(function(x){return isHostOf(x.loc,r.k);}))add(r,'🏠 Anfitrión');});
     return M;
   }
