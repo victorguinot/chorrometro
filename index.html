@@ -315,6 +315,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
 .mvw{flex-direction:column;align-items:flex-start}.mvl{display:flex;flex-wrap:wrap;gap:6px 14px}.mvi{display:flex;align-items:center;gap:5px;font-weight:400}.pchip{font-size:.78em;padding:1px 7px;border-radius:9px;background:var(--line);color:var(--ink);white-space:nowrap}
 .plg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin:0 0 6px;color:var(--mut)}.plg span{display:flex;align-items:center;gap:5px}.plg i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .npc h4{margin:12px 0 4px}.npr{display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:5px 0;font-weight:400;text-align:left}.npr input[type=checkbox]{width:18px;height:18px;flex:none;margin:0}.npr select{width:auto}.mvi input[type=checkbox]{width:16px;height:16px;flex:none;margin:0}
+.tsit{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}.tseg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}.tseg>input{flex:1 1 120px}.tseg label{display:flex;align-items:center;gap:4px;font-weight:400;font-size:13px}
 </style>
 </head>
 <body>
@@ -909,14 +910,18 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
   function canEditTimes(){return canWrite&&(isActive(viewSid)||isOwner||!db);}
   function openTimes(p){
     var se=sess(viewSid),arr=(p.at&&p.at>1e12)?p.at:(se?se.start:Date.now());
-    tEdit=p.id;tDraft={at:arr,away:(p.away||[]).map(function(x){return {f:x.f,t:x.t};}),gone:p.gone||null,err:''};
+    var mv=(p.moves||[]).slice().sort(function(a,b){return a.at-b.at;}),sg=[];mv.forEach(function(m,i){if(!m.loc)return;sg.push({loc:m.loc,f:m.at,t:i+1<mv.length?mv[i+1].at:null});});
+    tEdit=p.id;tDraft={at:arr,away:(p.away||[]).map(function(x){return {f:x.f,t:x.t};}),gone:p.gone||null,segs:sg,err:''};
   }
   function timesHtml(p){
     function fld(lbl,attrs,v,btn){return '<div class="tf"><div class="tl"><span>'+lbl+'</span>'+(btn||'')+'</div><input type="datetime-local" '+attrs+' value="'+localInput(v)+'"></div>';}
     var d=tDraft,h='<div class="tedit"><div class="tgrid">'+fld('Llegada','data-tk="at"',d.at);
     d.away.forEach(function(x,i){h+='<div class="tab">'+fld('Ausencia '+(i+1)+' · se fue','data-tk="f" data-ti="'+i+'"',x.f,'<button class="lnk" data-tdel="'+i+'">Quitar ausencia</button>')+fld('Volvió','data-tk="t" data-ti="'+i+'"',x.t)+'</div>';});
     if(d.gone)h+='<div class="tab">'+fld('Se fue (sigue fuera)','data-tk="gone"',d.gone,'<button class="lnk" data-tdel="gone">Marcar que sigue</button>')+'</div>';
-    h+='</div>'+(d.err?'<div class="msg" style="color:var(--warn)">'+esc(d.err)+'</div>':'')+'<div class="tbtns"><button class="s" data-tadd="1">+ Añadir ausencia</button><span style="flex:1"></span><button class="s" data-tcancel="1">Cancelar</button><button class="s go" data-tsave="1">Guardar</button></div></div>';
+    h+='</div><div class="tsit"><div class="tl"><b>📍 Sitios aparte del grupo</b></div><div class="msg" style="margin:0 0 4px">Fuera de estos tramos, '+esc(p.name)+' va con el recorrido del chill ('+esc(locPath(sess(viewSid))||'—')+').</div>'+
+      (d.segs||[]).map(function(x,i){return '<div class="tseg"><input list="locDl" data-sk="loc" data-si="'+i+'" maxlength="30" placeholder="Sitio" value="'+esc(x.loc)+'"><label>desde <input type="datetime-local" data-sk="f" data-si="'+i+'" value="'+localInput(x.f)+'"></label><label>hasta <input type="datetime-local" data-sk="t" data-si="'+i+'" value="'+(x.t?localInput(x.t):'')+'"></label><button class="lnk" data-sdel="'+i+'">Quitar</button></div>';}).join('')+
+      '<button class="s" data-sadd="1">+ Añadir sitio</button><span class="msg" style="margin:0 0 0 8px">Deja «hasta» vacío si no volvió con el grupo.</span><datalist id="locDl">'+allLocs().map(function(l){return '<option value="'+esc(l)+'">';}).join('')+'</datalist></div>'+
+      (d.err?'<div class="msg" style="color:var(--warn)">'+esc(d.err)+'</div>':'')+'<div class="tbtns"><button class="s" data-tadd="1">+ Añadir ausencia</button><span style="flex:1"></span><button class="s" data-tcancel="1">Cancelar</button><button class="s go" data-tsave="1">Guardar</button></div></div>';
     return h;
   }
   function saveTimes(){
@@ -926,9 +931,13 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     if(d.gone&&aw.length&&d.gone<aw[aw.length-1].t)err='La última salida tiene que ser posterior a la última vuelta.';
     if(d.gone&&d.gone<d.at)err='La salida no puede ser anterior a la llegada.';
     if(err){d.err=err;renderPeople();return;}
-    var upd={at:d.at,away:aw,gone:d.gone||null};
+    var sg=(d.segs||[]).map(function(x){return {loc:(x.loc||'').trim().replace(/\s+/g,' '),f:x.f,t:x.t||null};}).sort(function(a,b){return a.f-b.f;}),se=sess(viewSid);
+    sg.forEach(function(x,i){if(!x.loc)err='Pon nombre a todos los sitios.';else if(x.t&&!(x.t>x.f))err='En cada sitio, «hasta» tiene que ser posterior a «desde».';else if(i&&(sg[i-1].t===null||x.f<sg[i-1].t))err='Los tramos de sitios no pueden solaparse (el anterior necesita «hasta»).';else if(se&&x.f<se.start-60000)err='Un sitio no puede empezar antes que el chill.';});
+    if(err){d.err=err;renderPeople();return;}
+    var moves=[];sg.forEach(function(x,i){moves.push({loc:x.loc,at:x.f});if(x.t&&!(sg[i+1]&&sg[i+1].f<=x.t))moves.push({loc:null,at:x.t});});
+    var upd={at:d.at,away:aw,gone:d.gone||null,moves:moves};
     logAct({act:'times',pname:p.name});
-    var w=db?db.doc('people/'+p.id).update(upd):(function(){p.at=upd.at;p.away=upd.away;p.gone=upd.gone;saveLocal();onData();return Promise.resolve();})();
+    var w=db?db.doc('people/'+p.id).update(upd).then(function(){p.moves=moves;if(!se)return;return Promise.all(state.logs.filter(function(l){return l.pid===p.id;}).map(function(l){var nl=plocAt(p,se,l.ts)||null;return nl!==(l.loc||null)?db.doc('logs/'+l.id).update({loc:nl}):null;})).then(function(){return saveRpath(se);});}):(function(){p.at=upd.at;p.away=upd.away;p.gone=upd.gone;p.moves=moves;saveLocal();onData();return Promise.resolve();})();
     w.then(function(){tEdit=null;tDraft=null;peopleSig='';onData();say('Horarios de '+p.name+' guardados.');},fail);
   }
   var known=null,knownBusy=false;
@@ -982,6 +991,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     if(tEdit&&!state.people.some(function(x){return x.id===tEdit;}))tEdit=null;
     var ce=canEditTimes();
     el.innerHTML=state.people.map(function(x){var w=pendingDel===x.id,nAw=(x.away||[]).length;var sv=sess(viewSid),spl=sv&&!x.gone&&isSplit(x,sv);return '<div class="row" style="align-items:center;justify-content:space-between;padding:4px 0"><span'+(x.gone?' class="gone"':'')+'>'+esc(x.name)+hostMark(x.name)+(spl?' <span class="pchip">📍'+esc(pLast(x).loc)+'</span>':'')+(x.gone?' <span class="msg">· se fue a las '+hD(x.gone)+'</span>':(nAw?' <span class="msg">· '+nAw+' ausencia'+(nAw===1?'':'s')+'</span>':''))+'</span><span style="display:flex;gap:6px;flex:none">'+(ce?'<button class="s'+(tEdit===x.id?' go':'')+'" data-times="'+x.id+'" title="Editar llegada, salidas y vueltas">Horas</button>':'')+(canRen(x)?'<button class="s" data-pn="'+x.id+'" title="Corregir el nombre">✎</button>':'')+'<button class="s" data-gone="'+x.id+'">'+(x.gone?'Ha vuelto':'Se ha ido')+'</button>'+((isOwner||!db)?'<button class="s'+(w?' w':'')+'" data-del="'+x.id+'">'+(w?'¿Borrar con sus chorros?':'Quitar')+'</button>':'')+'</span></div>'+(pnEdit===x.id&&pnMerge&&pnMerge.from===x.id?'<div class="rtrow" style="margin:0 0 8px"><span class="msg" style="margin:0">'+esc(name(pnMerge.to))+' ya está en este chill. ¿Es la misma persona?</span><button class="go" data-pnmerge="1">Fusionar: pasar sus '+state.logs.filter(function(l){return l.pid===x.id;}).length+' chorros a '+esc(name(pnMerge.to))+'</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(pnEdit===x.id&&!pnMerge?'<div class="rtrow" style="margin:0 0 8px"><input id="pnIn" maxlength="40" value="'+esc(x.name)+'" aria-label="Nombre corregido"><label class="msg" style="margin:0;display:flex;gap:4px;align-items:center"><input type="checkbox" id="pnAll" checked style="width:auto"> en todos los chills</label><button class="go" data-pnsave="1">Guardar</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(tEdit===x.id&&tDraft?timesHtml(x):'');}).join('');
+    el.querySelectorAll('[data-sk]').forEach(function(inp){var h=function(){var k=this.dataset.sk,x=tDraft.segs[+this.dataset.si];if(!x)return;if(k==='loc')x.loc=this.value;else{var v=this.value?new Date(this.value).getTime():null;if(this.value&&isNaN(v))return;if(k==='f'&&v)x.f=v;if(k==='t')x.t=v;}tDraft.err='';};inp.oninput=h;inp.onchange=h;});
     el.querySelectorAll('[data-tk]').forEach(function(inp){inp.onchange=function(){var v=new Date(this.value).getTime();if(isNaN(v))return;var k=this.dataset.tk;if(k==='at')tDraft.at=v;else if(k==='gone')tDraft.gone=v;else tDraft.away[+this.dataset.ti][k]=v;tDraft.err='';};});
   }
 
@@ -1262,6 +1272,8 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
       renderPeople();return;
     }
     if(t.dataset.tadd&&tDraft){var lastT=tDraft.away.length?tDraft.away[tDraft.away.length-1].t:tDraft.at,nf=Math.min(Date.now()-3600000,Math.max(lastT+60000,Date.now()-3600000));tDraft.away.push({f:nf,t:Math.min(Date.now(),nf+1800000)});tDraft.err='';renderPeople();return;}
+    if(t.dataset.sadd&&tDraft){var se3=sess(viewSid),lim=(se3&&se3.end)||Date.now(),ls3=(tDraft.segs||[]),lt=ls3.length?(ls3[ls3.length-1].t||lim):Math.max(tDraft.at,lim-3600000);tDraft.segs=ls3.concat([{loc:'',f:Math.min(lt,lim-60000),t:null}]);tDraft.err='';renderPeople();return;}
+    if(t.dataset.sdel&&tDraft){tDraft.segs.splice(+t.dataset.sdel,1);tDraft.err='';renderPeople();return;}
     if(t.dataset.tdel&&tDraft){if(t.dataset.tdel==='gone')tDraft.gone=null;else tDraft.away.splice(+t.dataset.tdel,1);tDraft.err='';renderPeople();return;}
     if(t.dataset.tcancel){tEdit=null;tDraft=null;renderPeople();return;}
     if(t.dataset.tsave&&tDraft){if(!gate())return;saveTimes();return;}
