@@ -1176,7 +1176,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         if(prev.length&&!was.length&&(r.ls.length||r.h>0))add(r,'🆕 Debut');
         if(was.length&&r.tot>0){var mxp=0;was.forEach(function(x){mxp=Math.max(mxp,pTot[r.k+'@'+x.id]||0);});if(mxp>0&&r.tot>mxp)add(r,'📈 Récord personal');}
         if(prev.length>=4&&prev.slice(0,4).every(function(x){return byS[x.id]&&byS[x.id][r.k];}))add(r,'🔁 Fijo');
-        if(prev.length&&r.ls.some(function(l){var pl=nrm(l.loc||plocAt(r.p,se,l.ts)||'');return pl&&!places[pl];}))add(r,'🌍 Explorador');
+        var mpS=mainPath(se).map(nrm);if(prev.length&&r.ls.some(function(l){var pl=nrm(l.loc||plocAt(r.p,se,l.ts)||'');return pl&&!places[pl]&&mpS.indexOf(pl)<0;}))add(r,'🌍 Explorador');
       });
     }
     return M;
@@ -1191,16 +1191,17 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       return {logs:r[0],people:r[1].docs.map(function(d){var x=d.data();return {id:d.id,name:x.name,at:x.at,gone:x.gone,sid:x.sid,col:x.col,away:x.away||[],moves:x.moves||[]};}),
         sess:r[2].docs.filter(function(d){return !d.data().deleted;}).map(function(d){var x=d.data();return {id:d.id,name:x.name,title:x.title||null,loc:x.loc,locs:x.locs||null,rpath:x.rpath||null,start:x.start,end:x.end};})};});
   }
-  function openPerson(nm){
-    if(!db)return;var m=$('shareModal'),k=canon(nm);
-    m.hidden=false;m.innerHTML='<div class="sm-card pcard"><div class="sm-head"><b id="pcN">'+esc(nm)+'</b>'+(isOwner?'<button class="s" id="pcEd" type="button" title="Editar nombre">✎ Nombre</button>':'')+'<button class="s" id="smClose">Cerrar</button></div>'+(isOwner?'<div id="pcBox" hidden style="margin:0 0 10px"><div style="display:flex;gap:6px"><input id="pcIn" maxlength="40" value="'+esc(nm)+'" style="flex:1"><button class="go" id="pcGo" type="button" style="width:auto">Guardar</button></div><div class="msg" style="margin:4px 0 0" id="pcMsg">Cambia el nombre en todos sus chills, estadísticas y cuentas vinculadas.</div></div>':'')+'<div class="empty">Calculando…</div></div>';
+  function openPerson(nm,only){
+    if(!db)return;var m=$('shareModal'),k=canon(nm),oS=only&&sess(only);
+    m.hidden=false;m.innerHTML='<div class="sm-card pcard"><div class="sm-head"><b id="pcN">'+esc(nm)+'</b>'+(isOwner?'<button class="s" id="pcEd" type="button" title="Editar nombre">✎ Nombre</button>':'')+'<button class="s" id="smClose">Cerrar</button></div>'+(only?'<div class="msg" style="margin:-4px 0 8px">Solo en <b>'+esc(oS?sTitle(oS):'este chill')+'</b> · <button class="lnk" id="pcAll" type="button">Ver su total de todos los chills</button></div>':'')+(isOwner?'<div id="pcBox" hidden style="margin:0 0 10px"><div style="display:flex;gap:6px"><input id="pcIn" maxlength="40" value="'+esc(nm)+'" style="flex:1"><button class="go" id="pcGo" type="button" style="width:auto">Guardar</button></div><div class="msg" style="margin:4px 0 0" id="pcMsg">Cambia el nombre en todos sus chills, estadísticas y cuentas vinculadas.</div></div>':'')+'<div class="empty">Calculando…</div></div>';
     if($('pcEd')){$('pcEd').onclick=function(){var b=$('pcBox');b.hidden=!b.hidden;if(!b.hidden)$('pcIn').focus();};
       $('pcGo').onclick=function(){var nn=$('pcIn').value.trim().replace(/\s+/g,' ');if(!nn||nn===nm){$('pcBox').hidden=true;return;}$('pcMsg').textContent='Guardando…';
         renameGlobal(nm,nn).then(function(){say('Nombre cambiado: '+nm+' → '+nn+' en todos los chills.');openPerson(nn);},function(e){$('pcMsg').textContent=(e&&e.userMsg)||('No se pudo: '+(e&&e.message||e));});};}
     var close=function(){m.hidden=true;m.innerHTML='';};$('smClose').onclick=close;m.onclick=function(e){if(e.target===m)close();};
+    if($('pcAll'))$('pcAll').onclick=function(){openPerson(nm);};
     loadAll().then(function(D){
       var S={};D.sess.forEach(function(se){S[se.id]=se;});
-      var mine=D.people.filter(function(p){return p.name&&canon(p.name)===k&&S[p.sid];}),rows=[],tot={ml:0,n:0,h:0},MC={},places={},hosted=0;
+      var mine=D.people.filter(function(p){return p.name&&canon(p.name)===k&&S[p.sid]&&(!only||p.sid===only);}),rows=[],tot={ml:0,n:0,h:0},MC={},places={},hosted=0;
       mine.forEach(function(p){var se=S[p.sid],sp=D.people.filter(function(x){return x.sid===p.sid;}),sl=D.logs.filter(function(l){return l.sid===p.sid;}),ls=sl.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),ml=0;
         ls.forEach(function(l){ml+=l.amt;var pl=l.loc||locAtTs(se,l.ts)||'?';places[pl]=(places[pl]||0)+l.amt;});
         var arr=arrOf(p,ls,se),dep=depOf(p,ls,se),h=Math.max(0,dep-arr-awayIn(p,arr,dep))/3600000,md=medalsFor(se,sp,sl,D)[k]||[];
@@ -1213,12 +1214,12 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var pl=Object.keys(places).sort(function(a,b){return places[b]-places[a];});
       var h='<div class="kpis">'+kp.map(function(x){return '<div class="kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>';}).join('')+'</div>';
       var mk=Object.keys(MC);if(mk.length)h+='<h4>Medallas</h4><div class="medals">'+mk.sort(function(a,b){return MC[b]-MC[a];}).map(function(x){return '<span class="medal">'+esc(x.replace('D+','D+…'))+' ×'+MC[x]+'</span>';}).join('')+'</div>';
-      h+='<h4>Chills</h4><div class="scroll"><table><thead><tr><th>Chill</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Horas</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(sTitle(r.se))+'<div class="msg" style="margin:0">'+dmy(r.se.start)+(r.md.length?' · '+r.md.map(function(x){return x.split(' ')[0];}).join(' '):'')+'</div></td><td class="n">'+fmt(r.ml)+'</td><td class="n">'+r.n+'</td><td class="n">'+fmt(Math.round(r.h*10)/10)+'</td></tr>';}).join('')+'</tbody></table></div>';
+      h+='<h4>Chills</h4><div class="scroll"><table><thead><tr><th>Chill</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Horas</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+(only?esc(sTitle(r.se)):'<span data-pcard="'+esc(nm)+'" data-pcsid="'+r.se.id+'" title="Ver solo este chill">'+esc(sTitle(r.se))+'</span>')+'<div class="msg" style="margin:0">'+dmy(r.se.start)+(r.md.length?' · '+r.md.map(function(x){return x.split(' ')[0];}).join(' '):'')+'</div></td><td class="n">'+fmt(r.ml)+'</td><td class="n">'+r.n+'</td><td class="n">'+fmt(Math.round(r.h*10)/10)+'</td></tr>';}).join('')+'</tbody></table></div>';
       if(pl.length)h+='<h4>Sitios</h4><table><tbody>'+pl.map(function(x){return '<tr><td>📍 '+esc(x)+'</td><td class="n">'+fmt(places[x])+' ml</td></tr>';}).join('')+'</tbody></table>';
       var c=m.querySelector('.empty');if(c)c.outerHTML=h;
     },function(e){fail(e);close();});
   }
-  document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-pcard]');if(t&&db){e.preventDefault();openPerson(t.dataset.pcard);}});
+  document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-pcard]');if(t&&db){e.preventDefault();var inChill=t.closest('#mainGrid,#chillSec');openPerson(t.dataset.pcard,t.dataset.pcsid||(inChill?viewSid:null));}});
   function groupsHtml(se){var st=groupStates(se,state.people),end=se.end||Date.now();if(!st.some(function(x){return x.keys.length>1;}))return '';
     return st.filter(function(x){return (x.t||end)-x.f>=60000&&x.keys.some(function(k){return x.g[k].length;});}).map(function(x){return '<div style="margin-top:6px"><b>'+hhmm(x.f)+'–'+hhmm(x.t||end)+'</b> · '+x.keys.filter(function(k){return x.g[k].length;}).map(function(k){return x.g[k].length+' '+esc(enLoc(k));}).join(', ')+'</div>';}).join('');}
   function placeStats(se){var P={},o=[];state.logs.forEach(function(l){var pl=l.loc||plocAt(pById(l.pid),se,l.ts)||'?',k=o.filter(function(z){return nrm(z)===nrm(pl);})[0];if(!k){k=pl;o.push(pl);P[pl]={ml:0,n:0,ps:{}};}P[k].ml+=l.amt;P[k].n++;P[k].ps[l.pid]=1;});
@@ -1478,9 +1479,9 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var llegada=arr?hD(arr):'—';
       var partida=p.gone?hD(p.gone):(live?'<span class="msg" style="margin:0">Sigue</span>':'—');
       var sin=p.gone?'Se fue':(n?dur(now-Math.max(last,lastBack(p))):'Sin chorros');
-      return '<tr'+(p.gone?' class="gone-r"':'')+'><td class="name"><span class="rk">'+rk+'.</span>'+mv+'<i class="dot" style="background:'+colorOf(d.k)+'"></i><span data-pcard="'+esc(p.name)+'">'+esc(p.name)+'</span>'+hostMark(p.name)+'</td><td class="n'+capCls(d.tot,capOf(viewSid))+'">'+fmt(d.tot)+(capOf(viewSid)?' / '+fmt(capOf(viewSid)):'')+' ml</td><td class="n">'+ritmo+'</td><td class="n">'+n+'</td><td class="n">'+llegada+'</td><td class="n">'+partida+'</td><td class="n opt">'+avg+'</td><td class="n opt">'+(n?hD(last):'—')+'</td>'+(live?'<td class="n'+(lt?' late-t':'')+'">'+(lt?'⚠ ':'')+sin+'</td>':'')+'</tr>';
+      return '<tr'+(p.gone?' class="gone-r"':'')+'><td class="name"><span class="rk">'+rk+'.</span>'+mv+'<i class="dot" style="background:'+colorOf(d.k)+'"></i><span data-pcard="'+esc(p.name)+'">'+esc(p.name)+'</span>'+hostMark(p.name)+'</td><td class="n'+capCls(d.tot,capOf(viewSid))+'">'+fmt(d.tot)+(capOf(viewSid)?' / '+fmt(capOf(viewSid)):'')+' ml</td><td class="n">'+ritmo+'</td><td class="n">'+n+'</td><td class="n">'+llegada+'</td><td class="n">'+partida+'</td><td class="n">'+(pres>0?dur(pres*3600000):'—')+'</td><td class="n opt">'+avg+'</td><td class="n opt">'+(n?hD(last):'—')+'</td>'+(live?'<td class="n'+(lt?' late-t':'')+'">'+(lt?'⚠ ':'')+sin+'</td>':'')+'</tr>';
     }).join('');
-    el.innerHTML='<table class="sumt"><thead><tr><th>Persona</th><th class="n">Total</th><th class="n" title="Mililitros por hora estando presente">Ritmo</th><th class="n">Chorros</th><th class="n" title="Hora en que se añadió a la persona">Llegada</th><th class="n" title="Hora en que se marcó «Se ha ido»">Partida</th><th class="n opt">Media entre chorros</th><th class="n opt">Último</th>'+(live?'<th class="n">Sin tomar</th>':'')+'</tr></thead><tbody>'+rows+'</tbody></table>';
+    el.innerHTML='<table class="sumt"><thead><tr><th>Persona</th><th class="n">Total</th><th class="n" title="Mililitros por hora estando presente">Ritmo</th><th class="n">Chorros</th><th class="n" title="Hora en que se añadió a la persona">Llegada</th><th class="n" title="Hora en que se marcó «Se ha ido»">Partida</th><th class="n" title="Tiempo presente en el chill, sin contar ausencias">Duración</th><th class="n opt">Media entre chorros</th><th class="n opt">Último</th>'+(live?'<th class="n">Sin tomar</th>':'')+'</tr></thead><tbody>'+rows+'</tbody></table>';
   }
 
   /* avisos grandes */
