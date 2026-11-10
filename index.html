@@ -1717,8 +1717,9 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     }
     return page(null);
   }
+  var statsKeepY=null;
   function renderStats(){
-    var box=$('statsBox');box.innerHTML='<div class="stats"><div class="empty">Calculando…</div></div>';
+    var box=$('statsBox');if(statsKeepY===null)box.innerHTML='<div class="stats"><div class="empty">Calculando…</div></div>';else box.style.minHeight=box.offsetHeight+'px';
     var load=db?Promise.all([fetchAllLogs(),db.collection('people').limit(1000).get(),db.collection('sessions').orderBy('start','desc').limit(500).get()]).then(function(r){
       return {logs:r[0],people:r[1].docs.map(function(d){var x=d.data();return {id:d.id,name:x.name,at:x.at,gone:x.gone,sid:x.sid,col:x.col,away:x.away||[],moves:x.moves||[]};}),sess:r[2].docs.filter(function(d){return !d.data().deleted;}).map(function(d){var x=d.data();return {id:d.id,name:x.name,loc:x.loc,locs:x.locs||null,rpath:x.rpath||null,start:x.start,end:x.end,cap:x.cap||0};})};
     }):Promise.resolve({logs:state.logs.map(function(l){return {pid:l.pid,ts:l.ts,amt:l.amt,sid:'local'};}),people:state.people.map(function(p){return {id:p.id,name:p.name,at:p.at,gone:p.gone,sid:'local'};}),sess:[{id:'local',name:'Local',start:Math.min.apply(null,state.logs.map(function(l){return l.ts;}).concat([Date.now()])),end:null}]});
@@ -1826,7 +1827,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       g+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mut)"/>';
       h+='<h3 style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+{ml:'Mililitros',n:'Chorros',h:'Duración (h)'}[MPC]+' por chill<span class="segb">'+[['ml','ml'],['n','Chorros'],['h','Duración']].map(function(x){return '<button type="button" data-mpc="'+x[0]+'" class="'+(MPC===x[0]?'on':'')+'">'+x[1]+'</button>';}).join('')+'</span></h3><div class="msg" style="margin:-4px 0 6px">Toca una barra para ver el resumen de ese chill.</div>'+(LPL.length>1?'<div class="plg">'+LPL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+esc(l)+'</span>';}).join('')+'</div>':'')+'<div class="bars"><svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Mililitros totales de cada chill">'+g+'</svg></div>'+(ev.length>24?'<div class="msg">Se muestran los últimos 24 chills.</div>':'')+'</div>';
       box.innerHTML=h;
-      box.querySelectorAll('[data-mpc]').forEach(function(b){b.onclick=function(){MPC=b.dataset.mpc;renderStats();};});
+      if(statsKeepY!==null){var ky=statsKeepY;statsKeepY=null;box.style.minHeight='';try{window.scrollTo(0,ky);}catch(e){}}
+      box.querySelectorAll('[data-mpc]').forEach(function(b){b.onclick=function(){MPC=b.dataset.mpc;statsKeepY=window.scrollY;renderStats();};});
       box.querySelectorAll('[data-chsum]').forEach(function(r){r.onclick=function(){showSummaryOf(r.dataset.chsum);};});
     },function(){box.innerHTML='<div class="stats"><div class="empty">No se pudieron cargar las estadísticas.</div></div>';});
   }
