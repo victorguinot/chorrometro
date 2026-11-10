@@ -380,6 +380,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       <div class="scroll" id="matrix"></div>
       <h2 class="tblOnly" style="margin-top:24px">Resumen por persona</h2>
       <div class="scroll" id="summary"></div>
+      <div id="chRecs" class="tblOnly"></div>
       <h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">Evolución por persona</h2><div class="msg tblOnly" style="margin:0 0 6px">Mililitros acumulados en el chill. Cada punto es un chorro.</div>
       <div class="chart" id="chartBox"></div>
       <div id="nightBox" class="night"></div>
@@ -1250,6 +1251,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     return st.filter(function(x){return (x.t||end)-x.f>=60000&&x.keys.some(function(k){return x.g[k].length;});}).map(function(x){return '<div style="margin-top:6px"><b>'+hhmm(x.f)+'–'+hhmm(x.t||end)+'</b> · '+x.keys.filter(function(k){return x.g[k].length;}).map(function(k){return x.g[k].length+' '+esc(enLoc(k));}).join(', ')+'</div>';}).join('');}
   function placeStats(se){var P={},o=[];state.logs.forEach(function(l){var pl=l.loc||plocAt(pById(l.pid),se,l.ts)||'?',k=o.filter(function(z){return nrm(z)===nrm(pl);})[0];if(!k){k=pl;o.push(pl);P[pl]={ml:0,n:0,ps:{}};}P[k].ml+=l.amt;P[k].n++;P[k].ps[l.pid]=1;});
     return o.map(function(k){return {loc:k,ml:P[k].ml,n:P[k].n,np:Object.keys(P[k].ps).length};}).sort(function(a,b){return b.ml-a.ml;});}
+  function renderChRecs(){var b=$('chRecs');if(!b)return;var se=sess(viewSid);if(!se||!state.logs.length){b.innerHTML='';return;}try{b.innerHTML='<h2 style="margin:24px 0 8px">🏆 Récords del chill</h2><div class="rgrid">'+nightRecs().map(function(r){return '<div><div class="l">'+r[0]+'</div><div class="v" style="font-weight:600">'+esc(r[1])+'</div></div>';}).join('')+'</div>';}catch(e){b.innerHTML='';}}
   function nightRecs(){
     var se=sess(viewSid),now=Date.now(),rows=state.people.map(function(p,k){var ls=state.logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),t=0;ls.forEach(function(l){t+=l.amt;});
       var arr=Math.min(p.at||se.start,ls.length?ls[0].ts:Infinity),dep=depOf(p,ls,se),h=Math.max(0,dep-arr-awayIn(p,arr,dep))/3600000,gs=0;for(var i=1;i<ls.length;i++)gs+=Math.max(0,ls[i].ts-ls[i-1].ts-awayIn(p,ls[i-1].ts,ls[i].ts));
@@ -1258,7 +1260,9 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var a=pick(function(r){return r.tot;}),b=pick(function(r){return r.n;}),c=pick(function(r){return r.rate;},function(r){return r.rate>0;}),d=pick(function(r){return -r.gap;},function(r){return r.gap>0;}),e=pick(function(r){return r.h;},function(r){return r.h>0;});
     var last=null;state.logs.forEach(function(l){if(!last||l.ts>last.ts)last=l;});
     var hosts=state.people.filter(function(p){return isHostOf(curLoc(se),canon(p.name));}).map(function(p){return p.name;});
-    return [['🥇 Más ml',a?a.p.name+' · '+fmt(a.tot)+' ml':'—'],['💧 Más chorros',b?b.p.name+' · '+b.n:'—'],['⚡ Mayor ritmo',c?c.p.name+' · '+fmt(Math.round(c.rate*100)/100)+' ml/h':'—'],['⏱️ Más constante',d?d.p.name+' · cada '+dur(d.gap):'—'],['🦉 Más horas',e?e.p.name+' · '+dur(e.h*3600000):'—'],['🕐 Último chorro',last?name(last.pid)+' · '+hhmm(last.ts):'—']].concat(hosts.length?[['🏠 Anfitrión',hosts.join(' y ')]]:[]);
+    var HB=[],h0=new Date(se.start);h0.setMinutes(0,0,0);var hEnd=Math.min(se.end||now,now);for(var ht=h0.getTime();ht<hEnd;ht+=3600000){var hm=0,pres=state.people.some(function(p){var ls=rows.filter(function(r){return r.p===p;})[0].ls,a2=Math.min(p.at||se.start,ls.length?ls[0].ts:Infinity),d2=depOf(p,ls,se);return a2<ht+3600000&&d2>ht&&awayIn(p,Math.max(a2,ht),Math.min(d2,ht+3600000))<Math.min(d2,ht+3600000)-Math.max(a2,ht);});state.logs.forEach(function(l){if(l.ts>=ht&&l.ts<ht+3600000)hm+=l.amt;});if(pres||hm)HB.push({t:ht,ml:hm});}
+    var hi=null,lo=null;HB.forEach(function(x){if(!hi||x.ml>hi.ml)hi=x;if(!lo||x.ml<lo.ml)lo=x;});var hr=function(x){return hhmm(x.t)+'–'+hhmm(x.t+3600000)+' · '+fmt(Math.round(x.ml*100)/100)+' ml';};
+    return [['🔥 Hora más intensa',hi&&hi.ml>0?hr(hi):'—'],['😴 Hora más tranquila',lo&&HB.length>1?hr(lo):'—'],['🥇 Más ml',a?a.p.name+' · '+fmt(a.tot)+' ml':'—'],['💧 Más chorros',b?b.p.name+' · '+b.n:'—'],['⚡ Mayor ritmo',c?c.p.name+' · '+fmt(Math.round(c.rate*100)/100)+' ml/h':'—'],['💨 Más frecuente',d?d.p.name+' · cada '+dur(d.gap):'—'],['🦉 Más horas',e?e.p.name+' · '+dur(e.h*3600000):'—'],['🕐 Último chorro',last?name(last.pid)+' · '+hhmm(last.ts):'—']].concat(hosts.length?[['🏠 Anfitrión',hosts.join(' y ')]]:[]);
   }
   function renderNight(){
     var box=$('nightBox');if(!box)return;var se=sess(viewSid);if(!se){box.innerHTML='';return;}
@@ -1437,7 +1441,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var sig=state.people.map(function(p){return p.id+p.name+(p.gone||'');}).join('|')+'|'+viewSid+'|'+actives.join(',')+'|'+(function(){var m=myPerson();return m?m.id:'';})();
     if(sig!==peopleSig){peopleSig=sig;renderForm();renderPeople();}
     freezeSlots();
-    renderMatrix();renderSummary();renderAlerts();renderChart();renderGantt();renderRoutes();tickScreen();
+    renderMatrix();renderSummary();renderChRecs();renderAlerts();renderChart();renderGantt();renderRoutes();tickScreen();
     if(editing&&!getLog(editing)){editing=null;delLog=false;renderEditor();}
   }
   function renderAll(){peopleSig='';onData();renderEditor();renderSessionBar();}
