@@ -1129,6 +1129,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       var gs=0;for(var i=1;i<ls.length;i++)gs+=Math.max(0,ls[i].ts-ls[i-1].ts-awayIn(p,ls[i-1].ts,ls[i].ts));return {p:p,k:canon(p.name),ls:ls,tot:t,h:Math.max(0,dep-arr-awayIn(p,arr,dep))/3600000,gap:ls.length>=3?gs/(ls.length-1):0};});
     function add(r,m){(M[r.k]||(M[r.k]=[])).push(m);}
     var mx=0;rows.forEach(function(r){if(r.tot>mx)mx=r.tot;});if(mx>0)rows.forEach(function(r){if(r.tot===mx)add(r,'🥇 Más ml');});
+    var mxn=0;rows.forEach(function(r){if(r.ls.length>mxn)mxn=r.ls.length;});if(mxn>0)rows.forEach(function(r){if(r.ls.length===mxn)add(r,'🔢 Más chorros');});
     var all=logs.slice().sort(function(a,b){return a.ts-b.ts;});
     if(all.length){var f=all[0],l=all[all.length-1];rows.forEach(function(r){if(r.p.id===f.pid)add(r,'🎯 Primer chorro');if(r.p.id===l.pid&&all.length>1)add(r,'🌙 Último chorro');});}
     var bg=null;rows.forEach(function(r){if(r.gap>0&&(bg===null||r.gap<bg))bg=r.gap;});if(bg!==null)rows.forEach(function(r){if(r.gap>0&&Math.abs(r.gap-bg)<1)add(r,'💨 Más frecuente');});
@@ -2174,6 +2175,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
   var MEDAL_HELP=[
     ['En cada chill',[
       ['🥇','Más ml','Quien más mililitros toma en el chill.'],
+      ['🔢','Más chorros','Quien más chorros toma en el chill (en número).'],
       ['🎯','Primer chorro','El primer chorro del chill.'],
       ['🌙','Último chorro','El último chorro del chill.'],
       ['🔑','Abrió el chill','El primero en llegar (con 3 personas o más; si llegan a la vez, todos).'],
