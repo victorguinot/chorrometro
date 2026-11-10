@@ -1127,7 +1127,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var mx=0;rows.forEach(function(r){if(r.tot>mx)mx=r.tot;});if(mx>0)rows.forEach(function(r){if(r.tot===mx)add(r,'🥇 Más ml');});
     var all=logs.slice().sort(function(a,b){return a.ts-b.ts;});
     if(all.length){var f=all[0],l=all[all.length-1];rows.forEach(function(r){if(r.p.id===f.pid)add(r,'🎯 Primer chorro');if(r.p.id===l.pid&&all.length>1)add(r,'🌙 Último chorro');});}
-    var bg=null;rows.forEach(function(r){if(r.gap>0&&(!bg||r.gap<bg.gap))bg=r;});if(bg)add(bg,'⏱️ Más constante');
+    var bg=null;rows.forEach(function(r){if(r.gap>0&&(!bg||r.gap<bg.gap))bg=r;});if(bg)add(bg,'⚡ Más frecuente');
     var d0=new Date(se.start);d0.setHours(0,0,0,0);
     var fin=!!se.end&&!isActive(se.id),ar=rows.filter(function(r){return r.ls.length||r.h>0;});
     if(ar.length>2){var fa=null,la=null;ar.forEach(function(r){var a=arrOf(r.p,r.ls,se),d=depOf(r.p,r.ls,se);r.a0=a;r.d0=d;if(!fa||a<fa.a0)fa=r;if(!la||d>la.d0)la=r;});
@@ -1146,7 +1146,13 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var endT=se.end||Date.now();
     best(function(r){if(!r.ls.length)return null;var a=arrOf(r.p,r.ls,se),t=0;r.ls.forEach(function(l){if(l.ts>=a&&l.ts<a+3600000)t+=l.amt;});return t;},0,'🚀 Arranque fuerte');
     if(fin)best(function(r){var t=0;r.ls.forEach(function(l){if(l.ts>endT-3600000&&l.ts<=endT)t+=l.amt;});return t;},0,'🏁 Sprint final');
-    rows.forEach(function(r){for(var i=2;i<r.ls.length;i++)if(r.ls[i].ts-r.ls[i-2].ts<=30*60000){add(r,'🎩 Hat-trick');break;}});
+    rows.forEach(function(r){for(var i=2;i<r.ls.length;i++)if(r.ls[i].ts-r.ls[i-2].ts<=90*60000){add(r,'🎩 Hat-trick');break;}});
+    function gapsOf(r){var g=[];for(var i=1;i<r.ls.length;i++)g.push((r.ls[i].ts-r.ls[i-1].ts-awayIn(r.p,r.ls[i-1].ts,r.ls[i].ts))/60000);return g;}
+    function sd(a){if(a.length<2)return 0;var m=a.reduce(function(x,y){return x+y;},0)/a.length;return Math.sqrt(a.reduce(function(x,y){return x+(y-m)*(y-m);},0)/a.length);}
+    best(function(r){if(r.ls.length<4)return null;var c={},mx=0;r.ls.forEach(function(l){c[l.amt]=(c[l.amt]||0)+1;mx=Math.max(mx,c[l.amt]);});var sh=mx/r.ls.length;return sh>=0.6?sh:null;},0,'💧 Dosis fija');
+    best(function(r){if(r.ls.length<4)return null;var a=r.ls.map(function(l){return l.amt;}),m=a.reduce(function(x,y){return x+y;},0)/a.length;return m>0?sd(a)/m:null;},0,'🎲 Errante');
+    best(function(r){var g=gapsOf(r);return g.length>=3?sd(g):null;},0,'🌀 Impuntual');
+    best(function(r){var g=gapsOf(r);if(g.length<3)return null;var m=g.reduce(function(x,y){return x+y;},0)/g.length;return Math.abs(m-60)<=15?-Math.abs(m-60):null;},-1e9,'🕐 Reloj suizo');
     if(rows.filter(function(r){return r.ls.length>=3;}).length>1)best(function(r){return r.ls.length>=3?r.gap:null;},0,'🐢 Tortuga');
     best(function(r){var g=0;for(var i=1;i<r.ls.length;i++)g=Math.max(g,r.ls[i].ts-r.ls[i-1].ts-awayIn(r.p,r.ls[i-1].ts,r.ls[i].ts));return r.ls.length>=2?g:null;},0,'🏜️ Sequía');
     if(cfg&&cfg.min)best(function(r){var c=0,I=cfg.min*60000;for(var i=1;i<r.ls.length;i++){var d=r.ls[i].ts-r.ls[i-1].ts-awayIn(r.p,r.ls[i-1].ts,r.ls[i].ts);if(Math.abs(d-I)<=5*60000)c++;}return c;},1,'⏰ Puntual');
