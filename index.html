@@ -328,6 +328,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
 #plMap{height:360px;border-radius:12px;margin:8px 0;border:1px solid var(--line)}.plres button{display:block;width:100%;text-align:left;margin:4px 0;font-weight:400}
 .pltop{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.pltop select,.pltop input{width:auto}
 @media (prefers-color-scheme:dark){#plMap .osmT{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
+.rArrow div{font-size:16px;line-height:18px;text-align:center;text-shadow:0 0 2px #000}.rLbl{font-weight:600;font-size:11px;padding:1px 5px}
 </style>
 </head>
 <body>
@@ -377,6 +378,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       <div id="nightBox" class="night"></div>
       <h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">Presencia</h2><div class="msg tblOnly" style="margin:0 0 6px">Cuándo estuvo cada uno en el chill. Barra = presente (si hay varios sitios, su color es el sitio) · línea discontinua = ausente · puntos = chorros · 🏠 y contorno = anfitrión.</div>
       <div class="chart" id="ganttBox"></div>
+      <div id="routeSec" hidden><h2 class="tblOnly" style="margin-top:24px;margin-bottom:2px">🗺️ Rutas</h2><div class="msg tblOnly" style="margin:0 0 6px" id="routeMsg"></div><div id="routeBox"></div></div>
     </section>
   </div>
 </main>
@@ -1235,6 +1237,51 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     h+='<h3>Presencia</h3>';
     box.innerHTML=h;
   }
+  /* rutas del chill */
+  var routeSig='',routeMap=null;
+  function routeEdges(se){
+    var E={},order=[],add=function(l){if(!order.some(function(z){return nrm(z)===nrm(l);}))order.push(l);return order.filter(function(z){return nrm(z)===nrm(l);})[0];};
+    locTimeline(se).forEach(function(x){add(x.loc);});
+    state.people.forEach(function(p){var ls=state.logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),a=Math.max(arrOf(p,ls,se),se.start),b=depOf(p,ls,se);if(!(b>a))return;
+      var sg=pSegs(p,se,a,b);sg.forEach(function(q,i){var to=add(q.loc);if(!i)return;var fr=add(sg[i-1].loc),k=fr+'→'+to,e=E[k]||(E[k]={fr:fr,to:to,ps:[],at:q.f});if(e.ps.indexOf(p.name)<0)e.ps.push(p.name);e.at=Math.min(e.at,q.f);});});
+    var tl=locTimeline(se);for(var i=1;i<tl.length;i++){var fr=add(tl[i-1].loc),to=add(tl[i].loc),k=fr+'→'+to;if(nrm(fr)===nrm(to))continue;var e=E[k]||(E[k]={fr:fr,to:to,ps:[],at:tl[i].at});e.main=true;e.at=Math.min(e.at,tl[i].at);}
+    return {order:order,edges:Object.keys(E).map(function(k){return E[k];}).sort(function(a,b){return a.at-b.at;})};
+  }
+  function renderRoutes(){
+    var sec=$('routeSec'),box=$('routeBox');if(!sec)return;var se=sess(viewSid);
+    if(!se){sec.hidden=true;return;}
+    var R=routeEdges(se);if(R.order.length<2||!R.edges.length){sec.hidden=true;routeSig='';return;}
+    sec.hidden=false;
+    var pm=function(l){return (typeof placesMeta!=='undefined'&&placesMeta[plKey(l)])||{};},geo=R.order.every(function(l){return pm(l).lat!=null;});
+    var sig=JSON.stringify([geo,R.order,R.edges.map(function(e){return [e.fr,e.to,e.ps.length,e.main];}),box.clientWidth>0?Math.round(box.clientWidth/40):0]);if(sig===routeSig)return;routeSig=sig;
+    $('routeMsg').textContent='Cada flecha es un desplazamiento: gruesa = el grupo principal, fina = quien fue por su cuenta.'+(geo?'':' Pon la ubicación de los sitios en 📍 Lugares para verlo sobre el mapa.');
+    var ci=function(l){for(var i=0;i<R.order.length;i++)if(nrm(R.order[i])===nrm(l))return i;return 0;};
+    if(geo){
+      box.innerHTML='<div id="routeMapEl" style="height:320px;border-radius:12px;border:1px solid var(--line)"></div>';
+      needLeaflet().then(function(){
+        if(routeMap){try{routeMap.remove();}catch(e){}}var Lf=window.L,map=Lf.map('routeMapEl',{scrollWheelZoom:false});routeMap=map;
+        Lf.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',maxZoom:19,className:'osmT'}).addTo(map);
+        var pts=R.order.map(function(l){var m=pm(l);return [m.lat,m.lng];});
+        R.edges.forEach(function(e,i){var a=pts[ci(e.fr)],b=pts[ci(e.to)];if(!a||!b||(a[0]===b[0]&&a[1]===b[1]))return;
+          var mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],off=e.main?0:0.12,c=[mx-dy*off,my+dx*off],line=[a];for(var t=0.1;t<1;t+=0.1){var u=1-t;line.push([u*u*a[0]+2*u*t*c[0]+t*t*b[0],u*u*a[1]+2*u*t*c[1]+t*t*b[1]]);}line.push(b);
+          var col=e.main?'#3b82f6':PLC[(i+1)%PLC.length];Lf.polyline(line,{color:col,weight:e.main?5:3,opacity:.9,dashArray:e.main?null:'6 6'}).bindTooltip(esc(e.fr)+' → '+esc(e.to)+' · '+hhmm(e.at)+(e.ps.length?' · '+esc(e.ps.join(', ')):''),{sticky:true}).addTo(map);
+          var p1=map.latLngToLayerPoint?null:null,mid=line[5],m2=line[6],ang=Math.atan2(-(m2[0]-mid[0]),m2[1]-mid[1])*180/Math.PI;
+          Lf.marker(mid,{interactive:false,icon:Lf.divIcon({className:'rArrow',html:'<div style="transform:rotate('+ang+'deg);color:'+col+'">➤</div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);});
+        R.order.forEach(function(l,i){Lf.circleMarker(pts[i],{radius:7,color:'#fff',weight:2,fillColor:isHouse(l)?'#f59e0b':'#3b82f6',fillOpacity:1}).bindTooltip(esc(l),{permanent:true,direction:'top',offset:[0,-6],className:'rLbl'}).addTo(map);});
+        map.fitBounds(Lf.latLngBounds(pts).pad(0.3),{maxZoom:16});
+      },function(){box.innerHTML='<div class="empty">No se pudo cargar el mapa.</div>';});
+      return;
+    }
+    if(routeMap){try{routeMap.remove();}catch(e){}routeMap=null;}
+    var n=R.order.length,W=Math.max(300,box.clientWidth||600),pad=60,gap=(W-2*pad)/Math.max(1,n-1),cy=110,H=230,g='<defs>'+[0,1,2,3,4,5,6,7].map(function(i){return '<marker id="ra'+i+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:'+PLC[i]+'"/></marker>';}).join('')+'</defs>';
+    var X=function(i){return n===1?W/2:pad+i*gap;},used={};
+    R.edges.forEach(function(e,i){var a=ci(e.fr),b=ci(e.to),x1=X(a),x2=X(b),fw=b>a,k=Math.min(a,b)+'-'+Math.max(a,b)+(fw?'f':'b'),lv=(used[k]=(used[k]||0)+1),hgt=(26+Math.abs(b-a)*18+lv*14)*(fw?-1:1),ccol=e.main?0:(i%7)+1,col=PLC[ccol];
+      var sx=x1+(fw?12:-12),ex=x2+(fw?-12:12);
+      g+='<path d="M'+sx+' '+cy+' Q'+((sx+ex)/2)+' '+(cy+hgt*2)+' '+ex+' '+cy+'" fill="none" style="stroke:'+col+'" stroke-width="'+(e.main?3.5:2)+'"'+(e.main?'':' stroke-dasharray="5 4"')+' marker-end="url(#ra'+ccol+')"><title>'+esc(e.fr)+' → '+esc(e.to)+' · '+hhmm(e.at)+(e.ps.length?' · '+esc(e.ps.join(', ')):'')+'</title></path>';
+      g+='<text x="'+((sx+ex)/2)+'" y="'+(cy+hgt+(fw?-4:12))+'" text-anchor="middle" font-size="10" style="fill:var(--mut)">'+hhmm(e.at)+(e.ps.length&&!e.main?' · '+esc(e.ps.length>2?e.ps.length+' pers.':e.ps.join(', ')):'')+'</text>';});
+    R.order.forEach(function(l,i){var lb=l.length>16?l.slice(0,15)+'…':l;g+='<circle cx="'+X(i)+'" cy="'+cy+'" r="9" style="fill:'+(isHouse(l)?'#f59e0b':'#3b82f6')+';stroke:var(--bg)" stroke-width="2"><title>'+esc(l)+'</title></circle><text x="'+X(i)+'" y="'+(cy+(i%2?28:-16))+'" text-anchor="middle" font-size="12" font-weight="600" style="fill:var(--ink)">'+(isHouse(l)?'🏠 ':'')+esc(lb)+'</text>';});
+    box.innerHTML='<div class="chart"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Rutas seguidas en el chill">'+g+'</svg></div>';
+  }
   function renderGantt(){
     var box=$('ganttBox');if(!box)return;
     if(!box.clientWidth){ganttW=0;return;}ganttW=box.clientWidth;
@@ -1340,7 +1387,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var sig=state.people.map(function(p){return p.id+p.name+(p.gone||'');}).join('|')+'|'+viewSid+'|'+actives.join(',')+'|'+(function(){var m=myPerson();return m?m.id:'';})();
     if(sig!==peopleSig){peopleSig=sig;renderForm();renderPeople();}
     freezeSlots();
-    renderMatrix();renderSummary();renderAlerts();renderChart();renderGantt();tickScreen();
+    renderMatrix();renderSummary();renderAlerts();renderChart();renderGantt();renderRoutes();tickScreen();
     if(editing&&!getLog(editing)){editing=null;delLog=false;renderEditor();}
   }
   function renderAll(){peopleSig='';onData();renderEditor();renderSessionBar();}
