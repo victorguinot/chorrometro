@@ -1156,7 +1156,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     best(function(r){if(r.ls.length<4)return null;var c={},mx=0;r.ls.forEach(function(l){c[l.amt]=(c[l.amt]||0)+1;mx=Math.max(mx,c[l.amt]);});var sh=mx/r.ls.length;return sh>=0.6?sh:null;},0,'💧 Dosis fija');
     best(function(r){if(r.ls.length<4)return null;var a=r.ls.map(function(l){return l.amt;}),m=a.reduce(function(x,y){return x+y;},0)/a.length;return m>0?sd(a)/m:null;},0,'🎲 Errante');
     best(function(r){var g=gapsOf(r);return g.length>=3?sd(g):null;},0,'🌀 Impuntual');
-    best(function(r){var g=gapsOf(r);if(g.length<3)return null;var m=g.reduce(function(x,y){return x+y;},0)/g.length;return Math.abs(m-60)<=15?-Math.abs(m-60):null;},-1e9,'🕐 Reloj suizo');
+    best(function(r){var g=gapsOf(r);return g.length>=3?-sd(g):null;},-1e12,'🕐 Reloj suizo');
+    rows.forEach(function(r){var g=gapsOf(r);if(g.length>=2){var m=g.reduce(function(x,y){return x+y;},0)/g.length;if(m<60)add(r,'😤 Impaciente');}});
     if(rows.filter(function(r){return r.ls.length>=3;}).length>1)best(function(r){return r.ls.length>=3?r.gap:null;},0,'🐢 Tortuga');
     best(function(r){var g=0;for(var i=1;i<r.ls.length;i++)g=Math.max(g,r.ls[i].ts-r.ls[i-1].ts-awayIn(r.p,r.ls[i-1].ts,r.ls[i].ts));return r.ls.length>=2?g:null;},0,'🏜️ Sequía');
     if(cfg&&cfg.min)best(function(r){var c=0,I=cfg.min*60000;for(var i=1;i<r.ls.length;i++){var d=r.ls[i].ts-r.ls[i-1].ts-awayIn(r.p,r.ls[i-1].ts,r.ls[i].ts);if(Math.abs(d-I)<=5*60000)c++;}return c;},1,'⏰ Puntual');
@@ -1723,6 +1724,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       D.people.forEach(function(p){
         var s=S[p.sid],o=P[canon(p.name)];if(!s||!o)return;
         var pls=D.logs.filter(function(l){return l.pid===p.id;}).sort(function(x,y){return x.ts-y.ts;}),a=Math.max(arrOf(p,pls,s.se),s.se.start),b=depOf(p,pls,s.se);if(b>a)o.hours+=(b-a-((p.away||[]).reduce(function(q,x){return q+Math.max(0,Math.min(b,x.t)-Math.max(a,x.f));},0)))/H;
+        for(var gi=1;gi<pls.length;gi++){o.gs=(o.gs||0)+Math.max(0,pls[gi].ts-pls[gi-1].ts-awayIn(p,pls[gi-1].ts,pls[gi].ts));o.gn=(o.gn||0)+1;}
       });
       Object.keys(P).forEach(function(k){var o=P[k];Object.keys(o.ch).forEach(function(sid){var v=S[sid].pp[k]||0;if(v>o.best){o.best=v;o.bestS=S[sid].se;}});o.nch=Object.keys(o.ch).length;});
       var ev=Object.keys(S).map(function(k){var s=S[k];s.dur=((s.se.end||now)-s.se.start);return s;}).filter(function(s){return s.n>0||s.people>0;});
@@ -1753,9 +1755,9 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
         if(was<pos)return '<span class="rkm rkdn" title="Baja '+(pos-was)+' tras el último chill">▼'+(pos-was)+'</span>';
         return '<span class="rkm rkeq" title="Misma posición que antes del último chill">=</span>';}
       var rk=0;
-      h+='<h3>Clasificación histórica</h3>'+(hasPrev?'<div class="msg" style="margin:-4px 0 6px">Las flechas comparan con la clasificación antes del último chill ('+esc(sTitle(lastEv.se))+', '+dmy(lastEv.se.start)+').</div>':'')+'<div class="scroll"><table class="sumt"><thead><tr><th>Persona</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Chills</th><th class="n">Horas</th><th class="n">ml por chill</th><th class="n">ml/hora</th><th class="n">Mejor chill</th><th class="n">Última vez</th></tr></thead><tbody>'+pl.map(function(o,i){
+      h+='<h3>Clasificación histórica</h3>'+(hasPrev?'<div class="msg" style="margin:-4px 0 6px">Las flechas comparan con la clasificación antes del último chill ('+esc(sTitle(lastEv.se))+', '+dmy(lastEv.se.start)+').</div>':'')+'<div class="scroll"><table class="sumt"><thead><tr><th>Persona</th><th class="n">ml</th><th class="n">Chorros</th><th class="n">Chills</th><th class="n">Horas</th><th class="n" title="Tiempo medio entre un chorro y el siguiente, sin contar ausencias">Media entre chorros</th><th class="n">ml por chill</th><th class="n">ml/hora</th><th class="n">Mejor chill</th><th class="n">Última vez</th></tr></thead><tbody>'+pl.map(function(o,i){
         if(i===0||o.ml!==pl[i-1].ml)rk=i+1;var sl=colMap[nrm(o.name)];if(typeof sl!=='number')sl=o.col;var c=(typeof sl==='number'&&sl<NC)?PAL[sl]:'var(--mut)';
-        return '<tr><td class="name"><span class="rk">'+rk+'.</span>'+hArrow(o,i)+'<i class="dot" style="background:'+c+'"></i><span data-pcard="'+esc(o.name)+'">'+esc(o.name)+'</span></td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.n+'</td><td class="n">'+o.nch+'</td><td class="n">'+(o.hours>0?hfmt(o.hours):'—')+'</td><td class="n">'+fmt(Math.round(o.ml/o.nch*100)/100)+'</td><td class="n">'+(o.hours>=0.5?fmt(Math.round(o.ml/o.hours*100)/100):'—')+'</td><td class="n">'+fmt(o.best)+'</td><td class="n">'+(o.last?dmy(o.last):'—')+'</td></tr>';
+        return '<tr><td class="name"><span class="rk">'+rk+'.</span>'+hArrow(o,i)+'<i class="dot" style="background:'+c+'"></i><span data-pcard="'+esc(o.name)+'">'+esc(o.name)+'</span></td><td class="n">'+fmt(o.ml)+'</td><td class="n">'+o.n+'</td><td class="n">'+o.nch+'</td><td class="n">'+(o.hours>0?hfmt(o.hours):'—')+'</td><td class="n">'+(o.gn?dur(o.gs/o.gn):'—')+'</td><td class="n">'+fmt(Math.round(o.ml/o.nch*100)/100)+'</td><td class="n">'+(o.hours>=0.5?fmt(Math.round(o.ml/o.hours*100)/100):'—')+'</td><td class="n">'+fmt(o.best)+'</td><td class="n">'+(o.last?dmy(o.last):'—')+'</td></tr>';
       }).join('')+'</tbody></table></div>';
       /* evolucion del acumulado chill a chill */
       var evC=ev.filter(function(sv){return sv.n>0;}).sort(function(a,b){return a.se.start-b.se.start;});
@@ -2183,7 +2185,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🐢','Tortuga','El que más espacia sus chorros de media (mínimo 3 chorros).'],
       ['🏜️','Sequía','El hueco más largo sin chorro estando presente.'],
       ['⏰','Puntual','Más chorros justo cuando le tocaba (±5 min del intervalo de aviso).'],
-      ['🕐','Reloj suizo','Ritmo medio más cercano a 1 hora (entre 45 y 75 min, 4 chorros o más).'],
+      ['🕐','Reloj suizo','Los intervalos entre chorros más regulares, siempre parecidos (4 chorros o más). Lo contrario de Impuntual.'],
+      ['😤','Impaciente','Su tiempo medio entre chorros es menor de 1 hora (3 chorros o más).'],
       ['🌀','Impuntual','Los intervalos entre chorros más irregulares (4 chorros o más).']]],
     ['Cantidad',[
       ['💎','Chorro gordo','El chorro más grande de la noche.'],
