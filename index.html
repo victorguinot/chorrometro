@@ -323,7 +323,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
 .tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 #statsBtn,#histBtn,#trashBtn,#actBtn{display:none!important}
 body:not(.tab-chill) #mainGrid,body:not(.tab-chill) #chillSec,body:not(.tab-chill) .alopt,body:not(.tab-chill) #alerts{display:none!important}
-body.screen .tabs,body.screen #tabPane{display:none!important}
+body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{display:none!important}body.screen.scrStats #tabPane>*:not(#statsBox){display:none!important}body.screen.scrStats #routeSec,body.screen.scrStats #chRecs,body.screen.scrStats #mainGrid,body.screen.scrStats #chillSec{display:none!important}
 .plc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}.plc .ph{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.plc .pf{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}.plc .pf input,.plc .pf select{width:auto;flex:1 1 140px}.plc .pf button{width:auto}
 #plMap{height:360px;border-radius:12px;margin:8px 0;border:1px solid var(--line)}.plres button{display:block;width:100%;text-align:left;margin:4px 0;font-weight:400}
 .pltop{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.pltop select,.pltop input{width:auto}
