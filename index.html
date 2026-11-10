@@ -1168,6 +1168,12 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     (function(){var st=groupStates(se,people),slots=[],sig={};st.forEach(function(x){var main=nrm(locAtTs(se,x.f+1)||''),G=x.keys.filter(function(k){var n=(x.g[k]||[]).length;return n>=2||(nrm(k)===main&&n>=1);}).map(nrm);if(!G.length)return;var kk=G.slice().sort().join('|');if(sig[kk])return;sig[kk]=1;slots.push(G);});
       var allP={};slots.forEach(function(G){G.forEach(function(k){allP[k]=1;});});if(Object.keys(allP).length<2)return;
       rows.forEach(function(r){var a=Math.max(arrOf(r.p,r.ls,se),se.start),b=depOf(r.p,r.ls,se);if(!(b>a))return;var v={};pSegs(r.p,se,a,b).forEach(function(q){v[nrm(q.loc)]=1;});if(slots.every(function(G){return G.some(function(k){return v[k];});}))add(r,'💯 Pleno');});})();
+    /* vago: quien menos chorros apunta (entre quienes tienen cuenta vinculada) */
+    (function(){var ids={};Object.keys(acctMap).forEach(function(i){ids[i]=acctMap[i];});Object.keys(regMap).forEach(function(i){ids[i]=regMap[i];});
+      var cnt={},has={};Object.keys(ids).forEach(function(i){var k=canon(ids[i]);if(rows.some(function(r){return r.k===k;})){has[k]=1;cnt[k]=cnt[k]||0;}});
+      logs.forEach(function(l){var n=l.by&&ids[l.by];if(n&&has[canon(n)])cnt[canon(n)]++;});
+      var ks=Object.keys(cnt);if(ks.length<3)return;var mn=Math.min.apply(null,ks.map(function(k){return cnt[k];})),w=ks.filter(function(k){return cnt[k]===mn;});
+      if(w.length===1)rows.forEach(function(r){if(r.k===w[0]&&(r.ls.length||r.h>0))add(r,'🛋️ Vago');});})();
     /* momentos */
     rows.forEach(function(r){if(r.ls.some(function(l){var d=new Date(l.ts);return d.getHours()===0&&d.getMinutes()<10;}))add(r,'🕛 Campanadas');});
     var mad=all.filter(function(l){var d=new Date(l.ts);return d-d0>=86400000&&d.getHours()>=6;})[0];if(mad)rows.forEach(function(r){if(r.p.id===mad.pid)add(r,'🌞 Madrugador');});
@@ -2173,7 +2179,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🔑','Abrió el chill','El primero en llegar (con 3 personas o más).'],
       ['🚪','Cerró el chill','El último en irse, cuando el chill ha terminado.'],
       ['🏠','Anfitrión','El chill pasa por su casa.'],
-      ['📝','Apuntador','Quien más chorros anota a otros (mínimo 3).']]],
+      ['📝','Apuntador','Quien más chorros anota a otros (mínimo 3).'],
+      ['🛋️','Vago','Quien menos chorros apunta en la app, entre quienes tienen cuenta (mínimo 3 con cuenta en el chill).']]],
     ['Duración',[
       ['🦉','Noche completa','8 horas o más en el chill, sin contar ausencias.'],
       ['🏕️','Maratón +24 h','24 horas o más en el chill.'],
