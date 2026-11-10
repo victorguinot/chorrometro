@@ -318,6 +318,15 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
 .tsit{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}.tseg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}.tseg>input{flex:1 1 120px}.tseg label{display:flex;align-items:center;gap:4px;font-weight:400;font-size:13px}
 .prow{flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding:8px 0;border-bottom:1px solid var(--line)}.prow .pnm{flex:1 1 260px;min-width:0}.prow .pbt{display:flex;flex-wrap:wrap;gap:6px;flex:0 1 auto}@media (max-width:560px){.prow .pnm{flex-basis:100%}}
 .onbSug{background:var(--line);border-radius:12px;padding:10px 12px;margin:0 0 10px}.onbSug button{margin-top:8px;width:100%}
+.tabs{display:flex;gap:4px;overflow-x:auto;position:sticky;top:0;z-index:30;background:var(--bg);padding:8px 0;margin:0 0 12px;border-bottom:1px solid var(--line);scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;width:auto;margin:0;padding:8px 14px;border-radius:999px;background:transparent;border:1px solid var(--line);color:var(--mut);font-weight:600;white-space:nowrap}
+.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#statsBtn,#histBtn,#trashBtn,#actBtn{display:none!important}
+body:not(.tab-chill) #mainGrid,body:not(.tab-chill) #chillSec,body:not(.tab-chill) .alopt,body:not(.tab-chill) #alerts{display:none!important}
+body.screen .tabs,body.screen #tabPane{display:none!important}
+.plc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}.plc .ph{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.plc .pf{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}.plc .pf input,.plc .pf select{width:auto;flex:1 1 140px}.plc .pf button{width:auto}
+#plMap{height:360px;border-radius:12px;margin:8px 0;border:1px solid var(--line)}.plres button{display:block;width:100%;text-align:left;margin:4px 0;font-weight:400}
+.pltop{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.pltop select,.pltop input{width:auto}
 </style>
 </head>
 <body>
@@ -334,6 +343,8 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
   <label class="alopt" id="scRow" style="margin-top:-8px" hidden><input type="checkbox" id="scOn"> <span id="scTxt">Lanzar mi atajo ChorriTime con mis chorros</span></label>
   <div id="gate" hidden></div>
   <div class="banner" id="reqBox" hidden></div>
+  <nav class="tabs" id="tabs"><button data-tab="chill" class="on">💧 Chill</button><button data-tab="stats" data-btn="statsBtn" hidden>📊 Estadísticas</button><button data-tab="places" data-btn="statsBtn" hidden>📍 Lugares</button><button data-tab="hist" data-btn="histBtn" hidden>🗂️ Historial</button><button data-tab="act" data-btn="actBtn" hidden>🕓 Actividad</button><button data-tab="trash" data-btn="trashBtn" hidden>🗑️ Eliminados</button></nav>
+  <div id="tabPane"><div id="statsBox" hidden></div><div id="placesBox" hidden></div><div id="histBox" hidden></div><div id="trashBox" hidden></div><div id="actBox" hidden></div></div>
   <div class="grid" id="mainGrid">
     <div>
       <section>
@@ -350,16 +361,12 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
         <div id="peopleList" style="margin-top:10px"></div>
       </section>
     </div>
-    <section>
+    <section id="chillSec">
       <h2>Chorros del chill</h2>
       <div id="sbar" class="sbar" hidden></div>
       <div class="tools"><span class="sp"></span><button class="s" id="statsBtn" hidden>Estadísticas</button><button class="s" id="histBtn" hidden>Historial</button><button class="s" id="trashBtn" hidden>Eliminados</button><button class="s" id="actBtn" hidden>Actividad</button><button class="s" id="scrBtn">Modo pantalla</button><button class="s" id="qrBtn">Mostrar QR</button><button class="s" id="copyCsv" hidden>Copiar CSV</button><button class="s" id="shareBtn" hidden>Resumen para compartir</button><button class="s" id="bkBtn" hidden>Copia de seguridad</button><button class="s" id="asUserBtn" hidden>Ver como usuario</button></div>
       <div id="csvBox"></div>
       <div id="qrBox" hidden></div>
-      <div id="statsBox" hidden></div>
-      <div id="histBox" hidden></div>
-      <div id="trashBox" hidden></div>
-      <div id="actBox" hidden></div>
       <div id="editor"></div>
       <div class="scroll" id="matrix"></div>
       <h2 class="tblOnly" style="margin-top:24px">Resumen por persona</h2>
@@ -1988,7 +1995,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     if(!document.body.classList.contains('screen'))return;
     var a=sess(viewSid);$('scrHead').innerHTML='<b>'+esc(a?sTitle(a)+(locTimeline(a).length>1?' · ahora en '+curLoc(a):''):'Chorrómetro')+(document.body.classList.contains('scrStats')?' · 📊 Estadísticas':(document.body.classList.contains('scrNight')?' · 🌙 La noche':''))+'</b><span>'+hhmm(Date.now())+'</span>';
   }
-  $('scrBtn').onclick=function(){setScreen(true);};
+  $('scrBtn').onclick=function(){setTab('chill');setScreen(true);};
   $('scrExit').onclick=function(){setScreen(false);};
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('screen'))setScreen(false);});
   var wasFs=false;document.addEventListener('fullscreenchange',function(){if(document.fullscreenElement){wasFs=true;return;}if(wasFs&&document.body.classList.contains('screen')){wasFs=false;setScreen(false);}});
@@ -2009,6 +2016,110 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
       if(delSessions.length)box.innerHTML+='<div class="trash" style="margin-top:12px"><b>Chills eliminados</b><div class="msg" style="margin:2px 0 6px">Puedes recuperarlos o borrarlos para siempre con todos sus datos.</div>'+delSessions.map(function(x){return '<div class="trow"><div>'+esc(sTitle(x))+'<div class="msg" style="margin:0">'+dmy(x.start)+' · eliminado el '+dmy(x.deleted)+' a las '+hhmm(x.deleted)+'</div></div><div class="tbtn"><button class="s go" data-hrest="'+x.id+'">Recuperar</button><button class="s" data-hpurge="'+x.id+'">Borrar del todo</button></div></div>';}).join('')+'</div>';
     },function(){box.innerHTML='<div class="empty">No se pudo cargar el historial.</div>';});
   }
+  /* pestañas */
+  var curTab='chill';
+  function syncTabs(){document.querySelectorAll('#tabs [data-btn]').forEach(function(b){var o=$(b.dataset.btn);b.hidden=!o||o.hidden;});if(curTab!=='chill'){var cb=document.querySelector('#tabs [data-tab="'+curTab+'"]');if(cb&&cb.hidden)setTab('chill');}}
+  var TABBOX={stats:['statsBox','statsBtn'],hist:['histBox','histBtn'],act:['actBox','actBtn'],trash:['trashBox','trashBtn']};
+  function setTab(t){
+    Object.keys(TABBOX).forEach(function(k){var bx=$(TABBOX[k][0]);if(k!==t&&!bx.hidden)$(TABBOX[k][1]).onclick();});
+    $('placesBox').hidden=t!=='places';
+    if(TABBOX[t]&&$(TABBOX[t][0]).hidden)$(TABBOX[t][1]).onclick();
+    if(t==='places')renderPlaces();
+    curTab=t;document.body.classList.remove('tab-chill','tab-stats','tab-hist','tab-act','tab-trash','tab-places');document.body.classList.add('tab-'+t);
+    document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.tab===t);});
+    try{window.scrollTo(0,0);}catch(e){}
+  }
+  document.body.classList.add('tab-chill');
+  document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){setTab(b.dataset.tab);};});
+  ['statsBtn','histBtn','actBtn','trashBtn'].forEach(function(id){var b=$(id);try{new MutationObserver(syncTabs).observe(b,{attributes:true,attributeFilter:['hidden']});}catch(e){}});
+  syncTabs();
+
+  /* lugares */
+  var PTYPES=[['casa','🏠 Casa'],['bar','🍻 Bar'],['disco','🪩 Discoteca'],['rest','🍽️ Restaurante'],['fuera','🏖️ Playa / aire libre'],['spa','🧖 Spa / sauna'],['aloj','🏨 Alojamiento'],['transp','🚆 Transporte'],['evento','🎪 Evento'],['otro','❓ Otro']];
+  function ptype(k){for(var i=0;i<PTYPES.length;i++)if(PTYPES[i][0]===k)return PTYPES[i][1];return '';}
+  var placesMeta={},plOpen=null,plSearch={},plMapObj=null,plHeat=null,plMode='circ',plMetric='ml',plData=null;
+  function plKey(n){return nrm(n).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'x';}
+  function loadScript(src){return new Promise(function(ok,ko){var e=document.createElement('script');e.src=src;e.onload=ok;e.onerror=ko;document.head.appendChild(e);});}
+  function loadCss(href){var l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l);}
+  var leafletP=null;
+  function needLeaflet(){if(leafletP)return leafletP;var V=window.CHORRO_STANDALONE?{c:'vendor/leaflet.css',j:'vendor/leaflet.js',h:'vendor/leaflet-heat.js'}:{c:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',j:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',h:'https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js'};loadCss(V.c);leafletP=loadScript(V.j).then(function(){return loadScript(V.h);});leafletP.catch(function(){leafletP=null;});return leafletP;}
+  function parseCoords(t){t=(t||'').trim();var m=t.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||t.match(/[?&](?:q|ll|query)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||t.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)||t.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);if(!m)return null;var a=+m[1],b=+m[2];if(Math.abs(a)>90||Math.abs(b)>180)return null;return {lat:a,lng:b};}
+  function placeStatsAll(D){
+    var S={},P={},pid={},out={};D.sess.forEach(function(se){S[se.id]=se;});D.people.forEach(function(p){pid[p.id]=p;});
+    function g(n){n=(n||'').trim();if(!n)return null;var k=plKey(n);return out[k]||(out[k]={k:k,name:n,ml:0,n:0,ch:{},pp:{},h:0,last:0});}
+    D.sess.forEach(function(se){locTimeline(se).forEach(function(x,i,a){var o=g(x.loc);if(!o)return;o.ch[se.id]=1;var e=i+1<a.length?a[i+1].at:(se.end||Date.now());o.h+=Math.max(0,e-x.at)/3600000;o.last=Math.max(o.last,x.at);});});
+    D.people.forEach(function(p){(p.moves||[]).forEach(function(m){var o=g(m.loc);if(o&&S[p.sid]){o.ch[p.sid]=1;o.last=Math.max(o.last,m.at);}});});
+    D.logs.forEach(function(l){var se=S[l.sid],p=pid[l.pid];if(!se)return;var o=g(l.loc||plocAt(p,se,l.ts));if(!o)return;o.ml+=l.amt;o.n++;o.ch[l.sid]=1;if(p)o.pp[canon(p.name)]=1;});
+    Object.keys(placesMeta).forEach(function(k){var m=placesMeta[k];if(!out[k]&&m.name)g(m.name);});
+    return Object.keys(out).map(function(k){var o=out[k];o.nch=Object.keys(o.ch).length;o.npp=Object.keys(o.pp).length;o.meta=placesMeta[k]||{};return o;}).sort(function(a,b){return b.ml-a.ml||b.nch-a.nch;});
+  }
+  function renderPlaces(){
+    var box=$('placesBox');if(!db){box.innerHTML='<div class="empty">Los lugares necesitan la versión conectada.</div>';return;}
+    if(!plData){box.innerHTML='<div class="empty">Cargando lugares…</div>';Promise.all([loadAll(),db.collection('places').get()]).then(function(r){placesMeta={};r[1].docs.forEach(function(d){placesMeta[d.id]=d.data();});plData=r[0];renderPlaces();},function(e){box.innerHTML='<div class="empty">No se pudieron cargar los lugares.</div>';});return;}
+    var L=placeStatsAll(plData),ed=canWrite,withLoc=L.filter(function(o){return o.meta.lat!=null;});
+    var h='<h2>📍 Lugares</h2><div class="msg">Cada sitio donde ha habido chill, con su ubicación y tipo. Con la ubicación puesta aparecen en el mapa.</div>'+
+      '<div class="pltop"><select id="plMetric"><option value="ml"'+(plMetric==='ml'?' selected':'')+'>Mililitros</option><option value="n"'+(plMetric==='n'?' selected':'')+'>Nº de chorros</option><option value="nch"'+(plMetric==='nch'?' selected':'')+'>Nº de chills</option><option value="h"'+(plMetric==='h'?' selected':'')+'>Horas</option></select><select id="plMode"><option value="circ"'+(plMode==='circ'?' selected':'')+'>Círculos</option><option value="heat"'+(plMode==='heat'?' selected':'')+'>Mapa de calor</option></select><span class="msg" style="margin:0">'+withLoc.length+' de '+L.length+' con ubicación</span></div>'+
+      '<div id="plMap"></div>';
+    h+=L.map(function(o){var m=o.meta,op=plOpen===o.k;return '<div class="plc"><div class="ph"><b>'+esc(m.name||o.name)+'</b><span class="msg" style="margin:0">'+(m.type?ptype(m.type)+' · ':'')+fmt(o.ml)+' ml · '+o.n+' chorros · '+o.nch+' chill'+(o.nch===1?'':'s')+' · '+o.npp+' pers. · '+(Math.round(o.h*10)/10)+' h</span></div>'+
+      '<div class="msg" style="margin:4px 0 0">'+(m.lat!=null?'📍 '+(m.addr?esc(m.addr)+' · ':'')+m.lat.toFixed(5)+', '+m.lng.toFixed(5):'Sin ubicación')+'</div>'+
+      (ed?(op?'<div class="pf"><input id="plN" value="'+esc(m.name||o.name)+'" maxlength="40" placeholder="Nombre"><select id="plT"><option value="">Tipo…</option>'+PTYPES.map(function(t){return '<option value="'+t[0]+'"'+(m.type===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
+        '<div class="pf"><input id="plQ" placeholder="Dirección o pega un enlace de Google Maps / coordenadas" value="'+esc(m.addr||'')+'"><button class="s" id="plFind" type="button">🔎 Buscar</button><button class="s" id="plGeo" type="button">📍 Estoy aquí</button></div><div class="plres" id="plRes"></div>'+
+        '<div class="pf"><span class="msg" style="margin:0" id="plCur">'+(m.lat!=null?'Ubicación: '+m.lat.toFixed(5)+', '+m.lng.toFixed(5):'Sin ubicación todavía')+'</span></div>'+
+        '<div class="pf"><button class="p" id="plSave" type="button">Guardar</button><button class="s" id="plX" type="button">Cancelar</button>'+(m.lat!=null?'<button class="lnk" id="plClr" type="button">Quitar ubicación</button>':'')+'</div><div class="msg" id="plMsg"></div>'
+        :'<div class="pf"><button class="s" data-pled="'+esc(o.k)+'" type="button">✎ Editar</button></div>'):'')+'</div>';}).join('')||'<div class="empty">Aún no hay lugares.</div>';
+    box.innerHTML=h;
+    $('plMetric').onchange=function(){plMetric=this.value;drawMap(L);};$('plMode').onchange=function(){plMode=this.value;drawMap(L);};
+    box.querySelectorAll('[data-pled]').forEach(function(b){b.onclick=function(){plOpen=b.dataset.pled;plSearch={};renderPlaces();};});
+    if(plOpen){var o=L.filter(function(x){return x.k===plOpen;})[0];if(o)bindPlEdit(o);}
+    drawMap(L);
+  }
+  function bindPlEdit(o){
+    var m=o.meta,cur={lat:m.lat!=null?m.lat:null,lng:m.lng!=null?m.lng:null,addr:m.addr||''};
+    function show(){$('plCur').textContent=cur.lat!=null?'Ubicación: '+cur.lat.toFixed(5)+', '+cur.lng.toFixed(5)+(cur.addr?' · '+cur.addr:''):'Sin ubicación todavía';}
+    $('plX').onclick=function(){plOpen=null;renderPlaces();};
+    $('plFind').onclick=function(){var q=$('plQ').value.trim()||$('plN').value.trim(),c=parseCoords(q);if(c){cur.lat=c.lat;cur.lng=c.lng;show();$('plRes').innerHTML='';return;}
+      if(/^https?:\/\//.test(q)){$('plRes').innerHTML='<div class="msg">No encuentro coordenadas en ese enlace. En Google Maps, abre el sitio y copia el enlace largo de la barra de direcciones (el que lleva @41.3…,2.1…), o mantén pulsado el punto y copia las coordenadas.</div>';return;}
+      $('plRes').innerHTML='<div class="msg">Buscando…</div>';
+      fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=es&q='+encodeURIComponent(q)).then(function(r){return r.json();}).then(function(a){
+        if(!a||!a.length){$('plRes').innerHTML='<div class="msg">Sin resultados. Prueba con calle y ciudad, o pega coordenadas.</div>';return;}
+        $('plRes').innerHTML=a.map(function(x,i){return '<button class="s" data-r="'+i+'" type="button">'+esc(x.display_name)+'</button>';}).join('');
+        $('plRes').querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){var x=a[+b.dataset.r];cur.lat=+x.lat;cur.lng=+x.lon;cur.addr=x.display_name.split(',').slice(0,3).join(',');show();$('plRes').innerHTML='';};});
+      },function(){$('plRes').innerHTML='<div class="msg">No se pudo buscar ahora. Pega coordenadas o usa «Estoy aquí».</div>';});};
+    $('plGeo').onclick=function(){if(!navigator.geolocation){say('Este dispositivo no da la ubicación.');return;}$('plCur').textContent='Obteniendo ubicación…';navigator.geolocation.getCurrentPosition(function(pos){cur.lat=pos.coords.latitude;cur.lng=pos.coords.longitude;show();},function(){$('plCur').textContent='No se pudo obtener la ubicación (revisa los permisos).';},{enableHighAccuracy:true,timeout:15000});};
+    if($('plClr'))$('plClr').onclick=function(){cur.lat=null;cur.lng=null;cur.addr='';show();};
+    $('plSave').onclick=function(){
+      var nn=$('plN').value.trim().replace(/\s+/g,' '),old=m.name||o.name,doc={name:nn,type:$('plT').value||null,lat:cur.lat,lng:cur.lng,addr:cur.addr||null,at:Date.now()};
+      if(!nn){$('plMsg').textContent='Pon un nombre.';return;}
+      $('plMsg').textContent='Guardando…';
+      var nk=plKey(nn),ren=nrm(nn)!==nrm(old);
+      var p0=ren?renamePlaceAll(old,nn):Promise.resolve();
+      p0.then(function(){var w=[db.doc('places/'+nk).set(Object.assign({},placesMeta[nk]&&ren?placesMeta[nk]:{},doc))];if(ren&&nk!==o.k&&placesMeta[o.k])w.push(db.doc('places/'+o.k).delete());return Promise.all(w);}).then(function(){
+        placesMeta[nk]=doc;if(ren&&nk!==o.k)delete placesMeta[o.k];plOpen=null;if(ren){plData=null;logAct({act:'locren',from:old,loc:nn});}renderPlaces();say(ren?'Lugar renombrado a '+nn+' en todos los chills.':'Lugar guardado.');},fail);
+    };
+  }
+  function renamePlaceAll(old,nn){
+    var D=plData,eq=function(a){return a&&nrm(a)===nrm(old);},w=[];
+    D.sess.forEach(function(se){var ch={};var tl=locTimeline(se);if(tl.some(function(x){return eq(x.loc);}))ch.locs=tl.map(function(x){return {loc:eq(x.loc)?nn:x.loc,at:x.at};});if(eq(se.loc))ch.loc=nn;if(se.name&&eq(se.name.replace(/^Chill de /,'')))ch.name='Chill de '+nn;if(se.rpath&&se.rpath.split(/ → | \/ /).some(eq))ch.rpath=se.rpath.split(' → ').map(function(st){return st.split(' / ').map(function(x){return eq(x)?nn:x;}).join(' / ');}).join(' → ');if(Object.keys(ch).length)w.push(db.doc('sessions/'+se.id).update(ch));});
+    D.people.forEach(function(p){if((p.moves||[]).some(function(m){return eq(m.loc);}))w.push(db.doc('people/'+p.id).update({moves:p.moves.map(function(m){return eq(m.loc)?{loc:nn,at:m.at}:m;})}));});
+    D.logs.forEach(function(l){if(eq(l.loc))w.push(db.doc('logs/'+l.id).update({loc:nn}));});
+    return Promise.all(w);
+  }
+  function drawMap(L){
+    var el=$('plMap');if(!el)return;var pts=L.filter(function(o){return o.meta.lat!=null;});
+    if(!pts.length){el.innerHTML='<div class="empty" style="padding:40px 10px">Pon la ubicación de algún lugar (✎ Editar) para verlo en el mapa.</div>';return;}
+    needLeaflet().then(function(){
+      if(plMapObj){try{plMapObj.remove();}catch(e){}plMapObj=null;}
+      el.innerHTML='';var map=window.L.map(el,{scrollWheelZoom:false});plMapObj=map;
+      window.L.tileLayer('https://{s}.basemaps.cartocdn.com/'+(matchMedia('(prefers-color-scheme: dark)').matches?'dark_all':'light_all')+'/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap · © CARTO',maxZoom:19}).addTo(map);
+      var mx=Math.max.apply(null,pts.map(function(o){return o[plMetric]||0;}).concat([1e-9]));
+      var unit={ml:' ml',n:' chorros',nch:' chills',h:' h'}[plMetric];
+      if(plMode==='heat'&&window.L.heatLayer){window.L.heatLayer(pts.map(function(o){return [o.meta.lat,o.meta.lng,Math.max(0.05,(o[plMetric]||0)/mx)];}),{radius:35,blur:25,maxZoom:15,max:1}).addTo(map);
+        pts.forEach(function(o){window.L.circleMarker([o.meta.lat,o.meta.lng],{radius:3,color:'#fff',weight:1,fillOpacity:1}).bindPopup('<b>'+esc(o.meta.name||o.name)+'</b><br>'+fmt(Math.round((o[plMetric]||0)*10)/10)+unit).addTo(map);});}
+      else pts.forEach(function(o){var v=o[plMetric]||0,r=6+Math.sqrt(v/mx)*26;window.L.circleMarker([o.meta.lat,o.meta.lng],{radius:r,color:'#3b82f6',weight:2,fillColor:'#3b82f6',fillOpacity:.35}).bindPopup('<b>'+esc(o.meta.name||o.name)+'</b>'+(o.meta.type?'<br>'+ptype(o.meta.type):'')+'<br>'+fmt(Math.round(v*10)/10)+unit+'<br>'+o.nch+' chills · '+o.npp+' personas').addTo(map);});
+      var b=window.L.latLngBounds(pts.map(function(o){return [o.meta.lat,o.meta.lng];}));map.fitBounds(b.pad(0.25),{maxZoom:15});
+    },function(){el.innerHTML='<div class="empty" style="padding:40px 10px">No se pudo cargar el mapa.</div>';});
+  }
+
   $('histBtn').onclick=function(){
     var box=$('histBox');
     if(!box.hidden){box.hidden=true;this.textContent='Historial';return;}
