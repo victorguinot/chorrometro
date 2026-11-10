@@ -1137,7 +1137,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     var d0=new Date(se.start);d0.setHours(0,0,0,0);
     var fin=!!se.end&&!isActive(se.id),ar=rows.filter(function(r){return r.ls.length||r.h>0;});
     if(ar.length>2){var fa=null,la=null;ar.forEach(function(r){var a=arrOf(r.p,r.ls,se),d=depOf(r.p,r.ls,se);r.a0=a;r.d0=d;if(!fa||a<fa.a0)fa=r;if(!la||d>la.d0)la=r;});
-      if(fa)ar.forEach(function(r){if(r.a0===fa.a0)add(r,'🔑 Abrió el chill');});if(fin&&la)ar.forEach(function(r){if(r.d0===la.d0)add(r,'🚪 Cerró el chill');});}
+      if(fa)ar.forEach(function(r){if(r.a0===fa.a0)add(r,'🔑 El primero');});if(fin&&la)ar.forEach(function(r){if(r.d0===la.d0)add(r,'🚪 El último');});}
     var reg={};logs.forEach(function(l){var n=l.by&&(regMap[l.by]||acctMap[l.by]);if(!n)return;var rk=canon(n),pr=null;rows.forEach(function(r){if(r.p.id===l.pid)pr=r;});if(pr&&pr.k!==rk)reg[rk]=(reg[rk]||0)+1;});
     var rbv=0;Object.keys(reg).forEach(function(k){if(reg[k]>=3&&reg[k]>rbv)rbv=reg[k];});if(rbv)rows.forEach(function(r){if(reg[r.k]===rbv)add(r,'📝 Apuntador');});
     rows.forEach(function(r){
@@ -2183,8 +2183,8 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       ['🔢','Más chorros','Quien más chorros toma en el chill (en número).'],
       ['🎯','Primer chorro','El primer chorro del chill.'],
       ['🌙','Último chorro','El último chorro del chill.'],
-      ['🔑','Abrió el chill','El primero en llegar (con 3 personas o más; si llegan a la vez, todos).'],
-      ['🚪','Cerró el chill','El último en irse, cuando el chill ha terminado.'],
+      ['🔑','El primero','El primero en llegar (con 3 personas o más; si llegan a la vez, todos).'],
+      ['🚪','El último','El último en irse, cuando todo ha terminado.'],
       ['🏠','Anfitrión','El chill pasa por su casa.'],
       ['📝','Apuntador','Quien más chorros anota a otros (mínimo 3).'],
       ['🛋️','Vago','Quien menos chorros apunta en la app, entre quienes tienen cuenta (mínimo 3 con cuenta en el chill).']]],
