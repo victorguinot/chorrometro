@@ -427,7 +427,7 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
       Object.keys(g).forEach(function(k){if(!g[k].length&&k!==main)delete g[k];});var keys=Object.keys(g).filter(function(k){return g[k].length||k===main;});var multi=keys.filter(function(k){return g[k].length;});if(multi.length>1)keys=multi;
       var sig=keys.map(function(k){return k+':'+g[k].length;}).join('|'),o=st[st.length-1];if(o&&o.sig===sig)return;if(o)o.t=t;st.push({f:t,t:null,g:g,keys:keys,sig:sig});});
     return st;}
-  function routeStr(se,people){var out=[];groupStates(se,people).forEach(function(s){var k=s.keys.join(' / ');if(!out.length||nrm(out[out.length-1])!==nrm(k))out.push(k);});return out.join(' → ');}
+  function routeStr(se,people){var out=[],prev=[];groupStates(se,people).forEach(function(s){var ks=s.keys.map(nrm);if(prev.length&&ks.every(function(k){return prev.indexOf(k)>=0;}))return;out.push(s.keys.join(' / '));prev=ks;});return out.join(' → ');}
   function locPath(se){if(se&&se.rpath)return se.rpath;var out=[];locTimeline(se).forEach(function(x){if(!out.length||nrm(out[out.length-1])!==nrm(x.loc))out.push(x.loc);});return out.join(' → ');}
   function allLocs(){var locs=[];sessions.forEach(function(x){locTimeline(x).forEach(function(y){var l=(y.loc||'').trim();if(l&&!locs.some(function(z){return nrm(z)===nrm(l);}))locs.push(l);});});return locs;}
   var mySids={};
@@ -1254,7 +1254,8 @@ textarea{width:100%;height:110px;margin-top:8px;font:12px/1.4 ui-monospace,Menlo
     ov.addEventListener('pointermove',move);ov.addEventListener('pointerdown',move);ov.addEventListener('pointerleave',hide);
   }
   var rzT=null;window.addEventListener('resize',function(){clearTimeout(rzT);rzT=setTimeout(renderChart,150);});
-  function onData(){
+  var rpT=null;
+  function onData(){clearTimeout(rpT);rpT=setTimeout(function(){var se=sess(viewSid);if(db&&canWrite&&se&&state.people.length&&state.people.some(function(p){return (p.moves||[]).length;})||(se&&se.rpath))saveRpath(se);},1500);
     var sig=state.people.map(function(p){return p.id+p.name+(p.gone||'');}).join('|')+'|'+viewSid+'|'+actives.join(',')+'|'+(function(){var m=myPerson();return m?m.id:'';})();
     if(sig!==peopleSig){peopleSig=sig;renderForm();renderPeople();}
     freezeSlots();
