@@ -1383,7 +1383,7 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
     for(var tt=d.getTime()+(d.getTime()<x0?H:0);tt<=x1;tt+=H){var hr=new Date(tt).getHours();if(hr%hs)continue;g+='<line x1="'+X(tt)+'" x2="'+X(tt)+'" y1="'+T+'" y2="'+(Ht-B)+'" style="stroke:var(--line)" stroke-width="1"/><text x="'+X(tt)+'" y="'+(Ht-8)+'" text-anchor="middle" font-size="11" style="fill:var(--mut)">'+pad2(hr)+'h</text>';}
     var md=new Date(x0);md.setHours(24,0,0,0);
     for(var mt=md.getTime(),mi=1;mt<x1;mt+=86400000,mi++)g+='<line x1="'+X(mt)+'" x2="'+X(mt)+'" y1="'+(T-14)+'" y2="'+(Ht-B)+'" style="stroke:var(--mut)" stroke-width="1" opacity=".6"/><text x="'+(X(mt)+3)+'" y="'+(T-5)+'" font-size="10" font-weight="700" style="fill:var(--mut)">D+'+mi+'</text>';
-    locTimeline(s0).slice(1).forEach(function(lc){if(lc.at<x0||lc.at>x1)return;var nm=lc.loc.length>14?lc.loc.slice(0,13)+'…':lc.loc;g+='<line x1="'+X(lc.at)+'" x2="'+X(lc.at)+'" y1="'+(T-14)+'" y2="'+(Ht-B)+'" style="stroke:var(--acc)" stroke-dasharray="3 3" stroke-width="1.5"/><text x="'+(X(lc.at)-3)+'" y="'+(T-5)+'" text-anchor="end" font-size="10" style="fill:var(--acc)">📍'+esc(nm)+'</text>';});
+    locTimeline(s0).slice(1).forEach(function(lc){if(lc.at<x0||lc.at>x1)return;var nm=lc.loc.length>14?lc.loc.slice(0,13)+'…':lc.loc;g+='<line x1="'+X(lc.at)+'" x2="'+X(lc.at)+'" y1="'+(T-14)+'" y2="'+(Ht-B)+'" style="stroke:var(--acc)" stroke-dasharray="3 3" stroke-width="1.5"><title>'+esc(lc.loc)+' · '+hhmm(lc.at)+'</title></line>';if(PL.length>1)return;g+='<text x="'+(X(lc.at)-3)+'" y="'+(T-5)+'" text-anchor="end" font-size="10" style="fill:var(--acc)">📍'+esc(nm)+'</text>';});
     rows.forEach(function(r,i){
       var y=T+i*rowH+rowH/2,c=colorOf(r.k),nm=r.p.name.length>12?r.p.name.slice(0,11)+'…':r.p.name;
       var hm=hostMark(r.p.name);g+='<circle cx="'+(L-8)+'" cy="'+y+'" r="4" style="fill:'+c+'"/><text x="'+(L-17)+'" y="'+(y+4)+'" text-anchor="end" font-size="12" style="fill:var(--ink)">'+(hm?'<tspan'+(hm.indexOf('was')>=0?' opacity=".5"':'')+'>🏠 </tspan>':'')+esc(nm)+'</text>';
@@ -1983,6 +1983,9 @@ body.screen .tabs,body.screen #tabPane{display:none!important}
       window.scrollTo(0,0);asPos=0;asState='top';asWaitUntil=now+(nx!=='T'?6000:4000);tickScreen();
     }
   }
+  function fixMaps(){[routeMap,plMapObj].forEach(function(A){(A||[]).forEach(function(m){try{m.invalidateSize();}catch(e){}});});}
+  if(window.ResizeObserver){var rmo=new ResizeObserver(function(){clearTimeout(rmo.t);rmo.t=setTimeout(fixMaps,150);});['routeBox','placesBox'].forEach(function(id){var e=$(id);if(e)rmo.observe(e);});}
+  try{new MutationObserver(function(){setTimeout(fixMaps,200);}).observe(document.body,{attributes:true,attributeFilter:['class']});}catch(e){}
   function asUser(){if(document.body.classList.contains('screen')){asPause=Date.now()+12000;asPos=window.scrollY;}}
   ['wheel','touchstart','keydown','mousedown'].forEach(function(ev){window.addEventListener(ev,asUser,{passive:true});});
   if(!window.matchMedia||!window.matchMedia('(prefers-reduced-motion: reduce)').matches)asRAF=requestAnimationFrame(asStep);
