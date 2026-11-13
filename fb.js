@@ -18,7 +18,7 @@
     '#fbgate .g{max-width:380px;width:100%;background:var(--surf,#fff);border:1px solid var(--line,#d3dde0);border-radius:16px;padding:28px 24px;text-align:center;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink,#14262b)}' +
     '#fbgate h1{font-size:26px;margin:0 0 4px}#fbgate p{color:var(--mut,#5d7176);margin:8px 0 18px;line-height:1.45}' +
     '#fbgate button{font:600 16px "IBM Plex Sans",system-ui,sans-serif;padding:12px 18px;border-radius:10px;border:0;background:var(--acc,#0b6e7f);color:#fff;cursor:pointer;width:100%;margin-top:8px}' +
-    '#fbgate button.s{background:transparent;color:var(--mut,#5d7176);border:1px solid var(--line,#d3dde0)}' +
+    '#fbgate a{display:block;text-decoration:none}#fbgate button.s{background:transparent;color:var(--mut,#5d7176);border:1px solid var(--line,#d3dde0)}' +
     '#memModal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}' +
     '#memModal .mc{background:var(--surf,#fff);border-radius:12px;padding:16px;max-width:560px;width:100%;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink,#14262b)}' +
     '#memModal .mr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line,#d3dde0)}#memModal .mr .nm{flex:1;min-width:150px}' +
@@ -28,15 +28,41 @@
   function show(html) { gate.innerHTML = '<div class="g"><h1>💧 Chorrómetro</h1>' + html + '</div>'; if (!gate.parentNode) document.body.appendChild(gate); }
   function hide() { if (gate.parentNode) gate.parentNode.removeChild(gate); }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function login() {
+  /* navegadores dentro de apps (WhatsApp, Instagram…): Google no deja entrar ahí */
+  var UA = navigator.userAgent || '', isIOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1), isAnd = /Android/.test(UA);
+  function inApp() {
+    if (window.navigator.standalone === true) return false;
+    if (/FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|Telegram|Snapchat|TikTok|musical_ly|Twitter|LinkedInApp|GSA\//i.test(UA)) return true;
+    if (isIOS && !/Safari\//.test(UA)) return true;
+    if (isAnd && /; wv\)/.test(UA)) return true;
+    return false;
+  }
+  function openOutside() {
+    var url = location.href.split('#')[0];
+    var h = '<p><b>Estás dentro de otra app</b> (WhatsApp, Instagram…). Google no deja iniciar sesión desde ahí.</p>' +
+      '<p>Ábrelo en ' + (isAnd ? 'Chrome' : 'Safari') + ':</p>';
+    if (isIOS) h += '<a href="x-safari-' + esc(url) + '"><button type="button">🧭 Abrir en Safari</button></a>';
+    if (isAnd) h += '<a href="intent://' + esc(url.replace(/^https?:\/\//, '')) + '#Intent;scheme=https;package=com.android.chrome;end"><button type="button">🌐 Abrir en Chrome</button></a>';
+    h += '<button type="button" class="s" id="gCopy">📋 Copiar enlace</button>' +
+      '<p style="font-size:13px;opacity:.8;margin-top:10px">Si el botón no funciona: toca ' + (isIOS ? 'el icono de compartir o «···» y elige «Abrir en Safari»' : 'los tres puntos «⋮» y elige «Abrir en Chrome»') + ', o pega el enlace en el navegador.</p>' +
+      '<button type="button" class="s" id="gTry">Intentar aquí igualmente</button>';
+    show(h); bind();
+    var c = document.getElementById('gCopy'); if (c) c.onclick = function () { var done = function () { c.textContent = '✅ Enlace copiado'; }; try { navigator.clipboard.writeText(url).then(done, function () { prompt('Copia este enlace:', url); }); } catch (e) { prompt('Copia este enlace:', url); } };
+    var t = document.getElementById('gTry'); if (t) t.onclick = function () { login(true); };
+  }
+  function login(force) {
+    if (force !== true && inApp()) { openOutside(); return; }
     var p = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(p).catch(function (e) {
-      if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) auth.signInWithRedirect(p);
-      else if (e && e.code !== 'auth/popup-closed-by-user') show('<p>No se pudo entrar: ' + esc(e.message) + '</p><button id="gIn">Probar otra vez</button>'), bind();
+      if (e && e.code === 'auth/popup-closed-by-user') return;
+      if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment' || e.code === 'auth/web-storage-unsupported')) {
+        show('<p>El navegador ha bloqueado la ventana de Google.</p><p style="font-size:14px">Vuelve a pulsar el botón. Si sigue sin salir, permite las ventanas emergentes ' + (isIOS ? '(Ajustes → Safari → desactiva «Bloquear ventanas»)' : 'para esta web') + ' o ábrelo en ' + (isAnd ? 'Chrome' : 'Safari') + '.</p><button id="gIn">Entrar con Google</button>'); bind(); return;
+      }
+      show('<p>No se pudo entrar: ' + esc(e && e.message) + '</p><button id="gIn">Probar otra vez</button>'); bind();
     });
   }
   function bind() {
-    var b = document.getElementById('gIn'); if (b) b.onclick = login;
+    var b = document.getElementById('gIn'); if (b) b.onclick = function () { login(); };
     var o = document.getElementById('gOut'); if (o) o.onclick = function () { auth.signOut(); };
     var c = document.getElementById('gClaim'); if (c) c.onclick = claimOwner;
   }
@@ -53,7 +79,7 @@
   auth.onAuthStateChanged(function (u) {
     if (unMem) { unMem(); unMem = null; }
     me = u;
-    if (!u) { show('<p>Registro de chorros del grupo. Entra con tu cuenta de Google; el organizador aprobará tu acceso.</p><button id="gIn">Entrar con Google</button>'); bind(); return; }
+    if (!u) { if (inApp()) { openOutside(); return; } show('<p>Registro de chorros del grupo. Entra con tu cuenta de Google; el organizador aprobará tu acceso.</p><button id="gIn">Entrar con Google</button>'); bind(); return; }
     var ref = fs.doc('members/' + u.uid);
     unMem = ref.onSnapshot({ includeMetadataChanges: true }, function (d) {
       var okUid = null; try { okUid = localStorage.getItem('chorro-ok'); } catch (e) {}
