@@ -349,6 +349,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 .reg td,.reg th{white-space:nowrap}.reg a{color:inherit}
 .cfg h3{margin:18px 0 4px}.cfg h3:first-child{margin-top:0}.cfgRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 4px}.cfgRow>button{width:auto;margin:0}.cfgRow #qrBox{flex-basis:100%}
 .rlink{cursor:pointer}.rlink:hover{text-decoration:underline}
+.recc .recr{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 8px}.recc select,.recc input,.recc button{width:auto;margin:0}.recc select{max-width:170px}.recc .rtn{font-weight:700;min-width:18px}
 </style>
 </head>
 <body>
@@ -368,6 +369,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   <nav class="tabs" id="tabs"><button data-tab="chill" class="on">💧 Liada</button><button data-tab="stats" data-btn="statsBtn" hidden>📊 Estadísticas</button><button data-tab="cfg">⚙️ Ajustes</button><button data-tab="places" data-btn="statsBtn" hidden>📍 Lugares</button><button data-tab="medals">🏅 Medallas</button><button data-tab="cal" data-btn="histBtn" hidden>📅 Calendario</button><button type="button" data-tab="hist" data-btn="histBtn" hidden>🗂️ Historial</button><button data-tab="act" data-btn="actBtn" hidden>🕓 Actividad</button><button data-tab="trash" data-btn="trashBtn" hidden>🗑️ Eliminados</button></nav>
   <div id="tabPane"><div id="statsBox" hidden></div><div id="placesBox" hidden></div><div id="medalsBox" hidden></div><div id="calBox" hidden></div><div id="cfgBox" hidden><div class="stats cfg">
 <h3>📲 Compartir la app</h3><div class="msg">Enseña el QR para que otros entren desde su móvil.</div><div class="cfgRow" id="cfgShare"></div>
+<h3>🔔 Notificaciones en el móvil</h3><div id="pushBox"></div>
 <div class="ownOnly"><h3>👥 Miembros</h3><div class="msg">Acepta solicitudes, cambia roles o quita acceso.</div><div id="memInline"></div>
 <h3>🔐 Registrados</h3><div class="msg">Resumen de cada cuenta: persona vinculada, email, liadas y chorros apuntados.</div><div id="regBox"></div>
 <h3>💾 Datos</h3><div class="msg">Descarga una copia con todas las liadas, personas y chorros.</div><div class="cfgRow" id="cfgData"></div><div id="cfgImp"></div>
@@ -420,6 +422,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="config.js"></script>
 <script src="fb.js"></script>
 <script>if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});</script>
@@ -1082,7 +1085,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if(!state.people.length){el.innerHTML='<div class="empty">Todavía no hay personas.</div>';return;}
     if(tEdit&&!state.people.some(function(x){return x.id===tEdit;}))tEdit=null;
     var ce=canEditTimes();
-    el.innerHTML=state.people.map(function(x){var w=pendingDel===x.id,nAw=(x.away||[]).length;var sv=sess(viewSid),spl=sv&&!x.gone&&isSplit(x,sv);return '<div class="row prow"><span class="pnm'+(x.gone?' gone':'')+'">'+esc(x.name)+hostMark(x.name)+(spl?' <span class="pchip">📍'+esc(pLast(x).loc)+'</span>':'')+(x.gone?' <span class="msg">· se fue a las '+hD(x.gone)+'</span>':(nAw?' <span class="msg">· '+nAw+' ausencia'+(nAw===1?'':'s')+'</span>':''))+'</span><span class="pbt">'+(ce?'<button class="s'+(tEdit===x.id?' go':'')+'" data-times="'+x.id+'" title="Editar llegada, salidas y vueltas">Horas</button>':'')+(canRen(x)?'<button class="s" data-pn="'+x.id+'" title="Corregir el nombre">✎</button>':'')+'<button class="s" data-gone="'+x.id+'">'+(x.gone?'Ha vuelto':'Se ha ido')+'</button>'+((isOwner||!db)?'<button class="s'+(w?' w':'')+'" data-del="'+x.id+'">'+(w?'¿Borrar con sus chorros?':'Quitar')+'</button>':'')+'</span></div>'+(pnEdit===x.id&&pnMerge&&pnMerge.from===x.id?'<div class="rtrow" style="margin:0 0 8px"><span class="msg" style="margin:0">'+esc(name(pnMerge.to))+' ya está en esta liada. ¿Es la misma persona?</span><button class="go" data-pnmerge="1">Fusionar: pasar sus '+state.logs.filter(function(l){return l.pid===x.id;}).length+' chorros a '+esc(name(pnMerge.to))+'</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(pnEdit===x.id&&!pnMerge?'<div class="rtrow" style="margin:0 0 8px"><input id="pnIn" maxlength="40" value="'+esc(x.name)+'" aria-label="Nombre corregido"><label class="msg" style="margin:0;display:flex;gap:4px;align-items:center"><input type="checkbox" id="pnAll" checked style="width:auto"> en todas las liadas</label><button class="go" data-pnsave="1">Guardar</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(tEdit===x.id&&tDraft?timesHtml(x):'');}).join('');
+    el.innerHTML=state.people.map(function(x){var w=pendingDel===x.id,nAw=(x.away||[]).length;var sv=sess(viewSid),spl=sv&&!x.gone&&isSplit(x,sv);return '<div class="row prow"><span class="pnm'+(x.gone?' gone':'')+'">'+esc(x.name)+hostMark(x.name)+(spl?' <span class="pchip">📍'+esc(pLast(x).loc)+'</span>':'')+(x.gone?' <span class="msg">· se fue a las '+hD(x.gone)+'</span>':(nAw?' <span class="msg">· '+nAw+' ausencia'+(nAw===1?'':'s')+'</span>':''))+'</span><span class="pbt">'+(ce?'<button class="s'+(tEdit===x.id?' go':'')+'" data-times="'+x.id+'" title="Editar llegada, salidas y vueltas">Horas</button>':'')+(ce&&viewSid?'<button class="s" data-recp="'+x.id+'" title="Editar por qué sitios pasó">🧭 Recorrido</button>':'')+(canRen(x)?'<button class="s" data-pn="'+x.id+'" title="Corregir el nombre">✎</button>':'')+'<button class="s" data-gone="'+x.id+'">'+(x.gone?'Ha vuelto':'Se ha ido')+'</button>'+((isOwner||!db)?'<button class="s'+(w?' w':'')+'" data-del="'+x.id+'">'+(w?'¿Borrar con sus chorros?':'Quitar')+'</button>':'')+'</span></div>'+(pnEdit===x.id&&pnMerge&&pnMerge.from===x.id?'<div class="rtrow" style="margin:0 0 8px"><span class="msg" style="margin:0">'+esc(name(pnMerge.to))+' ya está en esta liada. ¿Es la misma persona?</span><button class="go" data-pnmerge="1">Fusionar: pasar sus '+state.logs.filter(function(l){return l.pid===x.id;}).length+' chorros a '+esc(name(pnMerge.to))+'</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(pnEdit===x.id&&!pnMerge?'<div class="rtrow" style="margin:0 0 8px"><input id="pnIn" maxlength="40" value="'+esc(x.name)+'" aria-label="Nombre corregido"><label class="msg" style="margin:0;display:flex;gap:4px;align-items:center"><input type="checkbox" id="pnAll" checked style="width:auto"> en todas las liadas</label><button class="go" data-pnsave="1">Guardar</button><button class="s" data-pncancel="1">Cancelar</button></div>':'')+(tEdit===x.id&&tDraft?timesHtml(x):'');}).join('');
     el.querySelectorAll('[data-sk]').forEach(function(inp){var h=function(){var k=this.dataset.sk,x=tDraft.segs[+this.dataset.si];if(!x)return;if(k==='loc')x.loc=this.value;else{var v=this.value?new Date(this.value).getTime():null;if(this.value&&isNaN(v))return;if(k==='f'&&v)x.f=v;if(k==='t')x.t=v;}tDraft.err='';};inp.oninput=h;inp.onchange=h;});
     el.querySelectorAll('[data-tk]').forEach(function(inp){inp.onchange=function(){var v=new Date(this.value).getTime();if(isNaN(v))return;var k=this.dataset.tk;if(k==='at')tDraft.at=v;else if(k==='gone')tDraft.gone=v;else tDraft.away[+this.dataset.ti][k]=v;tDraft.err='';};});
   }
@@ -1409,7 +1412,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     locTimeline(s0).slice(1).forEach(function(lc){if(lc.at<x0||lc.at>x1)return;var nm=lc.loc.length>14?lc.loc.slice(0,13)+'…':lc.loc;g+='<line x1="'+X(lc.at)+'" x2="'+X(lc.at)+'" y1="'+(T-14)+'" y2="'+(Ht-B)+'" style="stroke:var(--acc)" stroke-dasharray="3 3" stroke-width="1.5"><title>'+esc(lc.loc)+' · '+hhmm(lc.at)+'</title></line>';if(PL.length>1)return;g+='<text x="'+(X(lc.at)-3)+'" y="'+(T-5)+'" text-anchor="end" font-size="10" style="fill:var(--acc)">📍'+esc(nm)+'</text>';});
     rows.forEach(function(r,i){
       var y=T+i*rowH+rowH/2,c=colorOf(r.k),nm=r.p.name.length>12?r.p.name.slice(0,11)+'…':r.p.name;
-      var hm=hostMark(r.p.name);g+='<circle cx="'+(L-8)+'" cy="'+y+'" r="4" style="fill:'+c+'"/><text x="'+(L-17)+'" y="'+(y+4)+'" text-anchor="end" font-size="12" style="fill:var(--ink)">'+(hm?'<tspan'+(hm.indexOf('was')>=0?' opacity=".5"':'')+'>🏠 </tspan>':'')+esc(nm)+'</text>';
+      var hm=hostMark(r.p.name);g+='<circle cx="'+(L-8)+'" cy="'+y+'" r="4" style="fill:'+c+'"/><text x="'+(L-17)+'" y="'+(y+4)+'" text-anchor="end" font-size="12" style="fill:var(--ink)">'+(hm?'<tspan'+(hm.indexOf('was')>=0?' opacity=".5"':'')+'>🏠 </tspan>':'')+esc(nm)+'</text>'+(canEditTimes()?'<rect data-rec="'+r.p.id+'" x="0" y="'+(y-11)+'" width="'+L+'" height="22" fill="transparent" style="cursor:pointer"><title>Editar el recorrido de '+esc(r.p.name)+'</title></rect>':'');
       var tl2=locTimeline(s0);tl2.forEach(function(lc,j){if(!isHostOf(lc.loc,canon(r.p.name)))return;var a=Math.max(lc.at,x0),b2=j+1<tl2.length?tl2[j+1].at:x1;g+='<rect x="'+X(a)+'" y="'+(y-9)+'" width="'+Math.max(2,X(b2)-X(a))+'" height="18" rx="9" fill="none" style="stroke:'+c+'" stroke-width="1.5" opacity=".6"><title>Anfitrión '+hhmm(a)+'–'+hhmm(b2)+'</title></rect>';});
       r.aw.forEach(function(a){g+='<line x1="'+X(a.f)+'" x2="'+X(a.t)+'" y1="'+y+'" y2="'+y+'" style="stroke:'+c+'" stroke-width="2" stroke-dasharray="3 4" opacity=".7"><title>'+esc(r.p.name)+' ausente '+hhmm(a.f)+'–'+hhmm(a.t)+'</title></line>';});
       r.seg.forEach(function(sg){if(PL.length>1){pSegs(r.p,s0,sg[0],sg[1]).forEach(function(q,qi,qa){var fc=PLC[plIdx(q.loc)%PLC.length];g+='<rect x="'+X(q.f)+'" y="'+(y-6)+'" width="'+Math.max(2,X(q.t)-X(q.f))+'" height="12" rx="'+(qa.length===1?6:2)+'" style="fill:'+fc+'" opacity=".9"><title>'+esc(r.p.name)+' · '+esc(q.loc)+' '+hhmm(q.f)+'–'+hhmm(q.t)+'</title></rect>';});return;}
@@ -1418,7 +1421,40 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       if(!r.p.gone&&live)g+='<text x="'+Math.min(X(r.dep)+4,W-2)+'" y="'+(y+4)+'" font-size="10" style="fill:var(--mut)"></text>';
     });
     if(live)g+='<line x1="'+X(x1)+'" x2="'+X(x1)+'" y1="'+(T-4)+'" y2="'+(Ht-B)+'" style="stroke:var(--warn)" stroke-width="1.5"/>';
-    box.innerHTML=(PL.length>1?'<div class="plg">'+PL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+(isHouse(l)?'🏠 ':'')+esc(l)+'</span>';}).join('')+'</div>':'')+'<svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Presencia de cada persona en la liada">'+g+'</svg>';
+    box.innerHTML=(PL.length>1?'<div class="plg">'+PL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+(isHouse(l)?'🏠 ':'')+esc(l)+'</span>';}).join('')+'</div>':'')+'<svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Presencia de cada persona en la liada">'+g+'</svg>';bindRec();
+  }
+  function bindRec(){var gb=$('ganttBox');if(!gb)return;gb.querySelectorAll('[data-rec]').forEach(function(e){e.onclick=function(){openRec(e.getAttribute('data-rec'));};});}
+  /* recorrido rápido de una persona */
+  function openRec(pid){var p=pById(pid),se=sess(viewSid);if(!p||!se||!canEditTimes())return;
+    var ls=state.logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),a=Math.max(arrOf(p,ls,se),se.start),b=depOf(p,ls,se);
+    var rows=(b>a?pSegs(p,se,a,b):[{f:a,t:b,loc:locAtTs(se,a)}]).map(function(q){return {loc:q.loc||'',f:q.f};});
+    var m=$('shareModal'),close=function(){m.hidden=true;m.innerHTML='';},err='';
+    var locs=allLocs();locTimeline(se).forEach(function(x){if(!locs.some(function(z){return nrm(z)===nrm(x.loc);}))locs.unshift(x.loc);});
+    function draw(){
+      m.hidden=false;
+      m.innerHTML='<div class="sm-card recc"><div class="sm-head"><b>🧭 Recorrido de '+esc(p.name)+'</b><button class="s" id="recX" type="button">✕</button></div>'+
+        '<div class="msg" style="margin:0 0 8px">Cada fila es un sitio y la hora en que llegó. Recorrido del grupo: '+esc(locPath(se)||'—')+'.</div>'+
+        rows.map(function(r,i){return '<div class="recr"><span class="rtn">'+(i+1)+'.</span><select data-rcl="'+i+'">'+locs.map(function(l){return '<option'+(nrm(l)===nrm(r.loc)?' selected':'')+'>'+esc(l)+'</option>';}).join('')+'<option value="__n">✏️ Otro sitio…</option></select>'+
+          (i===0?'<span class="msg" style="margin:0">desde que llegó ('+hhmm(r.f)+')</span>':'<input type="datetime-local" data-rct="'+i+'" value="'+localInput(r.f)+'">')+
+          (i>0?'<button class="s" data-rcd="'+i+'" type="button" title="Quitar">🗑</button>':'')+'</div>';}).join('')+
+        '<button class="s" id="recAdd" type="button" style="width:auto">+ Añadir sitio</button>'+(err?'<div class="msg" style="color:var(--warn)">'+esc(err)+'</div>':'')+
+        '<div class="sm-btns"><button class="s" id="recC" type="button">Cancelar</button><button class="p" id="recS" type="button">Guardar</button></div></div>';
+      $('recX').onclick=close;$('recC').onclick=close;m.onclick=function(e){if(e.target===m)close();};
+      m.querySelectorAll('[data-rcl]').forEach(function(sl){sl.onchange=function(){var i=+sl.dataset.rcl;if(sl.value==='__n'){var v=(prompt('Nombre del sitio:')||'').trim();if(!v){draw();return;}if(!locs.some(function(z){return nrm(z)===nrm(v);}))locs.push(v);rows[i].loc=v;draw();return;}rows[i].loc=sl.value;};});
+      m.querySelectorAll('[data-rct]').forEach(function(inp){inp.onchange=function(){var t=new Date(inp.value).getTime();if(!isNaN(t))rows[+inp.dataset.rct].f=t;};});
+      m.querySelectorAll('[data-rcd]').forEach(function(bt){bt.onclick=function(){rows.splice(+bt.dataset.rcd,1);draw();};});
+      $('recAdd').onclick=function(){var last=rows[rows.length-1],lim=(p.gone||se.end||Date.now());rows.push({loc:last.loc,f:Math.min(lim,Math.max(last.f+3600000,Date.now()>lim?lim:Date.now()))});draw();};
+      $('recS').onclick=function(){if(!gate())return;
+        var rs=rows.map(function(r){return {loc:(r.loc||'').trim(),f:r.f};});err='';
+        rs.forEach(function(r,i){if(!r.loc)err='Elige un sitio en cada fila.';if(i&&r.f<=rs[i-1].f)err='Cada sitio tiene que empezar después del anterior.';if(i&&r.f<se.start)err='Un sitio no puede empezar antes que la liada.';});
+        if(err){draw();return;}
+        var mv=[];rs.forEach(function(r,i){var g=locAtTs(se,r.f),nx=rs[i+1]?rs[i+1].f:(p.gone||se.end||Date.now()),same=nrm(g||'')===nrm(r.loc)&&!locTimeline(se).some(function(x){return x.at>r.f&&x.at<nx&&nrm(x.loc)!==nrm(r.loc);});var o={loc:same?null:r.loc,at:i?r.f:Math.max(r.f,se.start)};if(!mv.length&&o.loc===null)return;if(mv.length&&(mv[mv.length-1].loc||null)===(o.loc||null))return;mv.push(o);});
+        logAct({act:'times',pname:p.name});
+        var b2=$('recS');b2.disabled=true;b2.textContent='Guardando…';
+        var w=db?db.doc('people/'+p.id).update({moves:mv}).then(function(){p.moves=mv;return Promise.all(state.logs.filter(function(l){return l.pid===p.id;}).map(function(l){var nl=plocAt(p,se,l.ts)||null;return nl!==(l.loc||null)?db.doc('logs/'+l.id).update({loc:nl}):null;})).then(function(){return saveRpath(se);});}):(function(){p.moves=mv;saveLocal();return Promise.resolve();})();
+        w.then(function(){close();peopleSig='';routeSig='';onData();say('Recorrido de '+p.name+' guardado.');},function(e){b2.disabled=false;b2.textContent='Guardar';fail(e);});};
+    }
+    draw();
   }
   function renderChart(){
     var box=$('chartBox');if(!box)return;
@@ -1509,6 +1545,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if(t.dataset.sadd&&tDraft){var se3=sess(viewSid),lim=(se3&&se3.end)||Date.now(),ls3=(tDraft.segs||[]),lt=ls3.length?(ls3[ls3.length-1].t||lim):Math.max(tDraft.at,lim-3600000);tDraft.segs=ls3.concat([{loc:'',f:Math.min(lt,lim-60000),t:null}]);tDraft.err='';renderPeople();return;}
     if(t.dataset.sdel&&tDraft){tDraft.segs.splice(+t.dataset.sdel,1);tDraft.err='';renderPeople();return;}
     if(t.dataset.tdel&&tDraft){if(t.dataset.tdel==='gone')tDraft.gone=null;else tDraft.away.splice(+t.dataset.tdel,1);tDraft.err='';renderPeople();return;}
+    if(t.dataset.recp){openRec(t.dataset.recp);return;}
     if(t.dataset.tcancel){tEdit=null;tDraft=null;renderPeople();return;}
     if(t.dataset.tsave&&tDraft){if(!gate())return;saveTimes();return;}
     if(t.dataset.pn){pnMerge=null;pnEdit=pnEdit===t.dataset.pn?null:t.dataset.pn;renderPeople();if(pnEdit&&$('pnIn'))$('pnIn').select();return;}
@@ -2264,7 +2301,32 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 
   /* ajustes: herramientas generales de la app (no de la liada) */
   (function(){[['cfgShare','qrBtn'],['cfgShare','qrBox'],['cfgData','bkBtn'],['cfgView','asUserBtn']].forEach(function(x){var a=$(x[0]),b=$(x[1]);if(a&&b)a.appendChild(b);});})();
-  function renderCfg(){var own=realOwner&&isOwner;document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own)renderReg();}
+  function renderCfg(){var own=realOwner&&isOwner;renderPush();document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own)renderReg();}
+  /* notificaciones push */
+  var pushPrefs=null;
+  function renderPush(){var box=$('pushBox');if(!box)return;var P=window.chorroPush;
+    if(!P){box.innerHTML='<div class="msg">No disponible en esta versión.</div>';return;}
+    var I=P.info();
+    if(I.needsInstall){box.innerHTML='<div class="msg">En iPhone las notificaciones solo funcionan si la app está en la pantalla de inicio:<br>1. En Safari, toca <b>Compartir</b> (el cuadrado con la flecha ⬆️).<br>2. Elige <b>«Añadir a pantalla de inicio»</b>.<br>3. Abre el Chorrómetro desde el icono nuevo y vuelve aquí.</div>';return;}
+    if(!I.supported){box.innerHTML='<div class="msg">Este navegador no permite notificaciones. Prueba con Safari (iPhone, desde la pantalla de inicio) o Chrome.</div>';return;}
+    if(!I.vapid){box.innerHTML='<div class="msg">Las notificaciones aún no están activadas en el servidor'+(realOwner?' (falta la clave de Cloud Messaging).':'. Habla con el organizador.')+'</div>';return;}
+    var draw=function(){var pp=pushPrefs||{},on=P.hasThisDevice()&&I.perm==='granted',mins=[[30,'30 min'],[45,'45 min'],[60,'1 h'],[75,'1 h 15'],[90,'1 h 30'],[120,'2 h'],[180,'3 h']];
+      var sel=function(id,v){return '<select id="'+id+'" style="width:auto;margin:0 0 0 6px;padding:2px 6px;font-size:14px">'+mins.map(function(m){return '<option value="'+m[0]+'"'+(m[0]===v?' selected':'')+'>'+m[1]+'</option>';}).join('')+'</select>';};
+      var h=(myAcct?'':'<div class="msg" style="color:var(--warn,#b45309)">⚠️ Primero vincula tu cuenta a tu nombre (en la pestaña Liada, «Soy yo»), para saber de quién son tus chorros.</div>')+
+        '<div class="msg">Avisos que llegan al móvil aunque tengas la app cerrada'+(myAcct?', para <b>'+esc(myAcct)+'</b>':'')+'. Solo durante una liada en curso en la que estés.</div>'+
+        '<label class="npr"><input type="checkbox" id="puToca"'+(pp.toca!==false?' checked':'')+'> ⏰ Te toca: cuando pasen'+sel('puTocaM',pp.min||cfg.min||60)+' desde tu último chorro</label>'+
+        '<label class="npr"><input type="checkbox" id="puMucho"'+(pp.mucho!==false?' checked':'')+'> 😬 Llevas mucho sin tomar: a los'+sel('puMuchoM',pp.muchoMin||120)+'</label>'+
+        '<div class="cfgRow">'+(on?'<span class="msg" style="margin:0">✅ Activadas en este móvil</span><button class="s" id="puTest" type="button">📨 Enviar prueba</button><button class="s" id="puOff" type="button">🔕 Desactivar</button>':'<button class="p" id="puOn" type="button" style="width:auto">🔔 Activar en este móvil</button>')+'</div><div class="msg" id="puMsg"></div>';
+      box.innerHTML=h;
+      var prefs=function(){return {toca:$('puToca').checked,min:+$('puTocaM').value,mucho:$('puMucho').checked,muchoMin:+$('puMuchoM').value,person:myAcct||''};};
+      var msg=function(t){$('puMsg').textContent=t;};
+      ['puToca','puTocaM','puMucho','puMuchoM'].forEach(function(id){$(id).onchange=function(){pushPrefs=Object.assign(pushPrefs||{},prefs());if(P.hasThisDevice())P.save(prefs()).then(function(){msg('Guardado.');},function(e){msg('No se pudo guardar: '+(e.message||e));});};});
+      if($('puOn'))$('puOn').onclick=function(){var b=this;b.disabled=true;msg('Pidiendo permiso…');P.enable(prefs()).then(function(){I=P.info();pushPrefs=Object.assign(pushPrefs||{},prefs());draw();msg('¡Listo! Pulsa «Enviar prueba» para comprobarlo.');},function(e){b.disabled=false;msg(e.message||String(e));});};
+      if($('puTest'))$('puTest').onclick=function(){msg('Enviando…');P.test().then(function(){msg('Enviada. Debería llegarte en unos segundos (si la app está abierta, puede que no la veas hasta salir).');},function(e){msg(e.message||String(e));});};
+      if($('puOff'))$('puOff').onclick=function(){P.disable().then(function(){draw();msg('Desactivadas en este móvil.');},function(e){msg(e.message||String(e));});};
+    };
+    if(pushPrefs)draw();else{box.innerHTML='<div class="msg">Cargando…</div>';P.load().then(function(d){pushPrefs=d||{};draw();},function(){pushPrefs={};draw();});}
+  }
   /* registrados (solo organizador) */
   function renderReg(){var box=$('regBox');if(!realOwner||!userNs||!userNs.members){box.innerHTML='<div class="empty">Solo el organizador puede ver esto.</div>';return;}
     box.innerHTML='<div class="empty">Cargando registrados…</div>';

@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signed() { return request.auth != null; }
+    function memRef() { return /databases/$(database)/documents/members/$(request.auth.uid); }
+    function isMember() { return signed() && exists(memRef()) && get(memRef()).data.status == 'approved'; }
+    function role() { return get(memRef()).data.role; }
+    function isOwner() { return isMember() && role() == 'owner'; }
+    function canWrite() { return isMember() && (role() == 'owner' || role() == 'colab'); }
+    function noOwnerYet() { return !exists(/databases/$(database)/documents/meta/owner); }
+
+    // Solicitudes y miembros: cada uno crea su propia solicitud; solo el organizador aprueba
+    match /members/{uid} {
+      allow read: if isMember() || (signed() && request.auth.uid == uid);
+      allow create: if signed() && request.auth.uid == uid && (
+        (request.resource.data.status == 'pending' && !('role' in request.resource.data)) ||
+        (noOwnerYet() && request.resource.data.role == 'owner' && request.resource.data.status == 'approved'));
+      allow update, delete: if isOwner();
+    }
+    // El primer usuario que entra puede reclamar ser organizador (una sola vez)
+    match /meta/owner {
+      allow read: if signed();
+      allow create: if signed() && noOwnerYet() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+    match /meta/{doc} {
+      allow read: if isMember();
+      allow write: if isOwner() && doc != 'owner';
+    }
+    // Cada miembro puede vincular su propia cuenta a un nombre
+    match /accounts/{uid} {
+      allow write: if isMember() && request.auth.uid == uid;
+    }
+    // Notificaciones: cada uno solo ve y cambia las suyas
+    match /push/{uid} {
+      allow read, write: if isMember() && request.auth.uid == uid;
+    }
+    // Datos del Chorrómetro
+    match /{col}/{doc} {
+      allow read: if isMember() && col != 'members' && col != 'meta' && col != 'push';
+      allow write: if canWrite() && col != 'members' && col != 'meta' && col != 'push';
+    }
+  }
+}

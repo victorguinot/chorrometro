@@ -131,6 +131,42 @@
   }
   ready.then(watchMembers);
 
+  /* ---------- notificaciones push ---------- */
+  var UA2 = navigator.userAgent || '', IOS = /iPhone|iPad|iPod/.test(UA2) || (/Macintosh/.test(UA2) && navigator.maxTouchPoints > 1);
+  var STANDALONE = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  function pushReg() { return navigator.serviceWorker.getRegistration('sw.js').then(function (r) { return r || navigator.serviceWorker.register('sw.js'); }).then(function () { return navigator.serviceWorker.ready; }); }
+  window.chorroPush = {
+    info: function () {
+      var sup = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && !!(firebase.messaging) && location.protocol === 'https:';
+      return { supported: sup, ios: IOS, standalone: STANDALONE, needsInstall: IOS && !STANDALONE, perm: ('Notification' in window) ? Notification.permission : 'unsupported', vapid: !!window.CHORRO_VAPID };
+    },
+    load: function () { return ready.then(function () { return fs.doc('push/' + me.uid).get().then(function (d) { return d.exists ? d.data() : null; }); }); },
+    enable: function (prefs) {
+      if (!window.CHORRO_VAPID) return Promise.reject(new Error('Falta configurar la clave de notificaciones (VAPID).'));
+      var permP = Notification.requestPermission();
+      return Promise.resolve(permP).then(function (p) {
+        if (p !== 'granted') throw new Error(p === 'denied' ? 'Has bloqueado las notificaciones. Actívalas en los ajustes del móvil para esta app.' : 'No se dio permiso.');
+        return pushReg();
+      }).then(function (reg) { return firebase.messaging().getToken({ vapidKey: window.CHORRO_VAPID, serviceWorkerRegistration: reg }); })
+        .then(function (tok) {
+          if (!tok) throw new Error('No se pudo obtener el identificador del dispositivo.');
+          try { localStorage.setItem('chorro-push-tok', tok); } catch (e) {}
+          var o = Object.assign({}, prefs || {}, { tokens: firebase.firestore.FieldValue.arrayUnion(tok), at: Date.now(), name: me.displayName || '' });
+          return fs.doc('push/' + me.uid).set(o, { merge: true }).then(function () { return tok; });
+        });
+    },
+    save: function (prefs) { return ready.then(function () { return fs.doc('push/' + me.uid).set(prefs, { merge: true }); }); },
+    test: function () { return ready.then(function () { return fs.doc('push/' + me.uid).set({ test: Date.now() }, { merge: true }); }); },
+    disable: function () {
+      var tok = null; try { tok = localStorage.getItem('chorro-push-tok'); } catch (e) {}
+      return ready.then(function () {
+        var p = tok ? fs.doc('push/' + me.uid).set({ tokens: firebase.firestore.FieldValue.arrayRemove(tok) }, { merge: true }) : Promise.resolve();
+        return p.then(function () { try { localStorage.removeItem('chorro-push-tok'); return firebase.messaging().deleteToken(); } catch (e) {} });
+      });
+    },
+    hasThisDevice: function () { try { return !!localStorage.getItem('chorro-push-tok'); } catch (e) { return false; } }
+  };
+
   /* ---------- window.claude ---------- */
   var userNs = {
     isOwner: function () { return ready.then(function () { return member.role === 'owner'; }); },
