@@ -19,8 +19,10 @@
     '#fbgate h1{font-size:26px;margin:0 0 4px}#fbgate p{color:var(--mut,#5d7176);margin:8px 0 18px;line-height:1.45}' +
     '#fbgate button{font:600 16px "IBM Plex Sans",system-ui,sans-serif;padding:12px 18px;border-radius:10px;border:0;background:var(--acc,#0b6e7f);color:#fff;cursor:pointer;width:100%;margin-top:8px}' +
     '#fbgate a{display:block;text-decoration:none}#fbgate button.s{background:transparent;color:var(--mut,#5d7176);border:1px solid var(--line,#d3dde0)}' +
-    '#memModal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}' +
-    '#memModal .mc{background:var(--surf,#fff);border-radius:12px;padding:16px;max-width:560px;width:100%;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink,#14262b)}' +
+    '#memModal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 12px calc(env(safe-area-inset-bottom,0px) + 16px)}' +
+    '#memModal .mc{background:var(--surf,#fff);border-radius:12px;max-width:560px;width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink,#14262b)}' +
+    '#memModal .mh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line,#d3dde0);flex:none}#memModal .mb{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px 16px;flex:1;min-height:0}' +
+    '#memModal button,#memModal select{width:auto!important;margin:0!important;font-size:14px}#memModal .mr .ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}#memModal #memClose{font-size:15px;padding:6px 14px}#memModal #memClose2{width:100%!important;margin-top:16px!important}' +
     '#memModal .mr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line,#d3dde0)}#memModal .mr .nm{flex:1;min-width:150px}' +
     '#memModal .em{font-size:12px;color:var(--mut,#5d7176)}#memModal h3{margin:16px 0 6px;font-size:15px}#memModal select{font-size:14px;padding:4px}';
   document.head.appendChild(css);
@@ -154,7 +156,10 @@
   function openMembers() {
     var m = document.createElement('div'); m.id = 'memModal';
     m.innerHTML = '<div class="mc"></div>'; document.body.appendChild(m);
-    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    var close = function () { m.remove(); document.body.style.overflow = ''; document.removeEventListener('keydown', esc1); };
+    var esc1 = function (e) { if (e.key === 'Escape') close(); };
+    m.onclick = function (e) { if (e.target === m) close(); }; m._close = close;
+    document.addEventListener('keydown', esc1); document.body.style.overflow = 'hidden';
     renderMembers();
   }
   var ROLES = { owner: 'Organizador', colab: 'Colaborador', viewer: 'Solo lectura' };
@@ -163,20 +168,23 @@
     var ids = Object.keys(members), pend = ids.filter(function (i) { return members[i].status === 'pending'; }),
       ok = ids.filter(function (i) { return members[i].status === 'approved'; }), bl = ids.filter(function (i) { return members[i].status === 'blocked'; });
     function row(i) {
-      var x = members[i], h = '<div class="mr"><div class="nm"><b>' + esc(x.name) + '</b>' + (i === me.uid ? ' (tú)' : '') + '<div class="em">' + esc(x.email) + '</div></div>';
+      var x = members[i], h = '<div class="mr"><div class="nm"><b>' + esc(x.name) + '</b>' + (i === me.uid ? ' (tú)' : '') + '<div class="em">' + esc(x.email) + '</div></div><div class="ctl">';
       if (x.status === 'pending') h += '<select data-r="' + i + '"><option value="colab">Colaborador</option><option value="viewer">Solo lectura</option></select><button class="go" data-ok="' + i + '">Aceptar</button><button class="s" data-no="' + i + '">Rechazar</button>';
       else if (x.status === 'approved' && x.role !== 'owner') h += '<select data-role="' + i + '">' + ['colab', 'viewer'].map(function (r) { return '<option value="' + r + '"' + (x.role === r ? ' selected' : '') + '>' + ROLES[r] + '</option>'; }).join('') + '</select><button class="s" data-no="' + i + '">Quitar acceso</button>';
       else if (x.status === 'approved') h += '<span class="em">Organizador</span>';
       else h += '<button class="s" data-ok="' + i + '">Volver a dar acceso</button><button class="s" data-del="' + i + '">Borrar</button>';
-      return h + '</div>';
+      return h + '</div></div>';
     }
-    box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">👥 Miembros</b><button class="s" id="memClose">Cerrar</button></div>' +
+    var sc = box.querySelector('.mb'), st = sc ? sc.scrollTop : 0;
+    box.innerHTML = '<div class="mh"><b style="font-size:17px">👥 Miembros</b><button class="s" id="memClose">✕ Cerrar</button></div><div class="mb">' +
       '<p class="em" style="margin:6px 0 0">Comparte la dirección de esta web. Quien entre con Google aparecerá aquí para que lo aceptes.</p>' +
       (pend.length ? '<h3>Solicitudes (' + pend.length + ')</h3>' + pend.map(row).join('') : '') +
       '<h3>Con acceso (' + ok.length + ')</h3>' + ok.map(row).join('') +
       (bl.length ? '<h3>Sin acceso</h3>' + bl.map(row).join('') : '') +
-      '<h3>Importar datos</h3><p class="em">Sube una copia <code>chorrometro-AAAA-MM-DD.json</code> para cargar chills, personas y chorros.</p><input type="file" id="impF" accept=".json,application/json"><div class="em" id="impMsg"></div>';
-    document.getElementById('memClose').onclick = function () { document.getElementById('memModal').remove(); };
+      '<h3>Importar datos</h3><p class="em">Sube una copia <code>chorrometro-AAAA-MM-DD.json</code> para cargar chills, personas y chorros.</p><input type="file" id="impF" accept=".json,application/json"><div class="em" id="impMsg"></div><button class="s" id="memClose2">Cerrar</button></div>';
+    var mm = document.getElementById('memModal'), cl = function () { if (mm._close) mm._close(); else mm.remove(); };
+    document.getElementById('memClose').onclick = cl; document.getElementById('memClose2').onclick = cl;
+    if (st) box.querySelector('.mb').scrollTop = st;
     box.querySelectorAll('[data-ok]').forEach(function (b) { b.onclick = function () { var i = b.dataset.ok, s = box.querySelector('[data-r="' + i + '"]'); fs.doc('members/' + i).update({ status: 'approved', role: s ? s.value : (members[i].role || 'colab') }); }; });
     box.querySelectorAll('[data-no]').forEach(function (b) { b.onclick = function () { fs.doc('members/' + b.dataset.no).update({ status: 'blocked' }); }; });
     box.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { fs.doc('members/' + b.dataset.del).delete(); }; });
