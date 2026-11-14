@@ -1440,12 +1440,16 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     var ls=state.logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),a=Math.max(arrOf(p,ls,se),se.start),b=depOf(p,ls,se);
     var rows=(b>a?pSegs(p,se,a,b):[{f:a,t:b,loc:locAtTs(se,a)}]).map(function(q){return {loc:q.loc||'',f:q.f};});
     var m=$('shareModal'),close=function(){m.hidden=true;m.innerHTML='';},err='';
-    var locs=allLocs();locTimeline(se).forEach(function(x){if(!locs.some(function(z){return nrm(z)===nrm(x.loc);}))locs.unshift(x.loc);});
+    var locs=[],addL=function(l){l=(l||'').trim();if(l&&!locs.some(function(z){return nrm(z)===nrm(l);}))locs.push(l);};
+    crowdTL(se).forEach(function(x){addL(x.loc);});locTimeline(se).forEach(function(x){addL(x.loc);});sidePlaces(se).forEach(addL);
+    state.people.forEach(function(q){(q.moves||[]).forEach(function(mm){addL(mm.loc);});});state.logs.forEach(function(l){addL(l.loc);});
+    var nHere=locs.length;allLocs().forEach(addL);if(HIST&&HIST.people)HIST.people.forEach(function(q){(q.moves||[]).forEach(function(mm){addL(mm.loc);});});Object.keys(placesMeta||{}).forEach(function(k){addL(placesMeta[k].name);});
+    var rest=locs.slice(nHere).sort(function(a,b){return a.localeCompare(b,'es');});locs=locs.slice(0,nHere).concat(rest);
     function draw(){
       m.hidden=false;
       m.innerHTML='<div class="sm-card recc"><div class="sm-head"><b>🧭 Recorrido de '+esc(p.name)+'</b><button class="s" id="recX" type="button">✕</button></div>'+
         '<div class="msg" style="margin:0 0 8px">Cada fila es un sitio y la hora en que llegó. Recorrido del grupo: '+esc(locPath(se)||'—')+'.</div>'+
-        rows.map(function(r,i){return '<div class="recr"><span class="rtn">'+(i+1)+'.</span><select data-rcl="'+i+'">'+locs.map(function(l){return '<option'+(nrm(l)===nrm(r.loc)?' selected':'')+'>'+esc(l)+'</option>';}).join('')+'<option value="__n">✏️ Otro sitio…</option></select>'+
+        rows.map(function(r,i){return '<div class="recr"><span class="rtn">'+(i+1)+'.</span><select data-rcl="'+i+'"><optgroup label="En esta liada">'+locs.slice(0,nHere).map(function(l){return '<option'+(nrm(l)===nrm(r.loc)?' selected':'')+'>'+esc(l)+'</option>';}).join('')+'</optgroup>'+(locs.length>nHere?'<optgroup label="Otros sitios">'+locs.slice(nHere).map(function(l){return '<option'+(nrm(l)===nrm(r.loc)?' selected':'')+'>'+esc(l)+'</option>';}).join('')+'</optgroup>':'')+'<option value="__n">✏️ Otro sitio…</option></select>'+
           (i===0?'<span class="msg" style="margin:0">llegó</span>':'')+'<input type="datetime-local" data-rct="'+i+'" value="'+localInput(r.f)+'">'+
           (rows.length>1?'<button class="s" data-rcd="'+i+'" type="button" title="Quitar">🗑</button>':'')+'</div>';}).join('')+
         '<div class="cfgRow"><button class="s" id="recAdd0" type="button" style="width:auto">+ Sitio al principio</button><button class="s" id="recAdd" type="button" style="width:auto">+ Añadir sitio</button></div>'+(err?'<div class="msg" style="color:var(--warn)">'+esc(err)+'</div>':'')+
