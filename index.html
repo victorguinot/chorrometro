@@ -348,6 +348,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 @media (max-width:600px){.calCell{min-height:58px;padding:2px}.calMl{display:none}.calEv{font-size:0;padding:0;height:6px;border-left-width:0}.calEv[data-cs]{background:var(--c)}}
 .reg td,.reg th{white-space:nowrap}.reg a{color:inherit}
 .cfg h3{margin:18px 0 4px}.cfg h3:first-child{margin-top:0}.cfgRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 4px}.cfgRow>button{width:auto;margin:0}.cfgRow #qrBox{flex-basis:100%}
+.rlink{cursor:pointer}.rlink:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -2277,8 +2278,19 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       var h='<div class="kpis"><div class="kpi"><div class="l">👥 Registrados</div><div class="v">'+ids.length+'</div></div><div class="kpi"><div class="l">✅ Con acceso</div><div class="v">'+((cnt.owner||0)+(cnt.colab||0)+(cnt.viewer||0))+'</div></div><div class="kpi"><div class="l">🔗 Vinculados a persona</div><div class="v">'+ids.filter(function(i){return acctMap[i];}).length+'</div></div><div class="kpi"><div class="l">⏳ Pendientes</div><div class="v">'+(cnt.pending||0)+'</div></div></div>';
       h+='<div class="msg" style="margin:10px 0 6px">Solo lo ves tú.</div><div class="scroll"><table class="hist reg"><thead><tr><th>Persona</th><th>Cuenta Google</th><th>Email</th><th>Rol</th><th class="n">Liadas</th><th class="n">Chorros apuntados</th><th>Alta</th></tr></thead><tbody>'+
         ids.map(function(i){var x=M[i],pn=acctMap[i]||'',nl=pn?Object.keys(lc[canon(pn)]||{}).length:0;
-          return '<tr><td>'+(pn?'<b>'+esc(pn)+'</b>':'<span class="msg">sin vincular</span>')+(i===myId?' <span class="msg">(tú)</span>':'')+'</td><td>'+esc(x.name)+'</td><td>'+(x.email?'<a href="mailto:'+esc(x.email)+'">'+esc(x.email)+'</a>':'—')+'</td><td>'+(RL[x.role]||esc(x.role))+'</td><td class="n">'+(pn?nl:'—')+'</td><td class="n">'+(nb[i]||0)+'</td><td>'+(x.at?dmy(x.at):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+          return '<tr><td><span data-rl="'+esc(i)+'" class="rlink" title="Cambiar la persona vinculada">'+(pn?'<b>'+esc(pn)+'</b>':'<span class="msg">sin vincular</span>')+' ✎</span>'+(i===myId?' <span class="msg">(tú)</span>':'')+'</td><td>'+esc(x.name)+'</td><td>'+(x.email?'<a href="mailto:'+esc(x.email)+'">'+esc(x.email)+'</a>':'—')+'</td><td>'+(RL[x.role]||esc(x.role))+'</td><td class="n">'+(pn?nl:'—')+'</td><td class="n">'+(nb[i]||0)+'</td><td>'+(x.at?dmy(x.at):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+      var nmS={};D.people.forEach(function(p){if(p.name)nmS[canon(p.name)]=p.name;});Object.keys(acctMap).forEach(function(k){nmS[canon(acctMap[k])]=acctMap[k];});
+      h+='<datalist id="regDl">'+Object.keys(nmS).sort().map(function(k){return '<option value="'+esc(nmS[k])+'">';}).join('')+'</datalist>';
       box.innerHTML=h;
+      box.querySelectorAll('[data-rl]').forEach(function(sp){sp.onclick=function(){var uid=sp.dataset.rl,td=sp.parentNode,cur=acctMap[uid]||'';
+        td.innerHTML='<div style="display:flex;gap:4px;align-items:center"><input list="regDl" value="'+esc(cur)+'" placeholder="Nombre de la persona" style="width:150px;margin:0;padding:4px 6px;font-size:14px"><button class="s" type="button" style="width:auto;margin:0">Guardar</button><button class="s" type="button" style="width:auto;margin:0">✕</button></div>';
+        var inp=td.querySelector('input'),bs=td.querySelectorAll('button');inp.focus();
+        bs[1].onclick=function(){renderReg();};
+        bs[0].onclick=function(){var v=(inp.value||'').trim().replace(/\s+/g,' ');if(v){var ex=nmS[canon(v)];if(ex)v=ex;}
+          var other=Object.keys(acctMap).filter(function(k){return k!==uid&&v&&canon(acctMap[k])===canon(v);})[0];
+          if(other&&!confirm(v+' ya está vinculado a otra cuenta ('+((M[other]||{}).name||'?')+'). ¿Vincularlo también a esta?'))return;
+          bs[0].disabled=true;(v?db.doc('accounts/'+uid).set({name:v,at:Date.now(),by:'owner'}):db.doc('accounts/'+uid).delete()).then(function(){say(v?'Cuenta de '+((M[uid]||{}).name||'')+' vinculada a '+v+'.':'Cuenta desvinculada.');setTimeout(renderReg,400);},function(e){bs[0].disabled=false;fail(e);});};
+        inp.onkeydown=function(e){if(e.key==='Enter')bs[0].click();if(e.key==='Escape')bs[1].click();};};});
     },function(e){box.innerHTML='<div class="empty">No se pudo cargar: '+esc(e&&e.message||e)+'</div>';});
   }
   /* calendario de liadas */
