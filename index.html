@@ -2283,14 +2283,17 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       h+='<datalist id="regDl">'+Object.keys(nmS).sort().map(function(k){return '<option value="'+esc(nmS[k])+'">';}).join('')+'</datalist>';
       box.innerHTML=h;
       box.querySelectorAll('[data-rl]').forEach(function(sp){sp.onclick=function(){var uid=sp.dataset.rl,td=sp.parentNode,cur=acctMap[uid]||'';
-        td.innerHTML='<div style="display:flex;gap:4px;align-items:center"><input list="regDl" value="'+esc(cur)+'" placeholder="Nombre de la persona" style="width:150px;margin:0;padding:4px 6px;font-size:14px"><button class="s" type="button" style="width:auto;margin:0">Guardar</button><button class="s" type="button" style="width:auto;margin:0">✕</button></div>';
-        var inp=td.querySelector('input'),bs=td.querySelectorAll('button');inp.focus();
+        var ks=Object.keys(nmS).sort(function(a,b){return nmS[a].localeCompare(nmS[b],'es');}),ck=canon(cur);
+        td.innerHTML='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;min-width:220px"><select style="width:auto;max-width:180px;margin:0;padding:4px 6px;font-size:14px"><option value="">— Sin vincular —</option>'+ks.map(function(k){return '<option value="'+esc(nmS[k])+'"'+(k===ck?' selected':'')+'>'+esc(nmS[k])+'</option>';}).join('')+'<option value="__o">✏️ Otro nombre…</option></select><input hidden placeholder="Nombre nuevo" style="width:140px;margin:0;padding:4px 6px;font-size:14px"><button class="s" type="button" style="width:auto;margin:0">Guardar</button><button class="s" type="button" style="width:auto;margin:0">✕</button></div>';
+        var sel=td.querySelector('select'),inp0=td.querySelector('input'),bs=td.querySelectorAll('button');
+        sel.onchange=function(){inp0.hidden=sel.value!=='__o';if(!inp0.hidden)inp0.focus();};
+        var inp={get value(){return sel.value==='__o'?inp0.value:sel.value;}};
         bs[1].onclick=function(){renderReg();};
         bs[0].onclick=function(){var v=(inp.value||'').trim().replace(/\s+/g,' ');if(v){var ex=nmS[canon(v)];if(ex)v=ex;}
           var other=Object.keys(acctMap).filter(function(k){return k!==uid&&v&&canon(acctMap[k])===canon(v);})[0];
           if(other&&!confirm(v+' ya está vinculado a otra cuenta ('+((M[other]||{}).name||'?')+'). ¿Vincularlo también a esta?'))return;
           bs[0].disabled=true;(v?db.doc('accounts/'+uid).set({name:v,at:Date.now(),by:'owner'}):db.doc('accounts/'+uid).delete()).then(function(){say(v?'Cuenta de '+((M[uid]||{}).name||'')+' vinculada a '+v+'.':'Cuenta desvinculada.');setTimeout(renderReg,400);},function(e){bs[0].disabled=false;fail(e);});};
-        inp.onkeydown=function(e){if(e.key==='Enter')bs[0].click();if(e.key==='Escape')bs[1].click();};};});
+        inp0.onkeydown=function(e){if(e.key==='Enter')bs[0].click();if(e.key==='Escape')bs[1].click();};};});
     },function(e){box.innerHTML='<div class="empty">No se pudo cargar: '+esc(e&&e.message||e)+'</div>';});
   }
   /* calendario de liadas */
