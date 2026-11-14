@@ -1324,9 +1324,10 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if(!se){sec.hidden=true;return;}
     var R=routeEdges(se);if(R.order.length<2||!R.edges.length){sec.hidden=true;routeSig='';return;}
     sec.hidden=false;
-    var pm=function(l){return (typeof placesMeta!=='undefined'&&placesMeta[plKey(l)])||{};},geo=R.order.every(function(l){return pm(l).lat!=null;});
-    var sig=JSON.stringify([geo,R.order,R.edges.map(function(e){return [e.fr,e.to,e.ps.length,e.main];}),box.clientWidth>0?Math.round(box.clientWidth/40):0]);if(sig===routeSig)return;routeSig=sig;
-    $('routeMsg').textContent='Cada flecha es un desplazamiento: gruesa = el grupo principal, fina = quien fue por su cuenta.'+(geo?'':' Pon la ubicación de los sitios en 📍 Lugares para verlo sobre el mapa.');
+    var pm=function(l){return (typeof placesMeta!=='undefined'&&placesMeta[plKey(l)])||{};},miss=R.order.filter(function(l){return pm(l).lat==null;}),geo=!miss.length;
+    if(miss.length){var okL=R.order.filter(function(l){return pm(l).lat!=null;}),okE=R.edges.filter(function(e){return pm(e.fr).lat!=null&&pm(e.to).lat!=null;});if(okL.length>=2&&okE.length){R={order:okL,edges:okE};geo=true;}}
+    var sig=JSON.stringify([geo,miss,R.order,R.edges.map(function(e){return [e.fr,e.to,e.ps.length,e.main];}),box.clientWidth>0?Math.round(box.clientWidth/40):0]);if(sig===routeSig)return;routeSig=sig;
+    $('routeMsg').textContent='Cada flecha es un desplazamiento: gruesa = el grupo principal, fina = quien fue por su cuenta.'+(miss.length?(geo?' Falta la ubicación de ':' Para verlo sobre el mapa, pon la ubicación de ')+miss.map(function(l){return (isHouse(l)?'🏠 ':'')+l;}).join(', ')+' en 📍 Lugares'+(geo?' (no sale en el mapa).':'.'):'');
     var ci=function(l){for(var i=0;i<R.order.length;i++)if(nrm(R.order[i])===nrm(l))return i;return 0;};
     if(geo){
       needLeaflet().then(function(){
@@ -2568,7 +2569,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         if(isOwner&&canWrite)migrateLegacy();
         db.collection('accounts').onSnapshot(function(s){var o={};s.docs.forEach(function(d){if(d.id!=='map'&&d.data().name)o[d.id]=d.data().name;});acctMap=o;names={};resolveLogs();loadMyAcct();maybeOnboard();},function(){});
         setTimeout(function(){loadAll().catch(function(){});},2500);
-        db.collection('places').onSnapshot(function(s){var o={};s.docs.forEach(function(d){o[d.id]=d.data();});placesMeta=o;},function(){});
+        db.collection('places').onSnapshot(function(s){var o={};s.docs.forEach(function(d){o[d.id]=d.data();});placesMeta=o;routeSig='';try{renderRoutes();renderGantt();}catch(e){}},function(){});
         db.doc('regnames/map').onSnapshot(function(s){var o={};if(s.exists){var d=s.data();for(var k in d)if(d[k])o[k]=d[k];}regMap=o;names={};resolveLogs();},function(){});
         db.doc('aliases/map').onSnapshot(function(s){var o={};if(s.exists){var d=s.data();for(var k in d)o[k]=d[k];}aliasMap=o;},function(){});
         db.doc('colors/map').onSnapshot(function(s){colMap=s.exists?(function(d){var o={};for(var k in d)o[k]=d[k];return o;})(s.data()):{};peopleSig='';onData();},function(){});
