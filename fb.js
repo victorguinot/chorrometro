@@ -22,6 +22,7 @@
     '#memModal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 12px calc(env(safe-area-inset-bottom,0px) + 16px)}' +
     '#memModal .mc{background:var(--surf,#fff);border-radius:12px;max-width:560px;width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink,#14262b)}' +
     '#memModal .mh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line,#d3dde0);flex:none}#memModal .mb{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px 16px;flex:1;min-height:0}' +
+    '#memInline button,#memInline select{width:auto!important;margin:0!important;font-size:14px}#memInline .mr .ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}#memInline .mr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line,#d3dde0)}#memInline .mr .nm{flex:1;min-width:150px}#memInline .em{font-size:12px;color:var(--mut,#5d7176)}#memInline h4{margin:10px 0 4px;font-size:14px}' +
     '#memModal button,#memModal select{width:auto!important;margin:0!important;font-size:14px}#memModal .mr .ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}#memModal #memClose{font-size:15px;padding:6px 14px}#memModal #memClose2{width:100%!important;margin-top:16px!important}' +
     '#memModal .mr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line,#d3dde0)}#memModal .mr .nm{flex:1;min-width:150px}' +
     '#memModal .em{font-size:12px;color:var(--mut,#5d7176)}#memModal h3{margin:16px 0 6px;font-size:15px}#memModal select{font-size:14px;padding:4px}';
@@ -122,8 +123,10 @@
   function watchMembers() {
     fs.collection('members').onSnapshot(function (s) {
       var o = {}; s.docs.forEach(function (d) { o[d.id] = d.data(); }); members = o;
-      var b = document.getElementById('memBtn'); if (b) { var n = Object.keys(o).filter(function (k) { return o[k].status === 'pending'; }).length; b.textContent = '👥 Miembros' + (n ? ' (' + n + ')' : ''); }
-      if (document.getElementById('memModal')) renderMembers();
+      var n = Object.keys(o).filter(function (k) { return o[k].status === 'pending'; }).length;
+      var b = document.getElementById('memBtn'); if (b) b.textContent = '👥 Miembros' + (n ? ' (' + n + ')' : '');
+      var t = document.querySelector('#tabs [data-tab="cfg"]'); if (t && member && member.role === 'owner') t.textContent = '⚙️ Ajustes' + (n ? ' 🔴' + n : '');
+      if (document.getElementById('memModal') || document.getElementById('memInline')) renderMembers();
     }, function () {});
   }
   ready.then(watchMembers);
@@ -148,11 +151,17 @@
 
   /* ---------- panel de miembros (solo organizador) ---------- */
   function addMembersBtn() {
+    if (!document.getElementById('outBtn')) {
+      var acc = document.getElementById('cfgAcc') || document.querySelector('.tools');
+      if (acc) { var o = document.createElement('button'); o.className = 's'; o.id = 'outBtn'; o.textContent = '🚪 Salir' + (me && me.email ? ' (' + me.email + ')' : ''); o.onclick = function () { auth.signOut(); location.reload(); }; acc.appendChild(o); }
+    }
     if (member.role !== 'owner' || document.getElementById('memBtn')) return;
+    var ci = document.getElementById('cfgImp');
+    if (ci && !document.getElementById('impF')) { ci.innerHTML = '<div class="em" style="margin:8px 0 4px">Importar una copia <code>chorrometro-AAAA-MM-DD.json</code>:</div><input type="file" id="impF" accept=".json,application/json"><div class="em" id="impMsg"></div>'; document.getElementById('impF').onchange = function () { var f = this.files[0]; if (f) importFile(f); }; }
+    if (document.getElementById('memInline')) { renderMembers(); return; }
     var tools = document.querySelector('.tools'); if (!tools) return;
     var b = document.createElement('button'); b.className = 's'; b.id = 'memBtn'; b.textContent = '👥 Miembros';
     b.onclick = openMembers; tools.appendChild(b);
-    var o = document.createElement('button'); o.className = 's'; o.textContent = '🚪 Salir'; o.onclick = function () { auth.signOut(); location.reload(); }; tools.appendChild(o);
   }
   function openMembers() {
     var m = document.createElement('div'); m.id = 'memModal';
@@ -163,9 +172,29 @@
     document.addEventListener('keydown', esc1); document.body.style.overflow = 'hidden';
     renderMembers();
   }
+  function renderInline(box) {
+    var ids = Object.keys(members), pend = ids.filter(function (i) { return members[i].status === 'pending'; }),
+      ok = ids.filter(function (i) { return members[i].status === 'approved'; }), bl = ids.filter(function (i) { return members[i].status === 'blocked'; });
+    ok.sort(function (a, b) { return (members[a].role === 'owner' ? -1 : 0) - (members[b].role === 'owner' ? -1 : 0) || String(members[a].name).localeCompare(String(members[b].name)); });
+    function row(i) {
+      var x = members[i], h = '<div class="mr"><div class="nm"><b>' + esc(x.name) + '</b>' + (i === me.uid ? ' (tú)' : '') + '<div class="em">' + esc(x.email) + '</div></div><div class="ctl">';
+      if (x.status === 'pending') h += '<select data-r="' + i + '"><option value="colab">Colaborador</option><option value="viewer">Solo lectura</option></select><button class="go" data-ok="' + i + '">Aceptar</button><button class="s" data-no="' + i + '">Rechazar</button>';
+      else if (x.status === 'approved' && x.role !== 'owner') h += '<select data-role="' + i + '">' + ['colab', 'viewer'].map(function (r) { return '<option value="' + r + '"' + (x.role === r ? ' selected' : '') + '>' + ROLES[r] + '</option>'; }).join('') + '</select><button class="s" data-no="' + i + '">Quitar acceso</button>';
+      else if (x.status === 'approved') h += '<span class="em">Organizador</span>';
+      else h += '<button class="s" data-ok="' + i + '">Volver a dar acceso</button><button class="s" data-del="' + i + '">Borrar</button>';
+      return h + '</div></div>';
+    }
+    box.innerHTML = (pend.length ? '<h4>⏳ Solicitudes (' + pend.length + ')</h4>' + pend.map(row).join('') : '<div class="em">No hay solicitudes pendientes. Comparte la dirección de la web: quien entre con Google aparecerá aquí.</div>') +
+      '<h4>✅ Con acceso (' + ok.length + ')</h4>' + ok.map(row).join('') + (bl.length ? '<h4>🚫 Sin acceso (' + bl.length + ')</h4>' + bl.map(row).join('') : '');
+    box.querySelectorAll('[data-ok]').forEach(function (b) { b.onclick = function () { var i = b.dataset.ok, s = box.querySelector('[data-r="' + i + '"]'); fs.doc('members/' + i).update({ status: 'approved', role: s ? s.value : (members[i].role || 'colab') }); }; });
+    box.querySelectorAll('[data-no]').forEach(function (b) { b.onclick = function () { if (members[b.dataset.no].status === 'approved' && !confirm('¿Quitar el acceso a ' + members[b.dataset.no].name + '?')) return; fs.doc('members/' + b.dataset.no).update({ status: 'blocked' }); }; });
+    box.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { fs.doc('members/' + b.dataset.del).delete(); }; });
+    box.querySelectorAll('[data-role]').forEach(function (s) { s.onchange = function () { fs.doc('members/' + s.dataset.role).update({ role: s.value }); }; });
+  }
   var ROLES = { owner: 'Organizador', colab: 'Colaborador', viewer: 'Solo lectura' };
   function renderMembers() {
-    var box = document.querySelector('#memModal .mc'); if (!box) return;
+    var inl = document.getElementById('memInline'), box = document.querySelector('#memModal .mc') || inl; if (!box) return;
+    if (box === inl) return renderInline(inl);
     var ids = Object.keys(members), pend = ids.filter(function (i) { return members[i].status === 'pending'; }),
       ok = ids.filter(function (i) { return members[i].status === 'approved'; }), bl = ids.filter(function (i) { return members[i].status === 'blocked'; });
     function row(i) {
