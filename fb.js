@@ -135,6 +135,7 @@
     can: function (n) { return ready.then(function () { return n === 'data.write' ? (member.role === 'owner' || member.role === 'colab') : null; }); },
     id: function () { return ready.then(function () { return me.uid; }); },
     me: function () { return ready.then(function () { return { id: me.uid, name: me.displayName || '', isMe: true }; }); },
+    members: function () { return ready.then(function () { if (member.role !== 'owner') return null; var o = {}; Object.keys(members).forEach(function (k) { var x = members[k]; o[k] = { name: x.name || '', email: x.email || '', role: x.status === 'approved' ? (x.role || 'viewer') : x.status, at: x.at || 0 }; }); return o; }); },
     profiles: function (ids) { return ready.then(function () { var o = {}; (ids || []).forEach(function (i) { var m = members[i]; o[i] = { id: i, name: m ? m.name : '', isMe: me && i === me.uid }; }); return o; }); }
   };
   window.claude = {
