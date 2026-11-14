@@ -369,6 +369,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   <nav class="tabs" id="tabs"><button data-tab="chill" class="on">💧 Liada</button><button data-tab="stats" data-btn="statsBtn" hidden>📊 Estadísticas</button><button data-tab="cfg">⚙️ Ajustes</button><button data-tab="places" data-btn="statsBtn" hidden>📍 Lugares</button><button data-tab="medals">🏅 Medallas</button><button data-tab="cal" data-btn="histBtn" hidden>📅 Calendario</button><button type="button" data-tab="hist" data-btn="histBtn" hidden>🗂️ Historial</button><button data-tab="act" data-btn="actBtn" hidden>🕓 Actividad</button><button data-tab="trash" data-btn="trashBtn" hidden>🗑️ Eliminados</button></nav>
   <div id="tabPane"><div id="statsBox" hidden></div><div id="placesBox" hidden></div><div id="medalsBox" hidden></div><div id="calBox" hidden></div><div id="cfgBox" hidden><div class="stats cfg">
 <h3>📲 Compartir la app</h3><div class="msg">Enseña el QR para que otros entren desde su móvil.</div><div class="cfgRow" id="cfgShare"></div>
+<h3>📄 Mis chorros</h3><div class="msg">Todos tus chorros de todas las liadas en CSV (ubicación;fecha;hora;cantidad;temperatura).</div><div class="cfgRow"><button class="s" id="csvMine" type="button">📄 Descargar mis chorros (CSV)</button></div>
 <h3>🔔 Notificaciones en el móvil</h3><div id="pushBox"></div>
 <div class="ownOnly"><h3>👥 Miembros</h3><div class="msg">Acepta solicitudes, cambia roles o quita acceso.</div><div id="memInline"></div>
 <h3>🔐 Registrados</h3><div class="msg">Resumen de cada cuenta: persona vinculada, email, liadas y chorros apuntados.</div><div id="regBox"></div>
@@ -565,7 +566,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function opAddLog(pid,ts,amt){
     fitPerson(pid,ts);
     logAct({act:'add',pname:name(pid),amt:amt,ts:ts});
-    if(db){var r=db.collection('logs').doc();return r.set({pid:pid,ts:ts,amt:amt,by:myId||null,sid:viewSid,loc:plocAt(pById(pid),sess(viewSid),ts)||null}).then(function(){return r.id;});}
+    if(db){var r=db.collection('logs').doc(),dl={pid:pid,ts:ts,amt:amt,by:myId||null,sid:viewSid,loc:plocAt(pById(pid),sess(viewSid),ts)||null};if(qTemp!=null){dl.temp=qTemp;qTemp=null;}return r.set(dl).then(function(){return r.id;});}
     var nid=uid();state.logs.push({id:nid,pid:pid,ts:ts,amt:amt});saveLocal();onData();return Promise.resolve(nid);
   }
   function opUpdateLog(id,o){
@@ -920,7 +921,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       Promise.all(pr).then(function(){logAct({act:'bulk',pname:name(pid),n:ok.length,amt:tot});bulkText='';bulkPlan=null;bulkOpen=false;renderForm();showUndo('Guardados '+ok.length+' chorros ('+fmt(tot)+' ml) a '+name(pid)+'.',null);},function(e){b.disabled=false;b.textContent='Reintentar';fail(e);});
     };
   }
-  var anotarQ=null;try{var _q=new URLSearchParams(location.search);if(_q.has('anotar'))anotarQ=_q.get('anotar')||'';}catch(e){}
+  var anotarQ=null,qTemp=null,csvQ=null,csvAtajo='';try{var _q=new URLSearchParams(location.search);if(_q.has('anotar'))anotarQ=_q.get('anotar')||'';if(_q.has('temp')){var _t=parseFloat(String(_q.get('temp')).replace(',','.'));if(!isNaN(_t))qTemp=_t;}if(_q.has('csv'))csvQ=_q.get('csv')||'';if(_q.has('atajo'))csvAtajo=_q.get('atajo')||'';}catch(e){}
   function doAnotar(){if(anotarQ===null||!$('addLog'))return;var v0=parseFloat(String(anotarQ).replace(',','.'));anotarQ=null;
     try{history.replaceState(null,'',location.pathname);}catch(e){}
     var m=$('shareModal'),mp=myPerson(),pid=(mp&&mp.id)||(sel&&sel!=='__new'?sel:(state.people[0]&&state.people[0].id)),amt=(!isNaN(v0)&&v0>0)?v0:(parseFloat($('amt').value)||1),busy=false;
@@ -2301,7 +2302,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 
   /* ajustes: herramientas generales de la app (no de la liada) */
   (function(){[['cfgShare','qrBtn'],['cfgShare','qrBox'],['cfgData','bkBtn'],['cfgView','asUserBtn']].forEach(function(x){var a=$(x[0]),b=$(x[1]);if(a&&b)a.appendChild(b);});})();
-  function renderCfg(){var own=realOwner&&isOwner;renderPush();document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own)renderReg();}
+  function renderCfg(){var own=realOwner&&isOwner;renderPush();if($('csvMine'))$('csvMine').onclick=function(){openCsv();};document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own)renderReg();}
   /* notificaciones push */
   var pushPrefs=null;
   function renderPush(){var box=$('pushBox');if(!box)return;var P=window.chorroPush;
@@ -2327,6 +2328,25 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     };
     if(pushPrefs)draw();else{box.innerHTML='<div class="msg">Cargando…</div>';P.load().then(function(d){pushPrefs=d||{};draw();},function(){pushPrefs={};draw();});}
   }
+  /* CSV de los chorros de una persona (todas las liadas) */
+  function csvOf(who){return loadAll().then(function(D){var k=canon(who),pp={};D.people.forEach(function(p){if(p.name&&canon(p.name)===k)pp[p.id]=p;});var ss={};D.sess.forEach(function(x){ss[x.id]=x;});
+      var rows=D.logs.filter(function(l){return pp[l.pid]&&ss[l.sid];}).sort(function(a,b){return a.ts-b.ts;}).map(function(l){var se=ss[l.sid],loc=l.loc||plocAt(pp[l.pid],se,l.ts)||'';
+        return [String(loc).replace(/;/g,','),dmy(l.ts),hhmm(l.ts),String(l.amt).replace('.',','),l.temp!=null?String(l.temp).replace('.',','):''].join(';');});
+      return rows.join('\n');});}
+  function openCsv(who,atajo){who=who||myAcct||myPick||'';var m=$('shareModal');m.hidden=false;
+    if(!who){m.innerHTML='<div class="sm-card"><div class="sm-head"><b>📄 Mis chorros en CSV</b><button class="s" id="cvX">Cerrar</button></div><div class="msg">Primero vincula tu cuenta a tu nombre («Soy yo» en la pestaña Liada).</div></div>';$('cvX').onclick=function(){m.hidden=true;};return;}
+    m.innerHTML='<div class="sm-card"><div class="msg">Preparando los chorros de '+esc(who)+'…</div></div>';
+    csvOf(who).then(function(csv){var n=csv?csv.split('\n').length:0,fn='chorros_'+plKey(who)+'.csv';
+      if(atajo&&n){location.href='shortcuts://run-shortcut?name='+encodeURIComponent(atajo)+'&input=text&text='+encodeURIComponent(csv);}
+      m.innerHTML='<div class="sm-card"><div class="sm-head"><b>📄 Chorros de '+esc(who)+'</b><button class="s" id="cvX">Cerrar</button></div><div class="msg" style="margin:0 0 6px">'+n+' chorros de todas las liadas · ubicación;fecha;hora;cantidad;temperatura</div><textarea readonly style="width:100%;height:140px;font:12px ui-monospace,monospace">'+esc(csv)+'</textarea>'+
+        '<div class="sm-btns" style="flex-wrap:wrap">'+(atajo?'<button class="p" id="cvSc" type="button">▶️ Enviar a «'+esc(atajo)+'»</button>':'')+'<button class="s" id="cvDl" type="button">⬇️ Descargar</button><button class="s" id="cvSh" type="button">📤 Compartir</button><button class="s" id="cvCp" type="button">📋 Copiar</button></div><div class="msg" id="cvMsg"></div></div>';
+      var file=function(){return new File([csv+'\n'],fn,{type:'text/csv'});};
+      $('cvX').onclick=function(){m.hidden=true;m.innerHTML='';};m.onclick=function(e){if(e.target===m){m.hidden=true;m.innerHTML='';}};
+      if($('cvSc'))$('cvSc').onclick=function(){location.href='shortcuts://run-shortcut?name='+encodeURIComponent(atajo)+'&input=text&text='+encodeURIComponent(csv);};
+      $('cvDl').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv+'\n'],{type:'text/csv'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);};
+      $('cvSh').onclick=function(){try{var f=file();if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:fn}).catch(function(){});else $('cvDl').onclick();}catch(e){$('cvDl').onclick();}};
+      $('cvCp').onclick=function(){try{navigator.clipboard.writeText(csv).then(function(){$('cvMsg').textContent='Copiado.';},function(){var t=m.querySelector('textarea');t.select();document.execCommand('copy');$('cvMsg').textContent='Copiado.';});}catch(e){}};
+    },function(e){m.innerHTML='<div class="sm-card"><div class="msg">No se pudo preparar: '+esc(e&&e.message||e)+'</div></div>';});}
   /* registrados (solo organizador) */
   function renderReg(){var box=$('regBox');if(!realOwner||!userNs||!userNs.members){box.innerHTML='<div class="empty">Solo el organizador puede ver esto.</div>';return;}
     box.innerHTML='<div class="empty">Cargando registrados…</div>';
@@ -2674,7 +2694,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         if(!canWrite)$('status').textContent='Tabla compartida en modo lectura: puedes consultar, pero no modificar.';
         db.collection('sessions').orderBy('start','desc').limit(50).onSnapshot(function(s){var allS=s.docs.map(function(d){var x=d.data();return {id:d.id,name:x.name,title:x.title||null,loc:x.loc,locs:x.locs||null,rpath:x.rpath||null,start:x.start,end:x.end,cap:x.cap||0,deleted:x.deleted||0,reopened:x.reopened||0,autoClosed:!!x.autoClosed};});sessions=allS.filter(function(x){return !x.deleted;});delSessions=allS.filter(function(x){return x.deleted;});var nowAct=sessions.filter(function(x){return !x.end;}).map(function(x){return x.id;});if(prevActs){prevActs.forEach(function(id){var se=sess(id);if(se&&se.end&&nowAct.indexOf(id)<0&&endLocal!==id&&(isOwner||mySids[id]||viewSid===id))bigNote('end','<div class="bn-t">🏁 '+esc(sTitle(se))+' ha terminado</div><div class="bn-s">'+(se.autoClosed?'Cerrado automáticamente. ':'')+'Ya tienes el resumen listo para compartir.</div><button class="p" data-sum="'+id+'">Ver resumen</button>');});}prevActs=nowAct;if(viewSid&&!sessions.some(function(x){return x.id===viewSid;})){follow=true;viewSid=null;}actives=sessions.filter(function(x){return !x.end;}).map(function(x){return x.id;});activeSid=actives[0]||null;subJoins();pickView();renderSessionBar();renderAlerts();setTimeout(autoCheck,1500);},function(){});
         if(isOwner&&canWrite)migrateLegacy();
-        db.collection('accounts').onSnapshot(function(s){var o={};s.docs.forEach(function(d){if(d.id!=='map'&&d.data().name)o[d.id]=d.data().name;});acctMap=o;names={};known=null;resolveLogs();loadMyAcct();maybeOnboard();},function(){});
+        db.collection('accounts').onSnapshot(function(s){var o={};s.docs.forEach(function(d){if(d.id!=='map'&&d.data().name)o[d.id]=d.data().name;});acctMap=o;names={};known=null;resolveLogs();loadMyAcct();maybeOnboard();if(csvQ!==null){var _w=csvQ;csvQ=null;try{history.replaceState(null,'',location.pathname);}catch(e){}setTimeout(function(){openCsv(_w,csvAtajo);},300);}},function(){});
         setTimeout(function(){loadAll().catch(function(){});},2500);
         db.collection('places').onSnapshot(function(s){var o={};s.docs.forEach(function(d){o[d.id]=d.data();});placesMeta=o;routeSig='';try{renderRoutes();renderGantt();}catch(e){}},function(){});
         db.doc('regnames/map').onSnapshot(function(s){var o={};if(s.exists){var d=s.data();for(var k in d)if(d[k])o[k]=d[k];}regMap=o;names={};resolveLogs();},function(){});
