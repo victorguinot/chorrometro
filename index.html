@@ -1439,6 +1439,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function openRec(pid){var p=pById(pid),se=sess(viewSid);if(!p||!se||!canEditTimes())return;
     var ls=state.logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),a=Math.max(arrOf(p,ls,se),se.start),b=depOf(p,ls,se);
     var rows=(b>a?pSegs(p,se,a,b):[{f:a,t:b,loc:locAtTs(se,a)}]).map(function(q){return {loc:q.loc||'',f:q.f};});
+    var merge=function(a){var o=[];a.forEach(function(r){if(o.length&&nrm(o[o.length-1].loc)===nrm(r.loc))return;o.push(r);});return o;};rows=merge(rows);
     var m=$('shareModal'),close=function(){m.hidden=true;m.innerHTML='';},err='';
     var locs=[],addL=function(l){l=(l||'').trim();if(l&&!locs.some(function(z){return nrm(z)===nrm(l);}))locs.push(l);};
     crowdTL(se).forEach(function(x){addL(x.loc);});locTimeline(se).forEach(function(x){addL(x.loc);});sidePlaces(se).forEach(addL);
@@ -1461,7 +1462,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       $('recAdd0').onclick=function(){var f0=Math.max(se.start,rows[0].f-3600000);if(f0>=rows[0].f)f0=rows[0].f-60000;rows.unshift({loc:rows[0].loc,f:f0});draw();};
       $('recAdd').onclick=function(){var last=rows[rows.length-1],lim=(p.gone||se.end||Date.now());rows.push({loc:last.loc,f:Math.min(lim,Math.max(last.f+3600000,Date.now()>lim?lim:Date.now()))});draw();};
       $('recS').onclick=function(){if(!gate())return;
-        var rs=rows.map(function(r){return {loc:(r.loc||'').trim(),f:r.f};});err='';
+        var rs=merge(rows.slice().sort(function(x,y){return x.f-y.f;}).map(function(r){return {loc:(r.loc||'').trim(),f:r.f};}));err='';
         rs.forEach(function(r,i){if(!r.loc)err='Elige un sitio en cada fila.';if(i&&r.f<=rs[i-1].f)err='Cada sitio tiene que empezar después del anterior.';if(r.f<se.start-60000)err='Un sitio no puede empezar antes que la liada ('+hhmm(se.start)+').';});
         if(err){draw();return;}
         var mv=[];rs.forEach(function(r,i){var g=locAtTs(se,r.f),nx=rs[i+1]?rs[i+1].f:(p.gone||se.end||Date.now()),same=nrm(g||'')===nrm(r.loc)&&!locTimeline(se).some(function(x){return x.at>r.f&&x.at<nx&&nrm(x.loc)!==nrm(r.loc);});var o={loc:same?null:r.loc,at:Math.max(r.f,se.start)};if(!mv.length&&o.loc===null)return;if(mv.length&&(mv[mv.length-1].loc||null)===(o.loc||null))return;mv.push(o);});
