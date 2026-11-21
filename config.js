@@ -1,2 +1,2 @@
 window.CHORRO_FIREBASE={apiKey:"AIzaSyDwyqlBlAHq_JkF6SSxsJY8YukO-n275mo",authDomain:"chorrometro.firebaseapp.com",projectId:"chorrometro",storageBucket:"chorrometro.firebasestorage.app",messagingSenderId:"771534678896",appId:"1:771534678896:web:b8870bf8393c0aaad63db5"};
-window.CHORRO_VAPID="";
+window.CHORRO_VAPID="BDnHkgLRC-waP4seHsGm94qwL8UAhbSzxqlJhFe3RNgq_qVyZXjs3LFxLxbbkBm4kq6rnoapACtzL3QKrUYB5QU";
