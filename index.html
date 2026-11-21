@@ -351,6 +351,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 .rlink{cursor:pointer}.rlink:hover{text-decoration:underline}
 .recc .recr{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 8px}.recc select,.recc input,.recc button{width:auto;margin:0}.recc select{max-width:170px}.recc .rtn{font-weight:700;min-width:18px}
 .perm{width:100%}.perm td,.perm th{white-space:normal}.perm td.n,.perm th.n{width:64px;text-align:center}.perm input{width:auto;margin:0;transform:scale(1.2)}
+.evcTip{position:absolute;z-index:5;background:var(--surf);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.25);padding:8px 10px;font-size:12px;min-width:170px;max-width:240px;max-height:270px;overflow:auto;pointer-events:none}.evcTip .evh{margin:0 0 6px;color:var(--mut)}.evcTip .evr{display:flex;gap:6px;align-items:center;line-height:1.5}.evcTip .evr i{width:8px;height:8px;border-radius:50%;flex:none}.evcTip .evr span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.evcTip .evr em{font-style:normal;color:#16a34a;min-width:34px;text-align:right}.evcTip .evz{opacity:.6}
 </style>
 </head>
 <body>
@@ -1996,7 +1997,8 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
           gc+='<path d="'+d+'" fill="none" style="stroke:'+sr.c+'" stroke-width="2" stroke-linejoin="round"/>';});
         var lbs=ser2.map(function(sr){return {y:Yc(sr.pts[nC-1]),sr:sr};}).sort(function(a,b){return a.y-b.y;}),lastY=-99;
         lbs.forEach(function(o){if(o.y-lastY<12)return;lastY=o.y;var nm=o.sr.o.name.length>10?o.sr.o.name.slice(0,9)+'…':o.sr.o.name;gc+='<text x="'+(Lc+pwc+6)+'" y="'+(o.y+4)+'" font-size="11" style="fill:var(--ink)"><tspan font-weight="600">'+fmt(o.sr.pts[nC-1])+'</tspan> '+esc(nm)+'</text>';});
-        h+='<h3>📈 Evolución del acumulado</h3><div class="msg" style="margin:-4px 0 6px">Mililitros acumulados de cada persona después de cada liada. Cada punto es una liada en la que sumó.</div><div class="chart"><svg viewBox="0 0 '+Wc+' '+Hc+'" role="img" aria-label="Evolución del acumulado liada a liada">'+gc+dts+'</svg></div>';
+        h+='<h3>📈 Evolución del acumulado</h3><div class="msg" style="margin:-4px 0 6px">Mililitros acumulados de cada persona después de cada liada. Cada punto es una liada en la que sumó.</div><div class="chart" id="evcBox" style="position:relative;touch-action:pan-y"><svg viewBox="0 0 '+Wc+' '+Hc+'" role="img" aria-label="Evolución del acumulado liada a liada">'+gc+dts+'<line id="evcLine" x1="0" x2="0" y1="'+Tc+'" y2="'+(Tc+phc)+'" style="stroke:var(--mut)" stroke-dasharray="3 3" visibility="hidden"/></svg><div id="evcTip" class="evcTip" hidden></div></div>';
+        EVC={n:nC,W:Wc,X:Xc,se:evC.map(function(sv){return sv.se;}),ser:ser2.map(function(sr){return {name:sr.o.name,c:sr.c,pts:sr.pts,first:sr.first};})};
       }
       /* ranking de anfitriones */
       var HO={};ev.forEach(function(sv){var tl=locTimeline(sv.se);tl.forEach(function(seg,j){var to=j+1<tl.length?tl[j+1].at:Infinity,hs=Object.keys(P).filter(function(k){return isHostOf(seg.loc,k);}).sort();if(!hs.length)return;var key=hs.join('|'),o=HO[key]||(HO[key]={hs:hs,names:hs.map(function(k){return P[k].name;}),ch:{},ml:0,n:0,g:{}});o.ch[sv.se.id]=1;
@@ -2489,6 +2491,18 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         inp0.onkeydown=function(e){if(e.key==='Enter')bs[0].click();if(e.key==='Escape')bs[1].click();};};});
     },function(e){box.innerHTML='<div class="empty">No se pudo cargar: '+esc(e&&e.message||e)+'</div>';});
   }
+  /* caja flotante del gráfico de evolución */
+  var EVC=null;
+  (function(){function hide(){var t=$('evcTip'),l=$('evcLine');if(t)t.hidden=true;if(l)l.setAttribute('visibility','hidden');}
+    function show(e){var box=e.target.closest&&e.target.closest('#evcBox');if(!box||!EVC){return;}var svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),sc=r.width/EVC.W,px=(e.clientX-r.left)/sc,best=0,bd=1e9;
+      for(var i=0;i<EVC.n;i++){var d=Math.abs(EVC.X(i)-px);if(d<bd){bd=d;best=i;}}
+      var i2=best,se=EVC.se[i2],rows=EVC.ser.filter(function(sr){return sr.first<=i2&&sr.first>=0;}).map(function(sr){return {n:sr.name,c:sr.c,v:sr.pts[i2],d:sr.pts[i2]-(i2?sr.pts[i2-1]:0)};}).sort(function(a,b){return (b.v-a.v)||(b.d-a.d);});
+      var t=$('evcTip'),l=$('evcLine');l.setAttribute('x1',EVC.X(i2));l.setAttribute('x2',EVC.X(i2));l.setAttribute('visibility','visible');
+      t.innerHTML='<div class="evh"><b>'+dmy(se.start)+'</b> · '+esc(sTitle(se))+'</div>'+rows.map(function(o){return '<div class="evr'+(o.d>0?'':' evz')+'"><i style="background:'+o.c+'"></i><span>'+esc(o.n)+'</span><b>'+fmt(Math.round(o.v*100)/100)+'</b><em>'+(o.d>0?'+'+fmt(Math.round(o.d*100)/100):'')+'</em></div>';}).join('');
+      t.hidden=false;var br=box.getBoundingClientRect(),xx=EVC.X(i2)*sc+(r.left-br.left),tw=t.offsetWidth;var left=xx+12;if(left+tw>br.width)left=xx-tw-12;if(left<0)left=Math.max(0,(br.width-tw)/2);t.style.left=left+'px';t.style.top='4px';}
+    document.addEventListener('pointermove',function(e){if(e.target.closest&&e.target.closest('#evcBox'))show(e);else if($('evcTip')&&!$('evcTip').hidden)hide();},{passive:true});
+    document.addEventListener('pointerdown',function(e){if(e.target.closest&&e.target.closest('#evcBox'))show(e);else hide();},{passive:true});
+  })();
   /* calendario de liadas */
   var calYM=null,calD=null;
   function renderCal(){var box=$('calBox');if(!calD)box.innerHTML='<div class="empty">Cargando calendario…</div>';
