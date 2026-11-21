@@ -18,8 +18,9 @@ async function send(uid, tokens, msg) {
   const res = await admin.messaging().sendEachForMulticast({
     tokens,
     data: { title: msg.title, body: msg.body || '', tag: msg.tag || 'chorro', url: URL },
-    webpush: { headers: { Urgency: 'high', TTL: '1800' } }
+    webpush: { headers: { Urgency: 'high', TTL: '1800' }, notification: { title: msg.title, body: msg.body || '', icon: URL + 'icon-192.png', tag: msg.tag || 'chorro' }, fcmOptions: { link: URL } }
   });
+  console.log('push', uid, 'ok', res.successCount, 'fail', res.failureCount, res.responses.filter((r) => !r.success).map((r) => r.error && r.error.code));
   const bad = [];
   res.responses.forEach((r, i) => {
     if (!r.success) {
