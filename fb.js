@@ -145,7 +145,7 @@
       if (!window.CHORRO_VAPID) return Promise.reject(new Error('Falta configurar la clave de notificaciones (VAPID).'));
       var permP = Notification.requestPermission();
       return Promise.resolve(permP).then(function (p) {
-        if (p !== 'granted') throw new Error(p === 'denied' ? 'Has bloqueado las notificaciones. Actívalas en los ajustes del móvil para esta app.' : 'No se dio permiso.');
+        if (p !== 'granted') throw new Error(p === 'denied' ? (IOS ? 'Has bloqueado las notificaciones. Actívalas en Ajustes del iPhone → Notificaciones → Chorrómetro.' : 'El navegador tiene bloqueadas las notificaciones de esta web. Pulsa el icono que hay a la izquierda de la dirección (victorguinot.github.io) → Notificaciones → Permitir, recarga la página y vuelve a pulsar Activar.') : 'No se dio permiso.');
         return pushReg();
       }).then(function (reg) { return firebase.messaging().getToken({ vapidKey: window.CHORRO_VAPID, serviceWorkerRegistration: reg }); })
         .then(function (tok) {
