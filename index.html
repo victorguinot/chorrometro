@@ -780,6 +780,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       }
       if(v)h+='<button id="schBtn">'+(schOpen?'Cancelar horario':'Editar horario')+'</button>';
       if(v)h+='<button id="rtBtn">'+(rtOpen?'Cancelar recorrido':'Editar nombre y recorrido')+'</button>';
+      if(v)h+='<button id="impBtn" type="button">📥 Importar chorros (CSV)</button>';
       if(v&&rtOpen){if(!rtDraft||rtDraft.sid!==v.id)rtDraft={sid:v.id,title:v.title||'',locs:locTimeline(v).map(function(x){return {loc:x.loc,at:x.at};})};if(!rtDraft.locs.length)rtDraft.locs=[{loc:'',at:v.start}];
         h+='<div class="srow rt"><label style="flex:1 1 100%">Nombre de la liada (opcional, si lo dejas vacío se pone solo) <input id="rtTitle" maxlength="50" placeholder="'+esc(sTitle(Object.assign({},v,{title:''})))+'" value="'+esc(rtDraft.title)+'"></label>'+
           rtDraft.locs.map(function(x,i){var nL=rtDraft.locs.length;return '<div class="rtrow"><span class="rtn">'+(i+1)+'.</span><input data-rtl="'+i+'" list="rtDl" maxlength="30" placeholder="Sitio" value="'+esc(x.loc)+'">'+(i===0?'<span class="msg" style="margin:0">desde el inicio</span>':'<input type="datetime-local" data-rtt="'+i+'" value="'+(x.at?localInput(x.at):'')+'"'+(x.at?'':' style="outline:2px solid var(--warn)" title="Pon la hora a la que llegasteis aquí"')+'>')+'<span class="rtmv"><button class="s" data-rtu="'+i+'" title="Subir"'+(i===0?' disabled':'')+'>↑</button><button class="s" data-rtw="'+i+'" title="Bajar"'+(i===nL-1?' disabled':'')+'>↓</button>'+(nL>1?'<button class="s" data-rtd="'+i+'" title="Quitar este sitio">✕</button>':'')+'</span></div>';}).join('')+
@@ -809,6 +810,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if($('sEnd'))$('sEnd').onclick=endSession;
     if($('sReo'))$('sReo').onclick=function(){reopenChill(viewSid);};
     if($('schBtn'))$('schBtn').onclick=function(){schOpen=!schOpen;schWarn=null;renderSessionBar();};
+    if($('impBtn'))$('impBtn').onclick=function(){openImp();};
     if($('rtBtn'))$('rtBtn').onclick=function(){rtOpen=!rtOpen;rtDraft=null;renderSessionBar();};
     if($('rtGo')){
       var rd=function(){rtDraft.title=$('rtTitle').value;document.querySelectorAll('[data-rtl]').forEach(function(e){rtDraft.locs[+e.dataset.rtl].loc=e.value;});document.querySelectorAll('[data-rtt]').forEach(function(e){var t=new Date(e.value).getTime();if(!isNaN(t))rtDraft.locs[+e.dataset.rtt].at=t;});};
@@ -1435,6 +1437,47 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     box.innerHTML=(PL.length>1?'<div class="plg">'+PL.map(function(l,i){return '<span><i style="background:'+PLC[i%PLC.length]+'"></i>'+(isHouse(l)?'🏠 ':'')+esc(l)+'</span>';}).join('')+'</div>':'')+'<svg viewBox="0 0 '+W+' '+Ht+'" role="img" aria-label="Presencia de cada persona en la liada">'+g+'</svg>';bindRec();
   }
   function bindRec(){var gb=$('ganttBox');if(!gb)return;gb.querySelectorAll('[data-rec]').forEach(function(e){e.onclick=function(){openRec(e.getAttribute('data-rec'));};});}
+  /* importar chorros desde CSV (ubicación;fecha;hora;cantidad;temperatura) */
+  function parseImp(txt){var out=[],bad=[];String(txt||'').split(/\r?\n/).forEach(function(line,i){var t=line.trim();if(!t)return;var c=t.split(';').map(function(x){return x.trim();});
+      var dm=(c[1]||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/),hm=(c[2]||'').match(/^(\d{1,2}):(\d{2})/),amt=parseFloat((c[3]||'').replace(',','.'));
+      if(!c[0]||!dm||!hm||isNaN(amt)||amt<=0){bad.push(i+1);return;}var y=+dm[3];if(y<100)y+=2000;
+      var ts=new Date(y,+dm[2]-1,+dm[1],+hm[1],+hm[2]).getTime(),tp=(c[4]||'')===''?null:parseFloat(c[4].replace(',','.'));
+      out.push({loc:c[0],ts:ts,amt:amt,temp:(tp==null||isNaN(tp))?null:tp});});
+    out.sort(function(a,b){return a.ts-b.ts;});return {rows:out,bad:bad};}
+  function openImp(){var se=sess(viewSid);if(!se||!isOwner)return;var m=$('shareModal'),close=function(){m.hidden=true;m.innerHTML='';},txt='',P=null,msg='';
+    var me0=myPerson(),pid=me0?me0.id:(state.people[0]&&state.people[0].id)||'';
+    function draw(){P=parseImp(txt);var R0=P.rows,locs=[];R0.forEach(function(r){if(!locs.some(function(z){return nrm(z)===nrm(r.loc);}))locs.push(r.loc);});
+      var p=pById(pid),ex=state.logs.filter(function(l){return l.pid===pid;}),dup=R0.filter(function(r){return ex.some(function(l){return Math.abs(l.ts-r.ts)<60000;});}).length;
+      var first=R0.length?R0[0].ts:null,earlier=first&&first<se.start;
+      m.hidden=false;m.onclick=function(e){if(e.target===m)close();};
+      m.innerHTML='<div class="sm-card recc"><div class="sm-head"><b>📥 Importar chorros</b><button class="s" id="imX" type="button">✕</button></div>'+
+        '<div class="msg" style="margin:0 0 6px">Pega líneas con el formato <code>ubicación;fecha;hora;cantidad;temperatura</code> (la temperatura es opcional). Se añaden a esta liada.</div>'+
+        '<label style="display:block;margin:0 0 6px">Persona <select id="imP" style="width:auto;margin:0 0 0 6px">'+state.people.map(function(q){return '<option value="'+q.id+'"'+(q.id===pid?' selected':'')+'>'+esc(q.name)+'</option>';}).join('')+'</select></label>'+
+        '<textarea id="imT" rows="8" style="width:100%;font:12px ui-monospace,monospace" placeholder="Víctor;20/11/26;20:27;1;14">'+esc(txt)+'</textarea>'+
+        (R0.length?'<div class="msg" style="margin:6px 0">'+R0.length+' chorros · '+fmt(Math.round(R0.reduce(function(a,r){return a+r.amt;},0)*100)/100)+' ml · del '+dmy(R0[0].ts)+' '+hhmm(R0[0].ts)+' al '+dmy(R0[R0.length-1].ts)+' '+hhmm(R0[R0.length-1].ts)+(dup?' · <b>'+dup+' ya existen</b> (se saltan)':'')+(P.bad.length?' · <span style="color:var(--warn)">líneas sin entender: '+P.bad.join(', ')+'</span>':'')+'</div>'+
+          (earlier?'<label class="npr"><input type="checkbox" id="imStart" checked> Adelantar el inicio de la liada a las '+hhmm(first)+' del '+dmy(first)+' (ahora: '+dmy(se.start)+' '+hhmm(se.start)+')</label>':'')+
+          '<label class="npr"><input type="checkbox" id="imRec" checked> Usar estos sitios como recorrido de '+esc(p?p.name:'')+'</label>'+
+          '<div class="msg" style="margin:6px 0 2px">Tipo de cada sitio:</div>'+locs.map(function(l,i){var mt=placesMeta[plKey(l)]||{},def=mt.type||(isHouse(l)?'casa':'');return '<div class="recr"><span style="min-width:110px">'+esc(l)+'</span><select data-imty="'+i+'" style="width:auto">'+'<option value="">—</option>'+PTYPES.map(function(t){return '<option value="'+t[0]+'"'+(t[0]===def?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>';}).join(''):'')+
+        (msg?'<div class="msg" style="color:var(--warn)">'+esc(msg)+'</div>':'')+
+        '<div class="sm-btns"><button class="s" id="imC" type="button">Cancelar</button><button class="p" id="imGo" type="button"'+(R0.length?'':' disabled')+'>Importar</button></div></div>';
+      $('imX').onclick=close;$('imC').onclick=close;
+      $('imP').onchange=function(){pid=this.value;draw();};
+      var ta=$('imT'),tmr=null;ta.oninput=function(){clearTimeout(tmr);tmr=setTimeout(function(){if(ta.value===txt)return;txt=ta.value;var pos=ta.selectionStart;draw();var t2=$('imT');if(t2){t2.focus();try{t2.setSelectionRange(pos,pos);}catch(e){}}},500);};
+      $('imGo').onclick=function(){if(!gate())return;txt=$('imT').value;var P2=parseImp(txt);if(!P2.rows.length)return;var p=pById(pid);if(!p){msg='Elige una persona.';draw();return;}
+        var types={};m.querySelectorAll('[data-imty]').forEach(function(sl){types[locs[+sl.dataset.imty]]=sl.value;});
+        var doStart=$('imStart')&&$('imStart').checked,doRec=$('imRec')&&$('imRec').checked,first=P2.rows[0].ts,ex2=state.logs.filter(function(l){return l.pid===pid;});
+        var b=$('imGo');b.disabled=true;b.textContent='Importando…';var W=[];
+        if(doStart&&first<se.start){var nl=(se.locs||[]).map(function(x,i){return i===0&&x.at>first?{loc:x.loc,at:first}:x;});W.push(db.doc('sessions/'+se.id).update(Object.assign({start:first},nl.length?{locs:nl}:{})).then(function(){se.start=first;if(nl.length)se.locs=nl;}));}
+        var pu={};if(first<(p.at||se.start))pu.at=first;
+        if(doRec){var segs=[];P2.rows.forEach(function(r){if(!segs.length||nrm(segs[segs.length-1].loc)!==nrm(r.loc))segs.push({loc:r.loc,f:r.ts});});
+          var mv=[];segs.forEach(function(r,i){var nx=segs[i+1]?segs[i+1].f:(p.gone||se.end||Date.now()),g=locAtTs(se,r.f),same=nrm(g||'')===nrm(r.loc)&&!locTimeline(se).some(function(x){return x.at>r.f&&x.at<nx&&nrm(x.loc)!==nrm(r.loc);});var o={loc:same?null:r.loc,at:r.f};if(!mv.length&&o.loc===null)return;if(mv.length&&(mv[mv.length-1].loc||null)===(o.loc||null))return;mv.push(o);});
+          var old=(p.moves||[]).filter(function(x){return x.at<first;});pu.moves=old.concat(mv);}
+        if(Object.keys(pu).length)W.push(db.doc('people/'+p.id).update(pu).then(function(){Object.assign(p,pu);}));
+        var n=0;P2.rows.forEach(function(r){if(ex2.some(function(l){return Math.abs(l.ts-r.ts)<60000;}))return;var d={pid:p.id,ts:r.ts,amt:r.amt,by:myId||null,sid:se.id,loc:r.loc,imp:true};if(r.temp!=null)d.temp=r.temp;n++;W.push(db.collection('logs').doc().set(d));});
+        Object.keys(types).forEach(function(l){var t=types[l],k=plKey(l),cur=placesMeta[k]||{};if(t&&t!==cur.type)W.push(db.doc('places/'+k).set({name:cur.name||l,type:t},{merge:true}).then(function(){placesMeta[k]=Object.assign({},cur,{name:cur.name||l,type:t});}));});
+        Promise.all(W).then(function(){logAct({act:'bulk',pname:p.name,n:n,amt:P2.rows.reduce(function(a,r){return a+r.amt;},0)});return saveRpath(se);}).then(function(){close();peopleSig='';routeSig='';plData=null;onData();say(n+' chorros importados para '+p.name+'.');},function(e){b.disabled=false;b.textContent='Importar';fail(e);});};
+    }
+    draw();}
   /* recorrido rápido de una persona */
   function openRec(pid){var p=pById(pid),se=sess(viewSid);if(!p||!se||!canEditTimes())return;
     var ls=state.logs.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return a.ts-b.ts;}),a=Math.max(arrOf(p,ls,se),se.start),b=depOf(p,ls,se);
