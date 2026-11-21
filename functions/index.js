@@ -52,7 +52,8 @@ exports.avisos = onSchedule({ schedule: 'every 1 minutes', region: REGION, timeZ
     ]);
     const last = {}; lSnap.docs.forEach((d) => { const l = d.data(); if (l.ts && l.ts <= now && (!last[l.pid] || l.ts > last[l.pid])) last[l.pid] = l.ts; });
     const people = pSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    const locs = S.locs || []; const loc = locs.length ? locs[locs.length - 1].loc : (S.loc || '');
+    const locs = (S.locs || []).slice().sort((a, b) => a.at - b.at);
+    const groupLoc = (t) => { let l = S.loc || ''; locs.forEach((x) => { if (x.at <= t + 60000) l = x.loc; }); return l; };
     for (const x of want) {
       const k = canon(acc[x.uid]);
       const p = people.find((q) => q.name && canon(q.name) === k);
@@ -61,6 +62,8 @@ exports.avisos = onSchedule({ schedule: 'every 1 minutes', region: REGION, timeZ
       const back = Math.max(0, ...(p.away || []).map((a) => a.t || 0));
       const ref = Math.max(last[p.id] || Math.max(p.at || 0, S.start || 0), back);
       const el = now - ref, sent = x.sent || {}, upd = {};
+      let mv = null; (p.moves || []).slice().sort((a, b) => a.at - b.at).forEach((m) => { if (m.at <= now + 60000) mv = m; });
+      const loc = (mv && mv.loc) || groupLoc(now);
       const minT = (x.min || 60) * 60000, minM = (x.muchoMin || 120) * 60000;
       if (x.mucho !== false && el >= minM && sent.mucho !== ref && el < minM + 6 * 3600000) {
         await send(x.uid, x.tokens, { title: '😬 ' + p.name + ', llevas ' + dur(el) + ' sin tomar', body: loc ? 'En ' + loc + '. Apunta tu chorro en el Chorrómetro.' : 'Apunta tu chorro en el Chorrómetro.', tag: 'mucho' });
