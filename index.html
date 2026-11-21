@@ -482,10 +482,10 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   var crowdMemo={};
   function peopleOf(se){if(!se)return null;if(se.id===viewSid&&state.people.length)return state.people;if(HIST&&HIST.people){var ps=HIST.people.filter(function(p){return p.sid===se.id;});return ps.length?ps:null;}return null;}
   function crowdTL(se){var tl=locTimeline(se),ps=peopleOf(se);if(!ps||!ps.length||!tl.length)return tl;
-    var key=JSON.stringify([tl,ps.map(function(p){return [p.id,p.at||0,p.gone||0,(p.moves||[]).length,(p.moves||[]).map(function(m){return m.at;}).join('.'),(p.away||[]).length];}),se.end||0]);
+    var key=JSON.stringify([tl,ps.map(function(p){return [p.id,p.at||0,p.gone||0,(p.moves||[]).length,(p.moves||[]).map(function(m){return m.at;}).join('.'),(p.away||[]).length];}),se.end||0,myAcct||'']);
     var c=crowdMemo[se.id];if(c&&c.k===key)return c.v;
-    var out=[];try{groupStates(se,ps).forEach(function(st){var best=null,bn=-1,prev=out.length?out[out.length-1].loc:null,grp=locAtTs(se,st.f);
-      Object.keys(st.g).forEach(function(l){var n=st.g[l].length,pr=(prev&&nrm(l)===nrm(prev))?0.2:((grp&&nrm(l)===nrm(grp))?0.1:0);if(n+pr>bn){bn=n+pr;best=l;}});
+    var mk=myAcct?canon(myAcct):'';var out=[];try{groupStates(se,ps).forEach(function(st){var best=null,bn=-1,prev=out.length?out[out.length-1].loc:null,grp=locAtTs(se,st.f);
+      Object.keys(st.g).forEach(function(l){var n=st.g[l].length;if(!n&&best)return;var pr=(mk&&st.g[l].some(function(x){return canon(x)===mk;}))?0.4:0;pr+=(prev&&nrm(l)===nrm(prev))?0.2:0;pr+=(grp&&nrm(l)===nrm(grp))?0.1:0;if(n+pr>bn){bn=n+pr;best=l;}});
       if(best&&(!out.length||nrm(out[out.length-1].loc)!==nrm(best)))out.push({loc:best,at:out.length?st.f:se.start});});}catch(e){out=[];}
     if(!out.length)out=tl;crowdMemo[se.id]={k:key,v:out};return out;}
   function mainPath(se){var out=[];crowdTL(se).forEach(function(x){if(!out.length||nrm(out[out.length-1])!==nrm(x.loc))out.push(x.loc);});return out;}
