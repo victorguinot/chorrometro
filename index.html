@@ -1536,7 +1536,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         rs.forEach(function(r,i){if(!r.loc)err='Elige un sitio en cada fila.';if(i&&r.f<=rs[i-1].f)err='Cada sitio tiene que empezar después del anterior.';if(r.f<se.start-60000)err='Un sitio no puede empezar antes que la liada ('+hhmm(se.start)+').';});
         if(err){draw();return;}
         var mv=[];rs.forEach(function(r,i){var g=locAtTs(se,r.f),nx=rs[i+1]?rs[i+1].f:(p.gone||se.end||Date.now()),same=nrm(g||'')===nrm(r.loc)&&!locTimeline(se).some(function(x){return x.at>r.f&&x.at<nx&&nrm(x.loc)!==nrm(r.loc);});var o={loc:same?null:r.loc,at:Math.max(r.f,se.start)};if(!mv.length&&o.loc===null)return;if(mv.length&&(mv[mv.length-1].loc||null)===(o.loc||null))return;mv.push(o);});
-        logAct({act:'times',pname:p.name});
+        logAct({act:'rec',pname:p.name,loc:rs.map(function(r){return r.loc;}).join(' → ')});
         var b2=$('recS');b2.disabled=true;b2.textContent='Guardando…';
         var upd={moves:mv},a0=Math.max(rs[0].f,se.start);if(Math.abs(a0-a)>60000){upd.at=a0;}
         var w=db?db.doc('people/'+p.id).update(upd).then(function(){p.moves=mv;if(upd.at)p.at=upd.at;return Promise.all(state.logs.filter(function(l){return l.pid===p.id;}).map(function(l){var nl=plocAt(p,se,l.ts)||null;return nl!==(l.loc||null)?db.doc('logs/'+l.id).update({loc:nl}):null;})).then(function(){return saveRpath(se);});}):(function(){p.moves=mv;saveLocal();return Promise.resolve();})();
@@ -2085,26 +2085,38 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       case 'restchill':return w+' recuperó la liada <b>'+esc(a.name||'')+'</b>';
       case 'reopen':return w+' reabrió la liada <b>'+esc(a.name||'')+'</b>';
       case 'sched':return w+' cambió el horario de la liada: '+dmy(a.s)+' '+hhmm(a.s)+(a.e?' – '+dmy(a.e)+' '+hhmm(a.e):'');
+      case 'member':return w+' '+esc(a.what||'cambió')+' · cuenta <b>'+esc(a.pname||'')+'</b>';
+      case 'place':return w+' editó el lugar <b>'+esc(a.loc||'')+'</b>';
+      case 'perms':return w+' cambió los permisos: '+esc(a.what||'');
+      case 'link':return w+' vinculó la cuenta de '+esc(a.from||'?')+' a '+(a.pname?'<b>'+esc(a.pname)+'</b>':'nadie');
+      case 'rec':return w+' editó el recorrido de '+P+(a.loc?': '+esc(a.loc):'');
       case 'auto':return 'La liada se cerró automáticamente tras '+(a.h||'?')+' h sin chorros';
     }
     return w+' hizo un cambio';
   }
+  var actScope='all',actWho='',actSessT={};
   function renderAct(){
     var box=$('actBox');if(!box||box.hidden)return;
-    var items=(db?actItems:(state.activity||[])).slice().sort(function(a,b){return b.at-a.at;}).slice(0,400);
-    if(!items.length){box.innerHTML='<div class="trash"><b>Actividad</b><div class="empty">Todavía no hay actividad registrada en esta liada.</div></div>';return;}
-    resolveNames(items.map(function(a){return a.by;})).then(function(ch){if(ch)renderAct();});
+    var all=(db?actItems:(state.activity||[])).slice().sort(function(a,b){return b.at-a.at;});
+    resolveNames(all.map(function(a){return a.by;})).then(function(ch){if(ch)renderAct();});
+    var whos={};all.forEach(function(a){if(a.by)whos[a.by]=(whos[a.by]||0)+1;});
+    var items=all.filter(function(a){return !actWho||a.by===actWho;}).slice(0,600);
+    var ctl='<div class="cfgRow" style="margin:4px 0 8px"><select id="actScope" style="width:auto;margin:0"><option value="all"'+(actScope==='all'?' selected':'')+'>Todas las liadas</option><option value="one"'+(actScope==='one'?' selected':'')+'>Solo esta liada</option></select>'+
+      '<select id="actWho" style="width:auto;margin:0"><option value="">Todos</option>'+Object.keys(whos).sort(function(a,b){return whos[b]-whos[a];}).map(function(u){return '<option value="'+esc(u)+'"'+(u===actWho?' selected':'')+'>'+esc(whoName(u)||'Alguien')+' ('+whos[u]+')</option>';}).join('')+'</select></div>';
     var lastDay='';
-    box.innerHTML='<div class="trash"><b>Actividad</b><div class="msg" style="margin:2px 0 6px">Lo más reciente arriba.</div><div class="actl">'+items.map(function(a){
-      var d=dmy(a.at),hd=d!==lastDay&&dmy(Date.now())!==d?'<div class="actd">'+d+'</div>':'';lastDay=d;
-      return hd+'<div class="acti"><span class="actt">'+hhmm(a.at)+'</span><span>'+actText(a)+'</span></div>';
-    }).join('')+'</div></div>';
+    box.innerHTML='<div class="trash"><b>🕓 Actividad</b><div class="msg" style="margin:2px 0 0">Qué ha hecho cada uno, lo más reciente arriba.</div>'+ctl+(items.length?'<div class="actl">'+items.map(function(a){
+      var d=dmy(a.at),hd=d!==lastDay?'<div class="actd">'+d+'</div>':'';lastDay=d;
+      var lt=actScope==='all'?(a.sid==='_'?' <span class="msg">· ajustes</span>':(a.sid&&actSessT[a.sid]?' <span class="msg">· '+esc(actSessT[a.sid])+'</span>':'')):'';
+      return hd+'<div class="acti"><span class="actt">'+hhmm(a.at)+'</span><span>'+actText(a)+lt+'</span></div>';
+    }).join('')+'</div>':'<div class="empty">No hay actividad'+(actWho?' de esta persona':'')+'.</div>')+'</div>';
+    $('actScope').onchange=function(){actScope=this.value;subAct();};$('actWho').onchange=function(){actWho=this.value;renderAct();};
   }
   function subAct(){
     if(unA){unA();unA=null;}
     if(!db){renderAct();return;}
-    actItems=[];if(!viewSid){renderAct();return;}
-    unA=db.collection('activity').where('sid','==',viewSid).onSnapshot(function(s){actItems=s.docs.map(function(d){return d.data();});renderAct();},function(){$('actBox').innerHTML='<div class="empty">No se pudo cargar la actividad.</div>';});
+    actItems=[];if(actScope==='all'){loadAll().then(function(D){D.sess.forEach(function(x){actSessT[x.id]=sTitle(x);});renderAct();},function(){});}
+    if(actScope==='one'&&!viewSid){renderAct();return;}
+    unA=(actScope==='all'?db.collection('activity').orderBy('at','desc').limit(1500):db.collection('activity').where('sid','==',viewSid)).onSnapshot(function(s){actItems=s.docs.map(function(d){return d.data();});renderAct();},function(){$('actBox').innerHTML='<div class="empty">No se pudo cargar la actividad.</div>';});
   }
   $('actBtn').onclick=function(){
     var box=$('actBox');
@@ -2444,7 +2456,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       PACTS.map(function(a){return '<tr><td>'+a[1]+'</td>'+ck('colab','acts',a[0])+'<td class="n msg">—</td></tr>';}).join('')+
       '</tbody></table></div><div class="msg" id="pmMsg">Solo lectura nunca puede cambiar datos. Cambiar ubicación, finalizar o eliminar liadas, importar y quitar personas siguen siendo solo tuyos.</div>';
     box.querySelectorAll('[data-pm]').forEach(function(c){c.onchange=function(){var p=c.dataset.pm.split('|');PERMS[p[0]][p[1]][p[2]]=c.checked;
-      db.doc('meta/settings').set({perms:PERMS},{merge:true}).then(function(){$('pmMsg').textContent='Guardado. Se aplica al momento a todos.';},function(e){c.checked=!c.checked;fail(e);});};});
+      db.doc('meta/settings').set({perms:PERMS},{merge:true}).then(function(){logAct({act:'perms',sid:'_',what:(p[0]==='colab'?'Colaborador':'Solo lectura')+': '+(((p[1]==='tabs'?PTABS:PACTS).filter(function(x){return x[0]===p[2];})[0]||[0,p[2]])[1])+(c.checked?' ✔︎':' ✘')});$('pmMsg').textContent='Guardado. Se aplica al momento a todos.';},function(e){c.checked=!c.checked;fail(e);});};});
   }
   /* registrados (solo organizador) */
   function renderReg(){var box=$('regBox');if(!realOwner||!userNs||!userNs.members){box.innerHTML='<div class="empty">Solo el organizador puede ver esto.</div>';return;}
@@ -2473,7 +2485,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         bs[0].onclick=function(){var v=(inp.value||'').trim().replace(/\s+/g,' ');if(v){var ex=nmS[canon(v)];if(ex)v=ex;}
           var other=Object.keys(acctMap).filter(function(k){return k!==uid&&v&&canon(acctMap[k])===canon(v);})[0];
           if(other&&!confirm(v+' ya está vinculado a otra cuenta ('+((M[other]||{}).name||'?')+'). ¿Vincularlo también a esta?'))return;
-          bs[0].disabled=true;(v?db.doc('accounts/'+uid).set({name:v,at:Date.now(),by:'owner'}):db.doc('accounts/'+uid).delete()).then(function(){say(v?'Cuenta de '+((M[uid]||{}).name||'')+' vinculada a '+v+'.':'Cuenta desvinculada.');setTimeout(renderReg,400);},function(e){bs[0].disabled=false;fail(e);});};
+          bs[0].disabled=true;(v?db.doc('accounts/'+uid).set({name:v,at:Date.now(),by:'owner'}):db.doc('accounts/'+uid).delete()).then(function(){logAct({act:'link',sid:'_',from:(M[uid]||{}).name||'',pname:v||''});say(v?'Cuenta de '+((M[uid]||{}).name||'')+' vinculada a '+v+'.':'Cuenta desvinculada.');setTimeout(renderReg,400);},function(e){bs[0].disabled=false;fail(e);});};
         inp0.onkeydown=function(e){if(e.key==='Enter')bs[0].click();if(e.key==='Escape')bs[1].click();};};});
     },function(e){box.innerHTML='<div class="empty">No se pudo cargar: '+esc(e&&e.message||e)+'</div>';});
   }
@@ -2654,7 +2666,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       var nk=plKey(nn),ren=nrm(nn)!==nrm(old);
       var p0=ren?renamePlaceAll(old,nn):Promise.resolve();
       p0.then(function(){var w=[db.doc('places/'+nk).set(Object.assign({},placesMeta[nk]&&ren?placesMeta[nk]:{},doc))];if(ren&&nk!==o.k&&placesMeta[o.k])w.push(db.doc('places/'+o.k).delete());return Promise.all(w);}).then(function(){
-        placesMeta[nk]=doc;if(ren&&nk!==o.k)delete placesMeta[o.k];plOpen=null;if(ren){plData=null;logAct({act:'locren',from:old,loc:nn});}renderPlaces();say(ren?'Lugar renombrado a '+nn+' en todas las liadas.':'Lugar guardado.');},fail);
+        placesMeta[nk]=doc;if(ren&&nk!==o.k)delete placesMeta[o.k];plOpen=null;if(ren){plData=null;logAct({act:'locren',from:old,loc:nn,sid:'_'});}else logAct({act:'place',loc:nn,sid:'_'});renderPlaces();say(ren?'Lugar renombrado a '+nn+' en todas las liadas.':'Lugar guardado.');},fail);
     };
   }
   function renamePlaceAll(old,nn){

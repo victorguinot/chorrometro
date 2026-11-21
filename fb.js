@@ -208,6 +208,7 @@
     document.addEventListener('keydown', esc1); document.body.style.overflow = 'hidden';
     renderMembers();
   }
+  function memLog(what, i) { try { fs.collection('activity').add({ act: 'member', what: what, pname: (members[i] && members[i].name) || '', sid: '_', at: Date.now(), by: me.uid }); } catch (e) {} }
   function renderInline(box) {
     var ids = Object.keys(members), pend = ids.filter(function (i) { return members[i].status === 'pending'; }),
       ok = ids.filter(function (i) { return members[i].status === 'approved'; }), bl = ids.filter(function (i) { return members[i].status === 'blocked'; });
@@ -222,10 +223,10 @@
     }
     box.innerHTML = (pend.length ? '<h4>⏳ Solicitudes (' + pend.length + ')</h4>' + pend.map(row).join('') : '<div class="em">No hay solicitudes pendientes. Comparte la dirección de la web: quien entre con Google aparecerá aquí.</div>') +
       '<h4>✅ Con acceso (' + ok.length + ')</h4>' + ok.map(row).join('') + (bl.length ? '<h4>🚫 Sin acceso (' + bl.length + ')</h4>' + bl.map(row).join('') : '');
-    box.querySelectorAll('[data-ok]').forEach(function (b) { b.onclick = function () { var i = b.dataset.ok, s = box.querySelector('[data-r="' + i + '"]'); fs.doc('members/' + i).update({ status: 'approved', role: s ? s.value : (members[i].role || 'colab') }); }; });
-    box.querySelectorAll('[data-no]').forEach(function (b) { b.onclick = function () { if (members[b.dataset.no].status === 'approved' && !confirm('¿Quitar el acceso a ' + members[b.dataset.no].name + '?')) return; fs.doc('members/' + b.dataset.no).update({ status: 'blocked' }); }; });
-    box.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { fs.doc('members/' + b.dataset.del).delete(); }; });
-    box.querySelectorAll('[data-role]').forEach(function (s) { s.onchange = function () { fs.doc('members/' + s.dataset.role).update({ role: s.value }); }; });
+    box.querySelectorAll('[data-ok]').forEach(function (b) { b.onclick = function () { var i = b.dataset.ok, s = box.querySelector('[data-r="' + i + '"]'); var rl = s ? s.value : (members[i].role || 'colab'); memLog('dio acceso (' + (ROLES[rl] || rl) + ')', i); fs.doc('members/' + i).update({ status: 'approved', role: rl }); }; });
+    box.querySelectorAll('[data-no]').forEach(function (b) { b.onclick = function () { var i = b.dataset.no, was = members[i].status; if (was === 'approved' && !confirm('¿Quitar el acceso a ' + members[i].name + '?')) return; memLog(was === 'pending' ? 'rechazó la solicitud' : 'quitó el acceso', i); fs.doc('members/' + i).update({ status: 'blocked' }); }; });
+    box.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { memLog('borró', b.dataset.del); fs.doc('members/' + b.dataset.del).delete(); }; });
+    box.querySelectorAll('[data-role]').forEach(function (s) { s.onchange = function () { memLog('cambió el rol a ' + (ROLES[s.value] || s.value), s.dataset.role); fs.doc('members/' + s.dataset.role).update({ role: s.value }); }; });
   }
   var ROLES = { owner: 'Organizador', colab: 'Colaborador', viewer: 'Solo lectura' };
   function renderMembers() {
