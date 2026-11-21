@@ -350,6 +350,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 .cfg h3{margin:18px 0 4px}.cfg h3:first-child{margin-top:0}.cfgRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 4px}.cfgRow>button{width:auto;margin:0}.cfgRow #qrBox{flex-basis:100%}
 .rlink{cursor:pointer}.rlink:hover{text-decoration:underline}
 .recc .recr{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 8px}.recc select,.recc input,.recc button{width:auto;margin:0}.recc select{max-width:170px}.recc .rtn{font-weight:700;min-width:18px}
+.perm{width:100%}.perm td,.perm th{white-space:normal}.perm td.n,.perm th.n{width:64px;text-align:center}.perm input{width:auto;margin:0;transform:scale(1.2)}
 </style>
 </head>
 <body>
@@ -372,6 +373,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 <h3>📄 Mis chorros</h3><div class="msg">Todos tus chorros de todas las liadas en CSV (ubicación;fecha;hora;cantidad;temperatura).</div><div class="cfgRow"><button class="s" id="csvMine" type="button">📄 Descargar mis chorros (CSV)</button></div>
 <h3>🔔 Notificaciones en el móvil</h3><div id="pushBox"></div>
 <div class="ownOnly"><h3>👥 Miembros</h3><div class="msg">Acepta solicitudes, cambia roles o quita acceso.</div><div id="memInline"></div>
+<h3>🛡️ Permisos</h3><div class="msg">Qué pestañas ven y qué pueden hacer los colaboradores y los de solo lectura. Tú siempre lo ves y lo puedes todo.</div><div id="permBox"></div>
 <h3>🔐 Registrados</h3><div class="msg">Resumen de cada cuenta: persona vinculada, email, liadas y chorros apuntados.</div><div id="regBox"></div>
 <h3>💾 Datos</h3><div class="msg">Descarga una copia con todas las liadas, personas y chorros.</div><div class="cfgRow" id="cfgData"></div><div id="cfgImp"></div>
 <h3>👁️ Vista</h3><div class="msg">Mira la app como la ve un colaborador.</div><div class="cfgRow" id="cfgView"></div></div>
@@ -534,6 +536,14 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function sess(id){for(var i=0;i<sessions.length;i++)if(sessions[i].id===id)return sessions[i];return null;}
   function sessLabel(s){return sTitle(s)+', '+dmy(s.start)+' '+hhmm(s.start)+(s.end?'–'+hhmm(s.end):'');}
   function amtOptions(cur){var l=AMOUNTS.slice();if(cur!=null&&l.indexOf(cur)<0){l.push(cur);l.sort(function(a,b){return a-b;});}return l.map(function(a){return '<option value="'+a+'"'+(a===cur?' selected':'')+'>'+fmt(a)+' ml</option>';}).join('');}
+  var PTABS=[['stats','📊 Estadísticas'],['places','📍 Lugares'],['medals','🏅 Medallas'],['cal','📅 Calendario'],['hist','🗂️ Historial'],['act','🕓 Actividad'],['trash','🗑️ Eliminados']];
+  var PACTS=[['log','💧 Apuntar chorros (también carga rápida)'],['edit','✏️ Editar y borrar chorros'],['people','👥 Añadir personas y marcar «se ha ido»'],['times','🧭 Editar horas y recorridos de las personas'],['places','📍 Editar lugares (nombre, tipo, ubicación)']];
+  var PERM_DEF={colab:{tabs:{stats:true,places:true,medals:true,cal:false,hist:false,act:false,trash:false},acts:{log:true,edit:true,people:true,times:true,places:true}},viewer:{tabs:{stats:true,places:true,medals:true,cal:false,hist:false,act:false,trash:false}}};
+  var PERMS=JSON.parse(JSON.stringify(PERM_DEF));
+  function setPerms(x){var o=JSON.parse(JSON.stringify(PERM_DEF));if(x)['colab','viewer'].forEach(function(r){if(!x[r])return;['tabs','acts'].forEach(function(g){if(x[r][g]&&o[r][g])Object.keys(o[r][g]).forEach(function(k){if(typeof x[r][g][k]==='boolean')o[r][g][k]=x[r][g][k];});});});PERMS=o;}
+  function myRole(){return (typeof realOwner!=='undefined'&&realOwner&&isOwner)?'owner':(canWrite?'colab':'viewer');}
+  function can(a){var r=myRole();if(r==='owner'||!db)return true;if(r==='viewer')return false;return PERMS.colab.acts[a]!==false;}
+  function canSay(a){if(can(a))return true;if(myRole()==='viewer')return gate();say('El organizador no permite esto a los colaboradores.');return false;}
   function gate(){if(!canWrite){say('Solo tienes acceso de lectura.');return false;}say('');return true;}
   function canAct(){if(!gate())return false;if(db&&!isActive(viewSid)&&!pastEdit()){say('Solo se puede fichar y añadir personas en la liada en curso.');return false;}return true;}
   function whoName(id){return id?(regMap[id]||names[id]||''):'';}
@@ -573,7 +583,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     state.people.forEach(function(x){if(x.id===p.id){x.gone=upd.gone;if(upd.away)x.away=upd.away;}});saveLocal();onData();return Promise.resolve();
   }
   function fitPerson(pid,ts){if(!db)return;var p=null;state.people.forEach(function(x){if(x.id===pid)p=x;});if(!p)return;var u={};if(p.at&&ts<p.at)u.at=ts;if(p.gone&&ts>p.gone)u.gone=ts;if(Object.keys(u).length)db.doc('people/'+pid).update(u).catch(function(){});}
-  function opAddLog(pid,ts,amt){
+  function opAddLog(pid,ts,amt){if(db&&!can('log')){say('El organizador no permite apuntar chorros a los colaboradores.');return Promise.reject(Object.assign(new Error('Sin permiso'),{userMsg:'Sin permiso para apuntar chorros.'}));}
     fitPerson(pid,ts);
     logAct({act:'add',pname:name(pid),amt:amt,ts:ts});
     if(db){var r=db.collection('logs').doc(),dl={pid:pid,ts:ts,amt:amt,by:myId||null,sid:viewSid,loc:plocAt(pById(pid),sess(viewSid),ts)||null};if(qTemp!=null){dl.temp=qTemp;qTemp=null;}return r.set(dl).then(function(){return r.id;});}
@@ -844,7 +854,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     };
     if($('sDel'))$('sDel').onclick=function(){var sid=viewSid;if(delPending!==sid){delPending=sid;renderSessionBar();setTimeout(function(){if(delPending===sid){delPending=null;renderSessionBar();}},8000);return;}delPending=null;deleteChill(sid);};
     if($('sCap'))$('sCap').onchange=function(){var x=parseFloat(this.value)||0,sid=viewSid;db.doc('sessions/'+sid).update({cap:x}).then(function(){logAct({act:'cap',cap:x});say(x?'Tope por persona: '+fmt(x)+' ml.':'Sin tope por persona.');},fail);};
-    if($('sAuto'))$('sAuto').onchange=function(){var x=parseInt(this.value,10)||0;db.doc('meta/settings').set({autoCloseH:x}).then(function(){say(x?'Cierre automático tras '+x+' h sin chorros.':'Cierre automático desactivado.');},fail);};
+    if($('sAuto'))$('sAuto').onchange=function(){var x=parseInt(this.value,10)||0;db.doc('meta/settings').set({autoCloseH:x},{merge:true}).then(function(){say(x?'Cierre automático tras '+x+' h sin chorros.':'Cierre automático desactivado.');},fail);};
     if($('sSel'))$('sSel').onchange=function(e){var x=e.target.value;if(!x)return;follow=isActive(x);if(follow){try{localStorage.setItem('fichajes-view',x);}catch(er){}}endPending=false;locOpen=false;schOpen=false;schWarn=null;setView(x);};
   }
   var selTouched=false,myPick='';
@@ -933,7 +943,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     el.innerHTML='<ul>'+bulkPlan.items.map(function(i){return i.err?'<li class="bad">✗ '+esc(i.raw)+' — '+i.err+'</li>':(i.dup?'<li class="bad">↷ '+hhmm(i.ts)+' · '+fmt(i.amt)+' ml — ya estaba apuntado, se omite</li>':'<li>✓ '+hhmm(i.ts)+(dOff(i.ts)>0?' (D+'+dOff(i.ts)+')':'')+' · <b>'+fmt(i.amt)+' ml</b></li>');}).join('')+'</ul>'+
       (ok.length?'<button class="p" id="bulkGo" type="button">Guardar '+ok.length+' chorro'+(ok.length===1?'':'s')+' ('+fmt(tot)+' ml) a '+esc(name(bulkPlan.pid))+'</button>':'');
     if($('bulkGo'))$('bulkGo').onclick=function(){
-      if(!canAct())return;var se=sess(viewSid),b=this,pid=bulkPlan.pid;b.disabled=true;b.textContent='Guardando…';
+      if(!canSay('log')||!canAct())return;var se=sess(viewSid),b=this,pid=bulkPlan.pid;b.disabled=true;b.textContent='Guardando…';
       var pr=ok.map(function(i){if(!db){return opAddLog(pid,i.ts,i.amt);}var r=db.collection('logs').doc();return r.set({pid:pid,ts:i.ts,amt:i.amt,by:myId||null,sid:viewSid,loc:plocAt(pById(pid),se,i.ts),bulk:true});});
       var mn=Math.min.apply(null,ok.map(function(i){return i.ts;})),mxx=Math.max.apply(null,ok.map(function(i){return i.ts;}));fitPerson(pid,mn);fitPerson(pid,mxx);
       Promise.all(pr).then(function(){logAct({act:'bulk',pname:name(pid),n:ok.length,amt:tot});bulkText='';bulkPlan=null;bulkOpen=false;renderForm();showUndo('Guardados '+ok.length+' chorros ('+fmt(tot)+' ml) a '+name(pid)+'.',null);},function(e){b.disabled=false;b.textContent='Reintentar';fail(e);});
@@ -982,7 +992,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if($('nowBtn'))$('nowBtn').onclick=function(){whenDirty=false;$('when').value=localInput(Date.now());};
     $('addLog').onclick=function(){
       if(addBusy)return;
-      if(!canAct())return;
+      if(!canSay('log')||!canAct())return;
       var v=$('when').value,ts=v?new Date(v).getTime():Date.now();if(isNaN(ts))ts=Date.now();
       if(pastEdit()){var ps=sess(viewSid);if(ts<ps.start||ts>ps.end+59999){showUndo('Esa liada fue del '+dmy(ps.start)+' '+hhmm(ps.start)+' al '+dmy(ps.end)+' '+hhmm(ps.end)+'. Elige una hora dentro de ese intervalo.',null);return;}}
       if(sel==='__new'){var nn=knownMatch(($('whoNew')?$('whoNew').value:'').trim());if(!nn){say('Escribe el nombre de la persona.');return;}
@@ -1015,7 +1025,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     };
   }
   var tEdit=null,tDraft=null;
-  function canEditTimes(){return canWrite&&(isActive(viewSid)||isOwner||!db);}
+  function canEditTimes(){return canWrite&&can('times')&&(isActive(viewSid)||isOwner||!db);}
   function openTimes(p){
     var se=sess(viewSid),arr=(p.at&&p.at>1e12)?p.at:(se?se.start:Date.now());
     var mv=(p.moves||[]).slice().sort(function(a,b){return a.at-b.at;}),sg=[];mv.forEach(function(m,i){if(!m.loc)return;sg.push({loc:m.loc,f:m.at,t:i+1<mv.length?mv[i+1].at:null});});
@@ -1096,7 +1106,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     list.sort(function(a,b){return (b.n-a.n)||a.name.localeCompare(b.name,'es');});
     box.hidden=!list.length;
     $('knownList').innerHTML=list.map(function(e){return '<button class="s" data-kn="'+esc(e.name)+'"'+(e.acc?' title="Registrado en la app, aún sin liadas"':'')+'>+ '+esc(e.name)+(e.acc?' 🆕':'')+(e.n>1?'<span class="kn">'+e.n+'</span>':'')+'</button>';}).join('');
-    $('knownList').querySelectorAll('[data-kn]').forEach(function(b){b.onclick=function(){if(!canAct())return;b.disabled=true;opAddPerson(b.dataset.kn).then(function(){$('newName').value='';},function(e){b.disabled=false;fail(e);});};});
+    $('knownList').querySelectorAll('[data-kn]').forEach(function(b){b.onclick=function(){if(!canSay('people')||!canAct())return;b.disabled=true;opAddPerson(b.dataset.kn).then(function(){$('newName').value='';},function(e){b.disabled=false;fail(e);});};});
   }
   function renderPeople(){
     if(known===null)loadKnown();else renderKnown();
@@ -1142,13 +1152,13 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if($('eByGo'))$('eByGo').onclick=function(){var lg=getLog(editing);if(!lg||!lg.by)return;var nm=($('eByIn').value||'').trim().replace(/\s+/g,' '),u={};for(var rk in regMap)u[rk]=regMap[rk];if(nm)u[lg.by]=nm;else delete u[lg.by];
       db.doc('regnames/map').set(u).then(function(){if(nm)regMap[lg.by]=nm;else delete regMap[lg.by];names={};resolveLogs();$('eBy').textContent=byText(lg)||'Registrado por Alguien';$('eByBox').hidden=true;say(nm?'Ahora sale «'+nm+'» como quien registró sus chorros.':'Nombre quitado.');},fail);};
     $('eSave').onclick=function(){
-      if(!gate())return;
+      if(!gate()||!canSay('edit'))return;
       var ts=new Date($('eWhen').value).getTime();if(isNaN(ts))return;
       opUpdateLog(editing,{pid:$('ePer').value,ts:ts,amt:parseFloat($('eAmt').value)}).then(function(){editing=null;delLog=false;renderEditor();renderMatrix();},fail);
     };
     $('eCancel').onclick=function(){editing=null;delLog=false;renderMatrix();renderEditor();};
     $('eDel').onclick=function(){
-      if(!gate())return;
+      if(!gate()||!canSay('edit'))return;
       if(!delLog){delLog=true;renderEditor();return;}
       opTrashLog(editing).then(function(){editing=null;delLog=false;renderEditor();renderMatrix();},fail);
     };
@@ -1608,7 +1618,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function renderAll(){peopleSig='';onData();renderEditor();renderSessionBar();}
 
   /* eventos */
-  function addPerson(){var inp=$('newName'),n=inp.value.trim();if(!n||!canAct())return;n=knownMatch(n);if(state.people.some(function(p){return canon(p.name)===canon(n);})){say(n+' ya está en esta liada.');return;}opAddPerson(n).then(function(){inp.value='';if(known){var k=canon(n);if(!known[k])known[k]={name:n,n:1,at:Date.now(),pr:1,sids:{}};}renderKnown();},fail);}
+  function addPerson(){var inp=$('newName'),n=inp.value.trim();if(!n||!canSay('people')||!canAct())return;n=knownMatch(n);if(state.people.some(function(p){return canon(p.name)===canon(n);})){say(n+' ya está en esta liada.');return;}opAddPerson(n).then(function(){inp.value='';if(known){var k=canon(n);if(!known[k])known[k]={name:n,n:1,at:Date.now(),pr:1,sids:{}};}renderKnown();},fail);}
   $('addPerson').onclick=addPerson;
   $('newName').onkeydown=function(e){if(e.key==='Enter')addPerson();};
   $('newName').oninput=function(){renderKnown();};
@@ -1631,7 +1641,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if(t.dataset.pnmerge&&pnMerge){var mg=pnMerge;t.disabled=true;mergePeople(mg.from,mg.to).then(function(){pnMerge=null;pnEdit=null;sel=mg.to;say('Fusionado con '+name(mg.to)+'.');renderPeople();},fail);return;}
     if(t.dataset.pnsave){renamePerson();return;}
     if(t.dataset.gone){
-      if(!canAct())return;
+      if(!canSay('people')||!canAct())return;
       var gp=null;state.people.forEach(function(x){if(x.id===t.dataset.gone)gp=x;});if(!gp)return;
       var gv=!gp.gone;t.disabled=true;
       opSetGone(gp,gv).then(function(){say(gv?gp.name+' marcado como ido: ya no saldrán avisos suyos.':gp.name+' ha vuelto.');},function(e){t.disabled=false;fail(e);});
@@ -2361,7 +2371,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   }
   /* pestañas */
   var curTab='chill';
-  function syncTabs(){document.querySelectorAll('#tabs [data-btn]').forEach(function(b){var o=$(b.dataset.btn);b.hidden=!o||o.hidden;});if(curTab!=='chill'){var cb=document.querySelector('#tabs [data-tab="'+curTab+'"]');if(cb&&cb.hidden)setTab('chill');}}
+  function syncTabs(){var r=myRole();document.querySelectorAll('#tabs [data-tab]').forEach(function(b){var t=b.dataset.tab;if(r!=='owner'&&db&&PERMS[r].tabs.hasOwnProperty(t)){b.hidden=!PERMS[r].tabs[t];return;}if(b.dataset.btn){var o=$(b.dataset.btn);b.hidden=!o||o.hidden;}});if(curTab!=='chill'){var cb=document.querySelector('#tabs [data-tab="'+curTab+'"]');if(cb&&cb.hidden)setTab('chill');}}
   var TABBOX={stats:['statsBox','statsBtn'],hist:['histBox','histBtn'],act:['actBox','actBtn'],trash:['trashBox','trashBtn']};
   function setTab(t){
     Object.keys(TABBOX).forEach(function(k){var bx=$(TABBOX[k][0]);if(k!==t&&!bx.hidden)$(TABBOX[k][1]).onclick();});
@@ -2379,7 +2389,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 
   /* ajustes: herramientas generales de la app (no de la liada) */
   (function(){[['cfgShare','qrBtn'],['cfgShare','qrBox'],['cfgData','bkBtn'],['cfgView','asUserBtn']].forEach(function(x){var a=$(x[0]),b=$(x[1]);if(a&&b)a.appendChild(b);});})();
-  function renderCfg(){var own=realOwner&&isOwner;renderPush();if($('csvMine'))$('csvMine').onclick=function(){openCsv();};document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own)renderReg();}
+  function renderCfg(){var own=realOwner&&isOwner;renderPush();if(own)renderPermsBox();if($('csvMine'))$('csvMine').onclick=function(){openCsv();};document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own)renderReg();}
   /* notificaciones push */
   var pushPrefs=null;
   function renderPush(){var box=$('pushBox');if(!box)return;var P=window.chorroPush;
@@ -2424,6 +2434,18 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       $('cvSh').onclick=function(){try{var f=file();if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:fn}).catch(function(){});else $('cvDl').onclick();}catch(e){$('cvDl').onclick();}};
       $('cvCp').onclick=function(){try{navigator.clipboard.writeText(csv).then(function(){$('cvMsg').textContent='Copiado.';},function(){var t=m.querySelector('textarea');t.select();document.execCommand('copy');$('cvMsg').textContent='Copiado.';});}catch(e){}};
     },function(e){m.innerHTML='<div class="sm-card"><div class="msg">No se pudo preparar: '+esc(e&&e.message||e)+'</div></div>';});}
+  /* permisos por rol (solo organizador) */
+  function renderPermsBox(){var box=$('permBox');if(!box||!(realOwner&&isOwner))return;
+    var ck=function(r,g,k){return '<td class="n"><input type="checkbox" data-pm="'+r+'|'+g+'|'+k+'"'+(PERMS[r][g][k]?' checked':'')+'></td>';};
+    box.innerHTML='<div class="scroll"><table class="hist perm"><thead><tr><th>Pestañas</th><th class="n">✏️ Colab.</th><th class="n">👀 Lectura</th></tr></thead><tbody>'+
+      '<tr><td>💧 Liada y ⚙️ Ajustes</td><td class="n">✔︎</td><td class="n">✔︎</td></tr>'+
+      PTABS.map(function(t){return '<tr><td>'+t[1]+'</td>'+ck('colab','tabs',t[0])+ck('viewer','tabs',t[0])+'</tr>';}).join('')+
+      '<tr><th>Acciones</th><th class="n">✏️ Colab.</th><th class="n">👀 Lectura</th></tr>'+
+      PACTS.map(function(a){return '<tr><td>'+a[1]+'</td>'+ck('colab','acts',a[0])+'<td class="n msg">—</td></tr>';}).join('')+
+      '</tbody></table></div><div class="msg" id="pmMsg">Solo lectura nunca puede cambiar datos. Cambiar ubicación, finalizar o eliminar liadas, importar y quitar personas siguen siendo solo tuyos.</div>';
+    box.querySelectorAll('[data-pm]').forEach(function(c){c.onchange=function(){var p=c.dataset.pm.split('|');PERMS[p[0]][p[1]][p[2]]=c.checked;
+      db.doc('meta/settings').set({perms:PERMS},{merge:true}).then(function(){$('pmMsg').textContent='Guardado. Se aplica al momento a todos.';},function(e){c.checked=!c.checked;fail(e);});};});
+  }
   /* registrados (solo organizador) */
   function renderReg(){var box=$('regBox');if(!realOwner||!userNs||!userNs.members){box.innerHTML='<div class="empty">Solo el organizador puede ver esto.</div>';return;}
     box.innerHTML='<div class="empty">Cargando registrados…</div>';
@@ -2581,7 +2603,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     try{renderPlaces2(box);}catch(e){console.error(e);box.innerHTML='<div class="empty">Error al mostrar los lugares: '+esc(e&&e.message||e)+' <button class="s" id="plRetry" type="button" style="width:auto">Reintentar</button></div>';$('plRetry').onclick=function(){plData=null;renderPlaces();};}
   }
   function renderPlaces2(box){
-    var L=placeStatsAll(plData),ed=canWrite,withLoc=L.filter(function(o){return o.meta.lat!=null;});
+    var L=placeStatsAll(plData),ed=canWrite&&can('places'),withLoc=L.filter(function(o){return o.meta.lat!=null;});
     var h='<h2>📍 Lugares</h2><div class="msg">Cada sitio donde ha habido liada, con su ubicación y tipo. Con la ubicación puesta aparecen en el mapa.</div>'+
       '<div class="pltop"><select id="plMetric"><option value="ml"'+(plMetric==='ml'?' selected':'')+'>Mililitros</option><option value="n"'+(plMetric==='n'?' selected':'')+'>Nº de chorros</option><option value="nch"'+(plMetric==='nch'?' selected':'')+'>Nº de visitas</option><option value="h"'+(plMetric==='h'?' selected':'')+'>Horas</option></select><select id="plMode"><option value="circ"'+(plMode==='circ'?' selected':'')+'>Círculos</option><option value="heat"'+(plMode==='heat'?' selected':'')+'>Mapa de calor</option></select><span class="msg" style="margin:0">'+withLoc.length+' de '+L.length+' con ubicación</span></div>'+
       '<div id="plMap"></div>';
@@ -2783,7 +2805,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         db.doc('colors/map').onSnapshot(function(s){colMap=s.exists?(function(d){var o={};for(var k in d)o[k]=d[k];return o;})(s.data()):{};peopleSig='';onData();},function(){});
         $('statsBtn').hidden=false;loadMine();
         $('scRow').hidden=false;scLabel();
-        db.doc('meta/settings').onSnapshot(function(s){var x=s.exists?s.data():null;npOrg=(x&&x.notif)||null;npLoad();},function(){});
+        db.doc('meta/settings').onSnapshot(function(s){var x=s.exists?s.data():null;npOrg=(x&&x.notif)||null;npLoad();setPerms(x&&x.perms);syncTabs();if(curTab==='cfg')renderPermsBox();},function(){});
         if(isOwner){$('histBtn').hidden=false;$('shareBtn').hidden=false;$('bkBtn').hidden=false;$('actBtn').hidden=false;$('scRow').hidden=false;$('trashBtn').hidden=false;$('copyCsv').hidden=false;db.doc('meta/settings').onSnapshot(function(s){var x=s.exists?s.data():null;autoH=(x&&x.autoCloseH)||0;renderSessionBar();autoCheck();},function(){});}
       });
     });
