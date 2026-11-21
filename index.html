@@ -779,6 +779,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         h+='<button id="sEnd" class="'+(endPending?'w':'')+'">'+(endPending?'Pulsa de nuevo para finalizar':'Finalizar esta liada')+'</button>';
       }
       if(v)h+='<button id="schBtn">'+(schOpen?'Cancelar horario':'Editar horario')+'</button>';
+      if(v)h+='<button id="schFirst" type="button">⏮ Empezar en el primer chorro</button>';
       if(v)h+='<button id="rtBtn">'+(rtOpen?'Cancelar recorrido':'Editar nombre y recorrido')+'</button>';
       if(v)h+='<button id="impBtn" type="button">📥 Importar chorros (CSV)</button>';
       if(v&&rtOpen){if(!rtDraft||rtDraft.sid!==v.id)rtDraft={sid:v.id,title:v.title||'',locs:locTimeline(v).map(function(x){return {loc:x.loc,at:x.at};})};if(!rtDraft.locs.length)rtDraft.locs=[{loc:'',at:v.start}];
@@ -825,6 +826,11 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       if($('rtAdd0'))$('rtAdd0').onclick=function(){rd();var se2=sess(viewSid);rtDraft.locs.unshift({loc:'',at:se2.start});if(rtDraft.locs[1])rtDraft.locs[1].at=null;renderSessionBar();var f=document.querySelector('[data-rtl="0"]');if(f)f.focus();};
       $('rtGo').onclick=function(){rd();saveRoute();};
     }
+    if($('schFirst'))$('schFirst').onclick=function(){var se=sess(viewSid);if(!se||!gate())return;if(!state.logs.length){say('Esta liada aún no tiene chorros.');return;}var fl=Math.min.apply(null,state.logs.map(function(l){return l.ts;}));if(Math.abs(fl-se.start)<60000){say('La liada ya empieza en el primer chorro ('+hhmm(fl)+').');return;}
+      if(!confirm('¿Poner el inicio de la liada a las '+hhmm(fl)+' del '+dmy(fl)+' (primer chorro)?'))return;
+      var nl=(se.locs||[]).map(function(x,i){return i===0?{loc:x.loc,at:fl}:(x.at<fl?{loc:x.loc,at:fl}:x);}),W=[db.doc('sessions/'+se.id).update(Object.assign({start:fl},nl.length?{locs:nl}:{}))];
+      state.people.forEach(function(p){var u={};if(p.at&&p.at<fl)u.at=fl;var mv=(p.moves||[]).map(function(m){return m.at<fl?Object.assign({},m,{at:fl}):m;});if(JSON.stringify(mv)!==JSON.stringify(p.moves||[]))u.moves=mv;if(Object.keys(u).length)W.push(db.doc('people/'+p.id).update(u));});
+      Promise.all(W).then(function(){se.start=fl;if(nl.length)se.locs=nl;logAct({act:'sched',name:sTitle(se),s:fl,e:se.end||null});say('Inicio de la liada: '+dmy(fl)+' '+hhmm(fl)+'.');peopleSig='';routeSig='';onData();},fail);};
     if($('schGo'))$('schGo').onclick=function(){
       var se=sess(viewSid);if(!se||!isOwner)return;
       var ns=new Date($('schS').value).getTime(),ne=$('schE')?new Date($('schE').value).getTime():null;
@@ -1440,10 +1446,10 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   /* importar chorros desde CSV (ubicación;fecha;hora;cantidad;temperatura) */
   function parseImp(txt){var out=[],bad=[];String(txt||'').split(/\r?\n/).forEach(function(line,i){var t=line.trim();if(!t)return;var c=t.split(';').map(function(x){return x.trim();});
       var dm=(c[1]||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/),hm=(c[2]||'').match(/^(\d{1,2}):(\d{2})/),amt=parseFloat((c[3]||'').replace(',','.'));
-      if(!c[0]||!dm||!hm||isNaN(amt)||amt<=0||amt>5){bad.push(i+1);return;}var y=+dm[3];if(y<100)y+=2000;
-      var ts=new Date(y,+dm[2]-1,+dm[1],+hm[1],+hm[2]).getTime();if(isNaN(ts)||Math.abs(ts-Date.now())>400*86400000){bad.push(i+1);return;}var _u,tp=(c[4]||'')===''?null:parseFloat(c[4].replace(',','.'));
+      if(!c[0]||!dm||!hm||isNaN(amt)||amt<=0||amt>5){bad.push(i+1);(out.badTxt=out.badTxt||[]).push(t);return;}var y=+dm[3];if(y<100)y+=2000;
+      var ts=new Date(y,+dm[2]-1,+dm[1],+hm[1],+hm[2]).getTime();if(isNaN(ts)||Math.abs(ts-Date.now())>400*86400000){bad.push(i+1);(out.badTxt=out.badTxt||[]).push(t);return;}var _u,tp=(c[4]||'')===''?null:parseFloat(c[4].replace(',','.'));
       out.push({loc:c[0],ts:ts,amt:amt,temp:(tp==null||isNaN(tp))?null:tp});});
-    out.sort(function(a,b){return a.ts-b.ts;});return {rows:out,bad:bad};}
+    var bt=out.badTxt||[];out.sort(function(a,b){return a.ts-b.ts;});return {rows:out,bad:bad,badTxt:bt};}
   function openImp(){var se=sess(viewSid);if(!se||!isOwner)return;var m=$('shareModal'),close=function(){m.hidden=true;m.innerHTML='';},txt='',P=null,msg='';
     var me0=myPerson(),pid=me0?me0.id:(state.people[0]&&state.people[0].id)||'';
     var stSt=true,stRec=true,tySel={},locs=[];
@@ -1461,7 +1467,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       var first=R0.length?R0[0].ts:null,earlier=first&&first<se.start;
       var pv=$('imPrev');if(!pv)return;
       pv.innerHTML=(R0.length?'<div class="msg" style="margin:6px 0">'+R0.length+' chorros · '+fmt(Math.round(R0.reduce(function(a,r){return a+r.amt;},0)*100)/100)+' ml · del '+dmy(R0[0].ts)+' '+hhmm(R0[0].ts)+' al '+dmy(R0[R0.length-1].ts)+' '+hhmm(R0[R0.length-1].ts)+(dup?' · <b>'+dup+' ya existen</b> (se saltan)':'')+'</div>':'')+
-        (P.bad.length?'<div class="msg" style="margin:6px 0;color:var(--warn)">⚠️ Líneas que no se importarán (fecha, hora o cantidad rara): '+P.bad.join(', ')+'</div>':'')+
+        (P.bad.length?'<div class="msg" style="margin:6px 0;color:var(--warn)">⚠️ '+P.bad.length+' líneas no se importarán (fecha, hora o cantidad rara):</div><pre style="margin:0 0 6px;padding:6px;border:1px solid var(--warn);border-radius:6px;font:12px ui-monospace,monospace;white-space:pre-wrap">'+P.badTxt.map(function(t,i){return 'L'+P.bad[i]+': '+esc(t);}).join('\n')+'</pre>':'')+
         (R0.length?(earlier?'<label class="npr"><input type="checkbox" id="imStart"'+(stSt?' checked':'')+'> Adelantar el inicio de la liada a las '+hhmm(first)+' del '+dmy(first)+' (ahora: '+dmy(se.start)+' '+hhmm(se.start)+')</label>':'')+
           '<label class="npr"><input type="checkbox" id="imRec"'+(stRec?' checked':'')+'> Usar estos sitios como recorrido de '+esc(p?p.name:'')+'</label>'+
           '<div class="msg" style="margin:6px 0 2px">Tipo de cada sitio:</div>'+locs.map(function(l,i){var mt=placesMeta[plKey(l)]||{},def=tySel[nrm(l)]!=null?tySel[nrm(l)]:(mt.type||(isHouse(l)?'casa':''));return '<div class="recr"><span style="min-width:110px">'+esc(l)+'</span><select data-imty="'+i+'" style="width:auto">'+'<option value="">—</option>'+PTYPES.map(function(t){return '<option value="'+t[0]+'"'+(t[0]===def?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>';}).join(''):'')+
@@ -1482,7 +1488,12 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         if(Object.keys(pu).length)W.push(db.doc('people/'+p.id).update(pu).then(function(){Object.assign(p,pu);}));
         var n=0;P2.rows.forEach(function(r){if(ex2.some(function(l){return Math.abs(l.ts-r.ts)<60000;}))return;var d={pid:p.id,ts:r.ts,amt:r.amt,by:myId||null,sid:se.id,loc:r.loc,imp:true};if(r.temp!=null)d.temp=r.temp;n++;W.push(db.collection('logs').doc().set(d));});
         Object.keys(types).forEach(function(l){var t=types[l],k=plKey(l),cur=placesMeta[k]||{};if(t&&t!==cur.type)W.push(db.doc('places/'+k).set({name:cur.name||l,type:t},{merge:true}).then(function(){placesMeta[k]=Object.assign({},cur,{name:cur.name||l,type:t});}));});
-        Promise.all(W).then(function(){logAct({act:'bulk',pname:p.name,n:n,amt:P2.rows.reduce(function(a,r){return a+r.amt;},0)});return saveRpath(se);}).then(function(){close();peopleSig='';routeSig='';plData=null;onData();say(n+' chorros importados para '+p.name+'.');},function(e){b.disabled=false;b.textContent='Importar';fail(e);});}
+        Promise.all(W).then(function(){logAct({act:'bulk',pname:p.name,n:n,amt:P2.rows.reduce(function(a,r){return a+r.amt;},0)});return saveRpath(se);}).then(function(){peopleSig='';routeSig='';plData=null;onData();say(n+' chorros importados para '+p.name+'.');
+          var skipD=P2.rows.filter(function(r){return ex2.some(function(l){return Math.abs(l.ts-r.ts)<60000;});}).map(function(r){return r.loc+';'+dmy(r.ts)+';'+hhmm(r.ts)+';'+String(r.amt).replace('.',',')+' (ya existía)';}),skip=P2.badTxt.map(function(t){return t+' (no se entiende)';}).concat(skipD);
+          if(!skip.length){close();return;}
+          m.innerHTML='<div class="sm-card"><div class="sm-head"><b>📥 '+n+' chorros importados</b><button class="s" id="imX2" type="button">Cerrar</button></div><div class="msg" style="margin:0 0 6px">'+skip.length+' líneas no se han importado:</div><textarea readonly rows="'+Math.min(10,skip.length+1)+'" style="width:100%;font:12px ui-monospace,monospace">'+esc(skip.join('\n'))+'</textarea><div class="sm-btns"><button class="s" id="imCp" type="button">📋 Copiar</button><button class="p" id="imAgain" type="button">Corregir e importar</button></div></div>';
+          $('imX2').onclick=close;$('imCp').onclick=function(){try{navigator.clipboard.writeText(P2.badTxt.join('\n'));this.textContent='Copiado';}catch(e){}};
+          $('imAgain').onclick=function(){txt=P2.badTxt.join('\n');shell();$('imT').value=txt;draw();};},function(e){b.disabled=false;b.textContent='Importar';fail(e);});}
     shell();draw();}
   /* recorrido rápido de una persona */
   function openRec(pid){var p=pById(pid),se=sess(viewSid);if(!p||!se||!canEditTimes())return;
