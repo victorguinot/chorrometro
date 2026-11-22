@@ -495,13 +495,13 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function sidePlaces(se){if(!se||!se.rpath)return [];var mp=mainPath(se).map(nrm),o=[];se.rpath.split(/ → | \/ /).forEach(function(x){x=x.trim();if(x&&mp.indexOf(nrm(x))<0&&!o.some(function(z){return nrm(z)===nrm(x);}))o.push(x);});return o;}
   function locPath(se){var sp=sidePlaces(se);return mainPath(se).join(' → ')+(sp.length?' · además: '+sp.join(', '):'');}
   function allLocs(){var locs=[];sessions.forEach(function(x){locTimeline(x).forEach(function(y){var l=(y.loc||'').trim();if(l&&!locs.some(function(z){return nrm(z)===nrm(l);}))locs.push(l);});});return locs;}
-  var mySids={};
+  var mySids={},mineLoaded=false;
   function loadMine(){
     if(!db||!myId)return;
     Promise.all([db.collection('logs').where('by','==',myId).get(),db.collection('people').limit(1000).get()]).then(function(r){
       var o={};r[0].docs.forEach(function(d){var x=d.data();if(x.sid)o[x.sid]=1;});
       var me=myAcct||myPick;if(me){var k=canon(me);r[1].docs.forEach(function(d){var x=d.data();if(x.sid&&x.name&&canon(x.name)===k)o[x.sid]=1;});}
-      mySids=o;renderSessionBar();
+      mySids=o;mineLoaded=true;renderSessionBar();
     },function(){});
   }
   function pickView(){
@@ -550,7 +550,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function whoName(id){return id?(regMap[id]||names[id]||''):'';}
   function byText(l){var n=whoName(l.by);return n?'Registrado por '+n:'';}
   var acctMap={},myAcct='',regMap={};
-  function loadMyAcct(){var n=(myId&&acctMap[myId])||'';if(n!==myAcct){myAcct=n;if(typeof scLabel==='function')scLabel();selTouched=false;peopleSig='';onData();loadMine();}}
+  function loadMyAcct(){var n=(myId&&acctMap[myId])||'';if(n!==myAcct){myAcct=n;if(db&&myId)loadMine();if(typeof scLabel==='function')scLabel();selTouched=false;peopleSig='';onData();loadMine();}}
   function resolveNames(ids){
     var need=ids.filter(function(i,k){return i&&!(i in names)&&ids.indexOf(i)===k;});
     if(!userNs||!need.length)return Promise.resolve(false);
@@ -779,7 +779,9 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       h+='<div class="sline"><span class="grow">'+(live?'Liada en curso: ':'Liada terminada: ')+'<b>'+esc(sTitle(v))+'</b>, '+(live?'desde las '+hhmm(v.start):dmy(v.start)+' '+hhmm(v.start)+(v.end?'–'+hhmm(v.end):''))+
         (cl?'<br><span class="msg" style="margin:0">📍 '+(live?(liveGroups(v)?'Ahora: <b>'+esc(liveGroups(v))+'</b>':'Ahora '+(isHouse(cl)?'donde':'en')+' <b>'+esc(cl)+'</b>')+(tl.length>1?' desde las '+hhmm(tl[tl.length-1].at)+' · Recorrido: '+esc(locPath(v)):''):'Recorrido: '+esc(locPath(v)))+'</span>':'')+'</span></div>';
     }else h+='<div class="sline"><span class="grow">'+(actives.length?'Elige una liada.':'Ninguna liada en curso.')+'</span></div>';
-    var past=sessions.filter(function(x){return !isActive(x.id)&&(isOwner||mySids[x.id]||x.id===viewSid);});
+    var past=sessions.filter(function(x){return !isActive(x.id)&&(isOwner||mySids[x.id]);});
+    if(!isOwner&&v&&!live&&!mySids[v.id]&&viewSid===v.id&&state.people.length){var mk2=canon(myAcct||myPick||'');if((mk2&&state.people.some(function(p){return p.sid===v.id&&canon(p.name)===mk2;}))||state.logs.some(function(l){return l.sid===v.id&&l.by===myId;}))mySids[v.id]=1;}
+    if(!isOwner&&mineLoaded&&v&&!live&&!mySids[v.id]){viewSid=null;setTimeout(function(){pickView();onData();},0);return;}
     if(actives.length>1||past.length||(isOwner&&actives.length)){
       h+='<select id="sSel" aria-label="Liada que ves">'+(!viewSid?'<option value="" selected>Elige una liada</option>':'')+actives.map(function(id){var x=sess(id);return x?'<option value="'+id+'"'+(viewSid===id?' selected':'')+'>En curso: '+esc(sTitle(x))+'</option>':'';}).join('')+
         (past.length?'<optgroup label="Liadas anteriores">'+past.map(function(x){return '<option value="'+x.id+'"'+(viewSid===x.id?' selected':'')+'>'+esc(sessLabel(x))+'</option>';}).join('')+'</optgroup>':'')+'</select>';
@@ -1294,8 +1296,13 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function medalsHtml(list){return list&&list.length?'<div class="medals">'+list.map(function(m){return '<span class="medal">'+esc(m)+'</span>';}).join('')+'</div>':'';}
   /* ficha de persona */
   function loadAll(){
-    return loadAll0().then(function(D){HIST=D;return D;});
+    return loadAll0().then(function(D){D=visibleOnly(D);HIST=D;return D;});
   }
+  /* cada uno solo ve las liadas en las que ha estado (y las que están en curso) */
+  function visibleOnly(D){if(isOwner||!db)return D;var k=canon(myAcct||myPick||''),ok={};
+    D.people.forEach(function(p){if(k&&p.name&&canon(p.name)===k)ok[p.sid]=1;});D.logs.forEach(function(l){if(myId&&l.by===myId)ok[l.sid]=1;});
+    D.sess.forEach(function(x){if(!x.end)ok[x.id]=1;});
+    return {logs:D.logs.filter(function(l){return ok[l.sid];}),people:D.people.filter(function(p){return ok[p.sid];}),sess:D.sess.filter(function(x){return ok[x.id];})};}
   function loadAll0(){
     return Promise.all([fetchAllLogs(),db.collection('people').limit(1000).get(),db.collection('sessions').limit(500).get()]).then(function(r){
       return {logs:r[0],people:r[1].docs.map(function(d){var x=d.data();return {id:d.id,name:x.name,at:x.at,gone:x.gone,sid:x.sid,col:x.col,away:x.away||[],moves:x.moves||[]};}),
@@ -1924,7 +1931,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     var box=$('statsBox');if(statsKeepY===null)box.innerHTML='<div class="stats"><div class="empty">Calculando…</div></div>';else box.style.minHeight=box.offsetHeight+'px';
     var load=db?Promise.all([fetchAllLogs(),db.collection('people').limit(1000).get(),db.collection('sessions').orderBy('start','desc').limit(500).get()]).then(function(r){
       return {logs:r[0],people:r[1].docs.map(function(d){var x=d.data();return {id:d.id,name:x.name,at:x.at,gone:x.gone,sid:x.sid,col:x.col,away:x.away||[],moves:x.moves||[]};}),sess:r[2].docs.filter(function(d){return !d.data().deleted;}).map(function(d){var x=d.data();return {id:d.id,name:x.name,title:x.title||null,loc:x.loc,locs:x.locs||null,rpath:x.rpath||null,start:x.start,end:x.end,cap:x.cap||0};})};
-    }):Promise.resolve({logs:state.logs.map(function(l){return {pid:l.pid,ts:l.ts,amt:l.amt,sid:'local'};}),people:state.people.map(function(p){return {id:p.id,name:p.name,at:p.at,gone:p.gone,sid:'local'};}),sess:[{id:'local',name:'Local',start:Math.min.apply(null,state.logs.map(function(l){return l.ts;}).concat([Date.now()])),end:null}]});
+    }).then(visibleOnly):Promise.resolve({logs:state.logs.map(function(l){return {pid:l.pid,ts:l.ts,amt:l.amt,sid:'local'};}),people:state.people.map(function(p){return {id:p.id,name:p.name,at:p.at,gone:p.gone,sid:'local'};}),sess:[{id:'local',name:'Local',start:Math.min.apply(null,state.logs.map(function(l){return l.ts;}).concat([Date.now()])),end:null}]});
     load.then(function(D){
       var now=Date.now(),H=3600000,S={},P={},pById={};
       D.sess.forEach(function(se){S[se.id]={se:se,ml:0,n:0,pp:{},people:0};});
@@ -2378,7 +2385,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       var pn={};r[1].docs.forEach(function(d){pn[d.id]=d.data().name;});
       var by={};r[0].docs.forEach(function(d){var x=d.data();if(!x.sid)return;var o=by[x.sid]||(by[x.sid]={n:0,tot:0,pp:{}});o.n++;o.tot+=x.amt||0;o.pp[x.pid]=(o.pp[x.pid]||0)+(x.amt||0);});
       if(!sessions.length&&!delSessions.length){box.innerHTML='<div class="empty">Todavía no hay liadas.</div>';return;}
-      var rows=sessions.map(function(se){
+      var rows=sessions.filter(function(se){return isOwner||!se.end||mySids[se.id];}).map(function(se){
         var o=by[se.id]||{n:0,tot:0,pp:{}},topId=null,topV=0;for(var k in o.pp)if(o.pp[k]>topV){topV=o.pp[k];topId=k;}
         var cur=isActive(se.id),lugar=(locTimeline(se).length>1&&locPath(se).indexOf(' → ')>=0?'Ruta ':'')+locPath(se);
         return '<tr'+(cur?' class="cur"':'')+'><td>'+dmy(se.start)+'</td><td>'+esc(lugar)+(cur?' <span class="msg">(en curso)</span>':'')+'</td><td class="n">'+dur((se.end||Date.now())-se.start)+'</td><td class="n">'+o.n+'</td><td class="n">'+fmt(o.tot)+' ml</td><td>'+(topId?esc(pn[topId]||'—')+' <span class="msg">'+fmt(topV)+' ml</span>':'—')+'</td><td><button class="s" data-hv="'+se.id+'">Ver</button></td></tr>';
