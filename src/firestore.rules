@@ -35,6 +35,26 @@ service cloud.firestore {
     match /push/{uid} {
       allow read, write: if isMember() && request.auth.uid == uid;
     }
+    // Qué liadas puede leer cada uno (lo mantiene el servidor): las suyas y las que están en curso
+    function accDoc() { return /databases/$(database)/documents/access/$(request.auth.uid); }
+    function canSeeSid(sid) { return isOwner() || (isMember() && (!exists(accDoc()) || sid in get(accDoc()).data.sids)); }
+    match /access/{uid} {
+      allow read: if signed() && (request.auth.uid == uid || isOwner());
+      allow write: if false;
+    }
+    // Chorros, actividad y eliminados: solo de las liadas que puede ver cada uno
+    match /logs/{id} {
+      allow read: if canSeeSid(resource.data.sid);
+      allow write: if canWrite();
+    }
+    match /activity/{id} {
+      allow read: if canSeeSid(resource.data.sid);
+      allow write: if canWrite();
+    }
+    match /trash/{id} {
+      allow read: if canSeeSid(resource.data.sid);
+      allow write: if canWrite();
+    }
     // Liadas: solo el organizador cambia el nombre, el horario, la finaliza o la borra
     match /sessions/{id} {
       allow read: if isMember();
@@ -44,8 +64,8 @@ service cloud.firestore {
     }
     // Datos del Chorrómetro
     match /{col}/{doc} {
-      allow read: if isMember() && col != 'members' && col != 'meta' && col != 'push';
-      allow write: if canWrite() && col != 'members' && col != 'meta' && col != 'push' && col != 'sessions';
+      allow read: if isMember() && col != 'members' && col != 'meta' && col != 'push' && col != 'access' && col != 'logs' && col != 'activity' && col != 'trash';
+      allow write: if canWrite() && col != 'members' && col != 'meta' && col != 'push' && col != 'sessions' && col != 'access' && col != 'logs' && col != 'activity' && col != 'trash';
     }
   }
 }
