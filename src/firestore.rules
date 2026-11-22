@@ -35,10 +35,17 @@ service cloud.firestore {
     match /push/{uid} {
       allow read, write: if isMember() && request.auth.uid == uid;
     }
+    // Liadas: solo el organizador cambia el nombre, el horario, la finaliza o la borra
+    match /sessions/{id} {
+      allow read: if isMember();
+      allow create: if canWrite() && request.resource.data.end == null;
+      allow update: if isOwner() || (canWrite() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rpath', 'locs', 'loc', 'name']));
+      allow delete: if isOwner();
+    }
     // Datos del Chorrómetro
     match /{col}/{doc} {
       allow read: if isMember() && col != 'members' && col != 'meta' && col != 'push';
-      allow write: if canWrite() && col != 'members' && col != 'meta' && col != 'push';
+      allow write: if canWrite() && col != 'members' && col != 'meta' && col != 'push' && col != 'sessions';
     }
   }
 }

@@ -614,6 +614,10 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     renderSessionBar();renderAlerts();
   }
   function startSession(){
+    if(!isOwner&&actives.length){say('Ya hay una liada en curso. Solo el organizador puede abrir otra.');return;}
+    if(!isOwner&&db){var b0=$('sStart');if(b0)b0.disabled=true;db.collection('sessions').where('end','==',null).get().then(function(q){if(q.docs.some(function(d){return !d.data().deleted;})){say('Ya hay una liada en curso. Solo el organizador puede abrir otra.');if(b0)b0.disabled=false;return;}startSession2();},function(){startSession2();});return;}
+    startSession2();}
+  function startSession2(){
     var loc=($('sLoc').value==='__new'?$('sName').value:$('sLoc').value).trim();
     if(!loc){say('Elige o escribe dónde es la liada.');return;}
     var nm='Chill de '+loc,keep=false,prev=sess(viewSid)||sessions[0],start=Date.now(),r=db.collection('sessions').doc();
@@ -804,8 +808,8 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
         (prs.length?'<div class="srow mvw"><span>¿Quién se mueve? <button class="lnk" id="mvAll" type="button">Todos</button> · <button class="lnk" id="mvNone" type="button">Nadie</button></span><div class="mvl">'+prs.map(function(p){var on=!mvSel||mvSel[p.id]!==false,pl=plocAt(p,v,Date.now());return '<label class="mvi"><input type="checkbox" data-mv="'+p.id+'"'+(on?' checked':'')+'> '+esc(p.name)+(isSplit(p,v)?' <span class="msg" style="margin:0">📍'+esc(pl)+'</span>':'')+'</label>';}).join('')+'</div></div>':'');}
     }
     if(db&&(isOwner||canWrite)){
-      var showNew=newOpen||!actives.length;
-      if(actives.length)h+='<button id="nBtn" class="'+(showNew?'':'go')+'">'+(showNew?'Cancelar nueva liada':'+ Nueva liada')+'</button>';
+ var showNew=(isOwner&&newOpen)||!actives.length;
+      if(actives.length&&isOwner)h+='<button id="nBtn" class="'+(showNew?'':'go')+'">'+(showNew?'Cancelar nueva liada':'+ Nueva liada')+'</button>';
       if(showNew)h+='<div class="srow"><label>Chill de '+locSel('sLoc')+'</label><input id="sName" placeholder="Nombre (p. ej. Víctor)" maxlength="30" aria-label="Nuevo lugar de la liada"><button class="go" id="sStart">Iniciar liada</button></div>';
     }
     el.innerHTML=h;
