@@ -545,9 +545,10 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   var PERMS=JSON.parse(JSON.stringify(PERM_DEF));
   function setPerms(x){var o=JSON.parse(JSON.stringify(PERM_DEF));if(x)['colab','viewer'].forEach(function(r){if(!x[r])return;['tabs','acts'].forEach(function(g){if(x[r][g]&&o[r][g])Object.keys(o[r][g]).forEach(function(k){if(typeof x[r][g][k]==='boolean')o[r][g][k]=x[r][g][k];});});});PERMS=o;}
   function myRole(){return (typeof realOwner!=='undefined'&&realOwner&&isOwner)?'owner':(canWrite?'colab':'viewer');}
-  function can(a){var r=myRole();if(r==='owner'||!db)return true;if(r==='viewer')return false;return PERMS.colab.acts[a]!==false;}
-  function canSay(a){if(can(a))return true;if(myRole()==='viewer')return gate();say('El organizador no permite esto a los colaboradores.');return false;}
-  function gate(){if(!canWrite){say('Solo tienes acceso de lectura.');return false;}say('');return true;}
+  function lockedPast(sid){sid=sid||viewSid;var x=!!db&&!isOwner&&!!sid&&sess(sid);return !!(x&&x.end);}
+  function can(a){var r=myRole();if(r==='owner'||!db)return true;if(a!=='places'&&lockedPast())return false;if(r==='viewer')return false;return PERMS.colab.acts[a]!==false;}
+  function canSay(a){if(can(a))return true;if(a!=='places'&&lockedPast())return gate();if(myRole()==='viewer')return gate();say('El organizador no permite esto a los colaboradores.');return false;}
+  function gate(any){if(!canWrite){say('Solo tienes acceso de lectura.');return false;}if(any!==true&&lockedPast()){say('🔒 Esta liada ya terminó: solo el organizador puede editarla o reabrirla.');return false;}say('');return true;}
   function canAct(){if(!gate())return false;if(db&&!isActive(viewSid)&&!pastEdit()){say('Solo se puede fichar y añadir personas en la liada en curso.');return false;}return true;}
   function whoName(id){return id?(regMap[id]||names[id]||''):'';}
   function byText(l){var n=whoName(l.by);return n?'Registrado por '+n:'';}
@@ -788,6 +789,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       h+='<select id="sSel" aria-label="Liada que ves">'+(!viewSid?'<option value="" selected>Elige una liada</option>':'')+actives.map(function(id){var x=sess(id);return x?'<option value="'+id+'"'+(viewSid===id?' selected':'')+'>En curso: '+esc(sTitle(x))+'</option>':'';}).join('')+
         (past.length?'<optgroup label="Liadas anteriores">'+past.map(function(x){return '<option value="'+x.id+'"'+(viewSid===x.id?' selected':'')+'>'+esc(sessLabel(x))+'</option>';}).join('')+'</optgroup>':'')+'</select>';
     }
+    if(v&&!live&&!isOwner&&db)h+='<span class="msg" style="margin:0">🔒 Liada terminada · solo lectura</span>';
     if(isOwner){
       if(live){
         h+='<button id="lBtn">'+(locOpen?'Cancelar cambio':'Cambiar ubicación')+'</button>';
@@ -971,7 +973,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       $('qaX').onclick=function(){m.hidden=true;m.innerHTML='';};
       $('qaWho').onchange=function(){pid=this.value;};
       m.querySelectorAll('[data-qa]').forEach(function(b){b.onclick=function(){amt=+b.dataset.qa;draw();};});
-      $('qaGo').onclick=function(){if(busy||!gate())return;busy=true;this.disabled=true;this.textContent='Registrando…';
+      $('qaGo').onclick=function(){if(busy||!gate(true))return;busy=true;this.disabled=true;this.textContent='Registrando…';
         sel=pid;selTouched=true;renderForm();if($('amt')){$('amt').innerHTML=amtOptions(amt);$('amt').value=String(amt);}if($('when')){$('when').value=localInput(Date.now());whenDirty=false;}
         var b=$('addLog');if(b){clearWarn();b.click();}
         setTimeout(function(){var b2=$('addLog');if(b2&&b2.classList.contains('warnbtn')){busy=false;var g=$('qaGo');if(g){g.disabled=false;g.textContent=b2.textContent+' · registrar igualmente';g.onclick=function(){g.disabled=true;g.textContent='Registrando…';b2.click();setTimeout(function(){m.hidden=true;m.innerHTML='';},700);};}var lm=$('logMsg');if(lm&&$('qaMsg'))$('qaMsg').textContent=lm.textContent;return;}m.hidden=true;m.innerHTML='';},250);};}
@@ -1949,7 +1951,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     var b=e.target.closest?e.target.closest('button'):null;if(!b)return;
     var id=b.dataset.rest||b.dataset.purge;if(!id)return;
     var items=db?trashItems:(state.trash||[]),t=null;items.forEach(function(x){if(x.id===id)t=x;});if(!t)return;
-    if(b.dataset.rest){if(!gate())return;b.disabled=true;opRestore(t).then(function(){say(t.type==='log'?'Chorro recuperado.':'Persona recuperada con sus chorros.');},function(e){b.disabled=false;fail(e);});return;}
+    if(b.dataset.rest){if(!gate(true))return;if(t.sid&&lockedPast(t.sid)){say('🔒 Esa liada ya terminó: solo el organizador puede recuperar sus cosas.');return;}b.disabled=true;opRestore(t).then(function(){say(t.type==='log'?'Chorro recuperado.':'Persona recuperada con sus chorros.');},function(e){b.disabled=false;fail(e);});return;}
     if(purgePend!==id){purgePend=id;renderTrash();return;}
     purgePend=null;b.disabled=true;opPurge(t).then(function(){},function(e){b.disabled=false;fail(e);});
   };
@@ -2846,7 +2848,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     $('matrix').scrollIntoView({block:'start',behavior:'smooth'});
   };
   function reopenChill(sid){
-    var se=sess(sid);if(!se||!db||isActive(sid))return;var oldEnd=se.end,now=Date.now();
+    var se=sess(sid);if(!se||!db||isActive(sid))return;if(!isOwner){say('Solo el organizador puede reabrir una liada.');return;}var oldEnd=se.end,now=Date.now();
     db.doc('sessions/'+sid).update({end:null,autoClosed:false,reopened:now}).then(function(){
       return db.collection('people').where('sid','==',sid).get().then(function(s){return Promise.all(s.docs.filter(function(d){return d.data().gone&&Math.abs(d.data().gone-oldEnd)<2000;}).map(function(d){return db.doc('people/'+d.id).update({gone:null});}));});
     }).then(function(){logAct({act:'reopen',sid:sid,name:sTitle(se)});follow=true;try{localStorage.setItem('fichajes-view',sid);}catch(e){}say(sTitle(se)+' vuelve a estar en curso.');renderSessionBar();onData();},fail);

@@ -43,9 +43,19 @@ service cloud.firestore {
       allow write: if false;
     }
     // Chorros, actividad y eliminados: solo de las liadas que puede ver cada uno
+    // Liadas terminadas: solo el organizador puede tocar sus chorros y personas
+    function sessOpen(sid) { return sid is string && exists(/databases/$(database)/documents/sessions/$(sid)) && get(/databases/$(database)/documents/sessions/$(sid)).data.end == null; }
     match /logs/{id} {
       allow read: if canSeeSid(resource.data.sid);
-      allow write: if canWrite();
+      allow create: if isOwner() || (canWrite() && sessOpen(request.resource.data.sid));
+      allow update: if isOwner() || (canWrite() && sessOpen(resource.data.sid) && sessOpen(request.resource.data.sid));
+      allow delete: if isOwner() || (canWrite() && sessOpen(resource.data.sid));
+    }
+    match /people/{id} {
+      allow read: if isMember();
+      allow create: if isOwner() || (canWrite() && sessOpen(request.resource.data.sid));
+      allow update: if isOwner() || (canWrite() && sessOpen(resource.data.sid) && sessOpen(request.resource.data.sid));
+      allow delete: if isOwner() || (canWrite() && sessOpen(resource.data.sid));
     }
     match /activity/{id} {
       allow read: if canSeeSid(resource.data.sid);
@@ -59,13 +69,13 @@ service cloud.firestore {
     match /sessions/{id} {
       allow read: if isMember();
       allow create: if canWrite() && request.resource.data.end == null;
-      allow update: if isOwner() || (canWrite() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rpath', 'locs', 'loc', 'name']));
+      allow update: if isOwner() || (canWrite() && resource.data.end == null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rpath', 'locs', 'loc', 'name']));
       allow delete: if isOwner();
     }
     // Datos del Chorrómetro
     match /{col}/{doc} {
       allow read: if isMember() && col != 'members' && col != 'meta' && col != 'push' && col != 'access' && col != 'logs' && col != 'activity' && col != 'trash';
-      allow write: if canWrite() && col != 'members' && col != 'meta' && col != 'push' && col != 'sessions' && col != 'access' && col != 'logs' && col != 'activity' && col != 'trash';
+      allow write: if canWrite() && col != 'members' && col != 'meta' && col != 'push' && col != 'sessions' && col != 'people' && col != 'access' && col != 'logs' && col != 'activity' && col != 'trash';
     }
   }
 }
