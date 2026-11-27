@@ -377,6 +377,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 <div class="ownOnly"><h3>👥 Miembros</h3><div class="msg">Acepta solicitudes, cambia roles o quita acceso.</div><div id="memInline"></div>
 <h3>🛡️ Permisos</h3><div class="msg">Qué pestañas ven y qué pueden hacer los colaboradores y los de solo lectura. Tú siempre lo ves y lo puedes todo.</div><div id="permBox"></div>
 <h3>🔐 Registrados</h3><div class="msg">Resumen de cada cuenta: persona vinculada, email, liadas y chorros apuntados.</div><div id="regBox"></div>
+<h3>✏️ Nombres de personas</h3><div class="msg">Corrige cómo se llama cada persona. El cambio se aplica en todas sus liadas, su color y su cuenta. Si pones un nombre que ya existe, se juntan en uno.</div><div id="pnBox"></div>
 <h3>💾 Datos</h3><div class="msg">Descarga una copia con todas las liadas, personas y chorros. Además se guarda una copia automática cada noche a las 4:00 (consola de Firebase → Storage → <code>backups/</code>, se guardan 45 días).</div><div class="cfgRow" id="cfgData"></div><div id="cfgImp"></div>
 <h3>👁️ Vista</h3><div class="msg">Mira la app como la ve un colaborador.</div><div class="cfgRow" id="cfgView"></div></div>
 <h3>🚪 Cuenta</h3><div class="cfgRow" id="cfgAcc"></div>
@@ -2491,7 +2492,16 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 
   /* ajustes: herramientas generales de la app (no de la liada) */
   (function(){[['cfgShare','qrBtn'],['cfgShare','qrBox'],['cfgData','bkBtn'],['cfgView','asUserBtn']].forEach(function(x){var a=$(x[0]),b=$(x[1]);if(a&&b)a.appendChild(b);});})();
-  function renderCfg(){var own=realOwner&&isOwner;renderPush();if(own)renderPermsBox();if($('csvMine'))$('csvMine').onclick=function(){openCsv();};document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own)renderReg();}
+  function renderCfg(){var own=realOwner&&isOwner;renderPush();if(own)renderPermsBox();if($('csvMine'))$('csvMine').onclick=function(){openCsv();};document.querySelectorAll('#cfgBox .ownOnly').forEach(function(e){e.hidden=!own;});if(own){renderReg();renderPnBox();}}
+  var PNL=null,pnEd=null,pnQ='';
+  function renderPnBox(force){var box=$('pnBox');if(!box||!db)return;if(!PNL||force){box.innerHTML='<div class="empty">Cargando…</div>';db.collection('people').limit(2000).get().then(function(sn){var m={};sn.docs.forEach(function(d){var x=d.data();if(!x.name)return;var k=canon(x.name),e=m[k]||(m[k]={name:x.name,sids:{},n:0,last:0});if(x.sid&&!e.sids[x.sid]){e.sids[x.sid]=1;e.n++;}if((x.at||0)>e.last){e.last=x.at||0;e.name=x.name;}});PNL=Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return a.name.localeCompare(b.name,'es');});renderPnBox();},function(e){box.innerHTML='<div class="empty">No se pudo cargar: '+esc(e.message||e)+'</div>';});return;}
+    var q=canon(pnQ||''),L=PNL.filter(function(x){return !q||canon(x.name).indexOf(q)>=0;});
+    box.innerHTML='<input id="pnQ" placeholder="Buscar persona…" value="'+esc(pnQ)+'" style="width:100%;margin:4px 0 8px"><div>'+(L.length?L.map(function(x){var ed=pnEd===canon(x.name);return '<div class="row prow"><span class="pnm">'+esc(x.name)+hostMark(x.name)+' <span class="msg">· '+x.n+' liada'+(x.n===1?'':'s')+'</span></span><span class="pbt"><button class="s'+(ed?' go':'')+'" data-pned="'+esc(x.name)+'" type="button">✎ Nombre</button></span></div>'+(ed?'<div class="rtrow" style="margin:0 0 8px"><input id="pnNew" maxlength="30" value="'+esc(x.name)+'" style="flex:1"><button class="go" id="pnOk" type="button">Guardar</button><button class="s" id="pnNo" type="button">Cancelar</button></div><div class="msg" id="pnMsg2"></div>':'');}).join(''):'<div class="empty">Nadie con ese nombre.</div>')+'</div>';
+    $('pnQ').oninput=function(){pnQ=this.value;var c=this.selectionStart;renderPnBox();var i=$('pnQ');i.focus();try{i.setSelectionRange(c,c);}catch(e){}};
+    box.querySelectorAll('[data-pned]').forEach(function(b){b.onclick=function(){var k=canon(b.dataset.pned);pnEd=pnEd===k?null:k;renderPnBox();if(pnEd&&$('pnNew')){$('pnNew').focus();$('pnNew').select();}};});
+    if($('pnNo'))$('pnNo').onclick=function(){pnEd=null;renderPnBox();};
+    if($('pnOk')){var go=function(){var old=null;PNL.forEach(function(x){if(canon(x.name)===pnEd)old=x.name;});var nn=$('pnNew').value.trim().replace(/\s+/g,' ');if(!old)return;if(!nn){$('pnMsg2').textContent='Escribe el nombre.';return;}if(nn===old){pnEd=null;renderPnBox();return;}$('pnOk').disabled=true;$('pnMsg2').textContent='Guardando…';renameGlobal(old,nn).then(function(){pnEd=null;say('Nombre cambiado: '+old+' → '+nn+' en todas las liadas.');renderPnBox(true);},function(e){$('pnOk').disabled=false;$('pnMsg2').textContent=(e&&e.userMsg)||('No se pudo: '+(e&&e.message||e));});};$('pnOk').onclick=go;$('pnNew').onkeydown=function(e){if(e.key==='Enter')go();if(e.key==='Escape'){pnEd=null;renderPnBox();}};}
+  }
   /* notificaciones push */
   var pushPrefs=null;
   function renderPush(){var box=$('pushBox');if(!box)return;var P=window.chorroPush;
