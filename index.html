@@ -534,7 +534,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function loadLocal(){try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.people&&p.logs)return p;}}catch(e){}return {people:[],logs:[]};}
   function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
   function say(t){$('toast').textContent=t||'';}
-  function fail(e){say(e&&e.code==='invalid_argument'?'No tienes permiso para esta acción.':'No se pudo guardar. Inténtalo de nuevo.');}
+  function fail(e){if(e&&e.cancel){say('');return;}say(e&&e.code==='invalid_argument'?'No tienes permiso para esta acción.':'No se pudo guardar. Inténtalo de nuevo.');}
   function name(id){for(var i=0;i<state.people.length;i++)if(state.people[i].id===id)return state.people[i].name;return '—';}
   function getLog(id){for(var i=0;i<state.logs.length;i++)if(state.logs[i].id===id)return state.logs[i];return null;}
   function sess(id){for(var i=0;i<sessions.length;i++)if(sessions[i].id===id)return sessions[i];return null;}
@@ -568,10 +568,22 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if(db){db.collection('activity').doc().set(o).catch(function(){});}
     else{(state.activity=state.activity||[]).push(o);saveLocal();renderAct();}
   }
+  function nowSpots(se){var now=Date.now(),g={},ord=[];state.people.forEach(function(p){if(!presentAt(p,se,now))return;var l=plocAt(p,se,now);if(!l)return;var k=nrm(l);if(!g[k]){g[k]={loc:l,names:[]};ord.push(k);}g[k].names.push(p.name);});
+    return ord.map(function(k){return g[k];}).sort(function(a,b){return b.names.length-a.names.length;});}
+  function askSpot(n,spots){return new Promise(function(res,rej){var m=$('shareModal'),done=function(v){m.hidden=true;m.innerHTML='';if(v==null){var e=new Error('cancel');e.cancel=true;rej(e);}else res(v);};
+    m.innerHTML='<div class="sm-card"><div class="sm-head"><b>📍 ¿Dónde está '+esc(n)+'?</b><button class="s" id="spX" type="button">Cancelar</button></div><div class="msg" style="margin:0 0 10px">Ahora mismo la gente está repartida en '+spots.length+' sitios.</div>'+
+      spots.map(function(x,i){return '<button class="'+(i?'s':'go')+'" data-spot="'+i+'" type="button" style="display:block;width:100%;text-align:left;margin:0 0 8px;padding:10px 12px"><b>'+esc(x.loc)+'</b>'+hostMark(x.loc)+' <span class="msg">· '+x.names.length+' '+(x.names.length===1?'persona':'personas')+': '+esc(x.names.slice(0,6).join(', '))+(x.names.length>6?'…':'')+'</span></button>';}).join('')+'</div>';
+    m.hidden=false;m.onclick=function(e){if(e.target===m)done(null);};$('spX').onclick=function(){done(null);};
+    m.querySelectorAll('[data-spot]').forEach(function(b){b.onclick=function(){done(spots[+b.dataset.spot].loc);};});});}
   function opAddPerson(n){
-    logAct({act:'addp',pname:n});
+    var se=db&&viewSid&&isActive(viewSid)?sess(viewSid):null,spots=se?nowSpots(se):[];
+    if(spots.length>1)return askSpot(n,spots).then(function(loc){return opAddPerson0(n,nrm(loc)===nrm(curLoc(se))?null:loc);});
+    return opAddPerson0(n,null);
+  }
+  function opAddPerson0(n,loc){
+    var la={act:'addp',pname:n};if(loc)la.loc=loc;logAct(la);
     var col=pickSlot(n);rememberSlot(n,col);
-    if(db){var r=db.collection('people').doc();sel=r.id;selTouched=true;return r.set({name:n,at:Date.now(),sid:viewSid,col:col}).then(function(){return r.id;});}
+    if(db){var r=db.collection('people').doc();sel=r.id;selTouched=true;var o={name:n,at:Date.now(),sid:viewSid,col:col};if(loc)o.moves=[{loc:loc,at:o.at}];return r.set(o).then(function(){return r.id;});}
     var id=uid();sel=id;selTouched=true;state.people.push({id:id,name:n,at:Date.now(),col:col});saveLocal();onData();return Promise.resolve(id);
   }
   function opRemovePerson(id){
@@ -637,7 +649,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     var se=sess(viewSid);if(!se||!isActive(se.id))return;
     var loc=($('lLoc').value==='__new'?$('lName').value:$('lLoc').value).trim();
     if(!loc){say('Elige o escribe la nueva ubicación.');return;}
-    var present=state.people.filter(function(p){return !p.gone;}),sel=present.filter(function(p){return !mvSel||mvSel[p.id]!==false;});
+    var present=state.people.filter(function(p){return !p.gone;}),sel=present.filter(function(p){return !!(mvSel&&mvSel[p.id]===true);});
     if(present.length&&!sel.length){say('Marca quién se mueve.');return;}
     var now=Date.now(),atv=$('lAt')?new Date($('lAt').value).getTime():now;if(!isNaN(atv)&&atv<now-60000){now=Math.max(se.start,atv);}
     var main=locAtTs(se,now),old=main,eq=function(a,b){return nrm(a||'')===nrm(b||'');};
@@ -812,7 +824,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       if(v&&!live)h+='<button id="sReo" class="go">Reabrir liada</button>';
       if(v)h+='<button id="sDel" class="w" title="Eliminar esta liada">'+(delPending===v.id?'¿Eliminar '+esc(sTitle(v))+'? Pulsa otra vez':'Eliminar liada')+'</button>';
       if(live&&locOpen){var prs=state.people.filter(function(p){return !p.gone;});h+='<div class="srow"><span>Nueva ubicación:</span>'+locSel('lLoc')+'<input id="lName" placeholder="Nombre (p. ej. Pol)" maxlength="30" aria-label="Nueva ubicación"><label>desde <input type="datetime-local" id="lAt" min="'+localInput(v.start)+'" value="'+localInput(Date.now())+'"></label><button class="lnk" id="lAt0" type="button">desde el inicio</button><button class="go" id="lGo">Cambiar</button></div>'+
-        (prs.length?'<div class="srow mvw"><span>¿Quién se mueve? <button class="lnk" id="mvAll" type="button">Todos</button> · <button class="lnk" id="mvNone" type="button">Nadie</button></span><div class="mvl">'+prs.map(function(p){var on=!mvSel||mvSel[p.id]!==false,pl=plocAt(p,v,Date.now());return '<label class="mvi"><input type="checkbox" data-mv="'+p.id+'"'+(on?' checked':'')+'> '+esc(p.name)+(isSplit(p,v)?' <span class="msg" style="margin:0">📍'+esc(pl)+'</span>':'')+'</label>';}).join('')+'</div></div>':'');}
+        (prs.length?'<div class="srow mvw"><span>¿Quién se mueve? <span class="msg">(solo los marcados)</span> <button class="lnk" id="mvAll" type="button">Todos</button> · <button class="lnk" id="mvNone" type="button">Nadie</button></span><div class="mvl">'+prs.map(function(p){var on=!!(mvSel&&mvSel[p.id]===true),pl=plocAt(p,v,Date.now());return '<label class="mvi"><input type="checkbox" data-mv="'+p.id+'"'+(on?' checked':'')+'> '+esc(p.name)+(isSplit(p,v)?' <span class="msg" style="margin:0">📍'+esc(pl)+'</span>':'')+'</label>';}).join('')+'</div></div>':'');}
     }
     if(db&&(isOwner||canWrite)){
  var showNew=(isOwner&&newOpen)||!actives.length;
@@ -825,7 +837,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if($('lBtn'))$('lBtn').onclick=function(){locOpen=!locOpen;renOpen=false;mvSel=null;renderSessionBar();};
     document.querySelectorAll('[data-mv]').forEach(function(c){c.onchange=function(){mvSel=mvSel||{};mvSel[this.dataset.mv]=this.checked;};});
     if($('lAt0'))$('lAt0').onclick=function(){var se2=sess(viewSid);if(se2)$('lAt').value=localInput(se2.start);};
-    if($('mvAll'))$('mvAll').onclick=function(){mvSel=null;renderSessionBar();};
+    if($('mvAll'))$('mvAll').onclick=function(){mvSel={};state.people.forEach(function(p){if(!p.gone)mvSel[p.id]=true;});renderSessionBar();};
     if($('mvNone'))$('mvNone').onclick=function(){mvSel={};state.people.forEach(function(p){mvSel[p.id]=false;});renderSessionBar();};
     if($('rBtn'))$('rBtn').onclick=function(){renOpen=!renOpen;locOpen=false;renderSessionBar();if(renOpen&&$('rName'))$('rName').select();};
     if($('rGo')){$('rGo').onclick=renameLoc;$('rName').onkeydown=function(e){if(e.key==='Enter')renameLoc();};}
@@ -1010,7 +1022,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       if(pastEdit()){var ps=sess(viewSid);if(ts<ps.start||ts>ps.end+59999){showUndo('Esa liada fue del '+dmy(ps.start)+' '+hhmm(ps.start)+' al '+dmy(ps.end)+' '+hhmm(ps.end)+'. Elige una hora dentro de ese intervalo.',null);return;}}
       if(sel==='__new'){var nn=knownMatch(($('whoNew')?$('whoNew').value:'').trim());if(!nn){say('Escribe el nombre de la persona.');return;}
         var ex=null;state.people.forEach(function(x){if(canon(x.name)===canon(nn))ex=x;});
-        if(ex){sel=ex.id;}else{var bb=$('addLog');bb.disabled=true;bb.textContent='Añadiendo a '+nn+'…';whoNewText='';opAddPerson(nn).then(function(nid){var tries=0;(function wt(){if(state.people.some(function(x){return x.id===nid;})){sel=nid;selTouched=true;renderForm();var b2=$('addLog');if(b2)b2.click();return;}if(++tries<40)setTimeout(wt,100);else{renderForm();fail(new Error('No se pudo añadir a '+nn));}})();},function(e){bb.disabled=false;fail(e);});return;}
+        if(ex){sel=ex.id;}else{var bb=$('addLog');bb.disabled=true;bb.textContent='Añadiendo a '+nn+'…';whoNewText='';opAddPerson(nn).then(function(nid){var tries=0;(function wt(){if(state.people.some(function(x){return x.id===nid;})){sel=nid;selTouched=true;renderForm();var b2=$('addLog');if(b2)b2.click();return;}if(++tries<40)setTimeout(wt,100);else{renderForm();fail(new Error('No se pudo añadir a '+nn));}})();},function(e){bb.disabled=false;if(e&&e.cancel)sel='__new';renderForm();fail(e);});return;}
         whoNewText='';}
       var a=parseFloat($('amt').value),pid=sel,btn=$('addLog');
       if(lastAdd&&lastAdd.pid===pid&&Date.now()-lastAdd.at<4000){showUndo('Ya has registrado un chorro para '+name(pid)+' hace un momento.',null);return;}
@@ -1149,6 +1161,8 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       '<label style="display:block;margin:0 0 8px">Me voy a <select id="mlSel" style="width:auto;max-width:200px;margin:0 0 0 6px"><option value="__g">👥 Con el grupo ('+esc(grp)+')</option><optgroup label="En esta liada">'+locs.slice(0,nHere).map(function(l){return '<option>'+esc(l)+'</option>';}).join('')+'</optgroup>'+(locs.length>nHere?'<optgroup label="Otros sitios">'+locs.slice(nHere).map(function(l){return '<option>'+esc(l)+'</option>';}).join('')+'</optgroup>':'')+'<option value="__n">✏️ Otro sitio…</option></select></label>'+
       '<input id="mlNew" placeholder="Nombre del sitio" maxlength="30" hidden style="margin:0 0 8px">'+
       '<label style="display:block;margin:0 0 8px">Desde <input type="datetime-local" id="mlAt" value="'+localInput(now)+'" style="width:auto;margin:0 0 0 6px"></label>'+
+      (function(){var ot=state.people.filter(function(q){return q.id!==p.id&&presentAt(q,se,now);}),here=ot.filter(function(q){return nrm(plocAt(q,se,now)||'')===nrm(cur);}),far=ot.filter(function(q){return here.indexOf(q)<0;});if(!ot.length)return '';var row=function(q){return '<label class="mvi"><input type="checkbox" data-mlw="'+q.id+'"> '+esc(q.name)+(here.indexOf(q)<0?' <span class="msg">('+esc(plocAt(q,se,now)||'')+')</span>':'')+'</label>';};
+        return '<div style="margin:0 0 8px"><div class="msg" style="margin:0 0 4px">👥 ¿Quién se viene contigo? Solo se mueve a quien marques.</div><div class="mvl">'+here.map(row).join('')+far.map(row).join('')+'</div></div>';})()+
       '<button class="s" id="mlGps" type="button" style="width:auto">🛰️ Detectar con el GPS</button><div class="msg" id="mlMsg"></div>'+
       '<div class="sm-btns"><button class="s" id="mlC" type="button">Cancelar</button><button class="p" id="mlGo" type="button">Guardar</button></div></div>';
     var sl=$('mlSel');if(pre){[].some.call(sl.options,function(o){if(nrm(o.value)===nrm(pre)){sl.value=o.value;return true;}return false;});}
@@ -1159,10 +1173,11 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       [].some.call(sl.options,function(o){if(nrm(o.value)===nrm(n.name)){sl.value=o.value;return true;}return false;});$('mlNew').hidden=true;$('mlMsg').textContent='Estás en '+n.name+' (a '+Math.round(n.km*1000)+' m).';});};
     $('mlGo').onclick=function(){if(!gate())return;var v=sl.value,loc=v==='__g'?null:(v==='__n'?($('mlNew').value||'').trim():v);if(v==='__n'&&!loc){$('mlMsg').textContent='Escribe el nombre del sitio.';return;}
       var at=new Date($('mlAt').value).getTime();if(isNaN(at))at=Date.now();if(at<se.start)at=se.start;
-      var mv=(p.moves||[]).filter(function(x){return x.at<at-30000;}),last=mv.length?mv[mv.length-1]:null;if(!(mv.length===0&&loc===null)&&!(last&&(last.loc||null)===(loc||null)))mv.push({loc:loc,at:at});
-      var b=$('mlGo');b.disabled=true;
-      db.doc('people/'+p.id).update({moves:mv}).then(function(){p.moves=mv;return Promise.all(state.logs.filter(function(l){return l.pid===p.id&&l.ts>=at-30000;}).map(function(l){var nl=plocAt(p,se,l.ts)||null;return nl!==(l.loc||null)?db.doc('logs/'+l.id).update({loc:nl}):null;}));}).then(function(){logAct({act:'mymove',pname:p.name,loc:loc||('con el grupo ('+grp+')')});return saveRpath(se);})
-        .then(function(){close();peopleSig='';routeSig='';onData();say('📍 '+p.name+': ahora en '+(loc||grp)+'.');},function(e){b.disabled=false;fail(e);});};}
+      var who=[p];document.querySelectorAll('[data-mlw]').forEach(function(c){if(c.checked){var q=pById(c.dataset.mlw);if(q)who.push(q);}});
+      var nmv=function(q){var mv=(q.moves||[]).filter(function(x){return x.at<at-30000;}),last=mv.length?mv[mv.length-1]:null;if(!(mv.length===0&&loc===null)&&!(last&&(last.loc||null)===(loc||null)))mv.push({loc:loc,at:at});return mv;};
+      var b=$('mlGo');b.disabled=true;var ids={};who.forEach(function(q){ids[q.id]=1;});
+      Promise.all(who.map(function(q){var mv=nmv(q);return db.doc('people/'+q.id).update({moves:mv}).then(function(){q.moves=mv;});})).then(function(){return Promise.all(state.logs.filter(function(l){return ids[l.pid]&&l.ts>=at-30000;}).map(function(l){var nl=plocAt(pById(l.pid),se,l.ts)||null;return nl!==(l.loc||null)?db.doc('logs/'+l.id).update({loc:nl}):null;}));}).then(function(){logAct({act:'mymove',pname:who.map(function(q){return q.name;}).join(', '),loc:loc||('con el grupo ('+grp+')')});return saveRpath(se);})
+        .then(function(){close();peopleSig='';routeSig='';onData();say('📍 '+who.map(function(q){return q.name;}).join(', ')+': ahora en '+(loc||grp)+'.');},function(e){b.disabled=false;fail(e);});};}
   /* temperatura automática (Open-Meteo) con la ubicación del sitio o, si ya hay permiso, la del móvil */
   var tempCache={};
   function getCoords(loc){var m=loc?placesMeta[plKey(loc)]:null;if(m&&m.lat!=null)return Promise.resolve({lat:m.lat,lng:m.lng});

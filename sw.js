@@ -1,5 +1,5 @@
 /* Chorrómetro · funciona sin conexión: guarda la web en el móvil */
-var V='chorro-1795816210';
+var V='chorro-1795822775';
 var CORE=['./','index.html','fb.js','config.js','manifest.webmanifest','icon.svg','icon-192.png','apple-touch-icon.png','vendor/leaflet.js','vendor/leaflet.css','vendor/leaflet-heat.js',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js','https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js','https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js','https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'];
