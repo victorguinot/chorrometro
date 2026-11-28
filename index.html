@@ -600,7 +600,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     if(db)return db.doc('people/'+p.id).update(upd);
     state.people.forEach(function(x){if(x.id===p.id){x.gone=upd.gone;if(upd.away)x.away=upd.away;}});saveLocal();onData();return Promise.resolve();
   }
-  function fitPerson(pid,ts){if(!db)return;var p=null;state.people.forEach(function(x){if(x.id===pid)p=x;});if(!p)return;var u={};if(p.at&&ts<p.at)u.at=ts;if(p.gone&&ts>p.gone){var se=sess(viewSid);if(se&&!se.end&&Date.now()-ts<60*60000){u.gone=null;logAct({act:'back',pname:p.name});}else u.gone=ts;}if(Object.keys(u).length)db.doc('people/'+pid).update(u).catch(function(){});}
+  function fitPerson(pid,ts){if(!db)return;var p=null;state.people.forEach(function(x){if(x.id===pid)p=x;});if(!p)return;var u={};if(p.at&&ts<p.at)u.at=ts;if(p.gone&&ts>p.gone){var se=sess(viewSid);u.away=(p.away||[]).concat([{f:p.gone,t:ts}]);if(se&&!se.end)u.gone=null;else u.gone=Math.min(ts+30*60000,(se&&se.end)||ts+30*60000);logAct({act:'back',pname:p.name});}if(Object.keys(u).length)db.doc('people/'+pid).update(u).catch(function(){});}
   function opAddLog(pid,ts,amt){if(db&&!can('log')){say('El organizador no permite apuntar chorros a los colaboradores.');return Promise.reject(Object.assign(new Error('Sin permiso'),{userMsg:'Sin permiso para apuntar chorros.'}));}
     fitPerson(pid,ts);
     logAct({act:'add',pname:name(pid),amt:amt,ts:ts});
