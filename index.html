@@ -1381,8 +1381,9 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function medalsHtml(list){return list&&list.length?'<div class="medals">'+list.map(function(m){return '<span class="medal">'+esc(m)+'</span>';}).join('')+'</div>':'';}
   /* ficha de persona */
   function loadAll(){
-    return loadAll0().then(function(D){D=visibleOnly(D);HIST=D;return D;});
+    return loadAll0().then(function(D){D=visibleOnly(D);HIST=D;try{localStorage.setItem('fichajes-hist',JSON.stringify({at:Date.now(),u:myId||'',D:D}));}catch(e){}return D;});
   }
+  function cachedHist(){if(HIST)return HIST;try{var c=JSON.parse(localStorage.getItem('fichajes-hist')||'null');if(c&&c.D&&c.u===(myId||''))return c.D;}catch(e){}return null;}
   /* cada uno solo ve las liadas en las que ha estado (y las que están en curso) */
   function visibleOnly(D){if(isOwner||!db)return D;var k=canon(myAcct||myPick||''),ok={};
     D.people.forEach(function(p){if(k&&p.name&&canon(p.name)===k)ok[p.sid]=1;});D.logs.forEach(function(l){if(myId&&l.by===myId)ok[l.sid]=1;});
@@ -2760,10 +2761,14 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     Object.keys(placesMeta).forEach(function(k){var m=placesMeta[k];if(!out[k]&&m.name)g(m.name);});
     return Object.keys(out).map(function(k){var o=out[k];o.nch=Object.keys(o.ch).length;o.npp=Object.keys(o.pp).length;o.meta=placesMeta[k]||{};return o;}).sort(function(a,b){return b.ml-a.ml||b.nch-a.nch;});
   }
+  var plBg=false;
   function renderPlaces(){
     var box=$('placesBox');if(!db){box.innerHTML='<div class="empty">Los lugares necesitan la versión conectada.</div>';return;}
+    if(!plData&&!plBg){var CH=cachedHist(),CM=null;try{CM=JSON.parse(localStorage.getItem('fichajes-places')||'null');}catch(e){}
+      if(CH){plData=CH;if(CM&&!Object.keys(placesMeta).length)placesMeta=CM;plBg=true;
+        Promise.all([loadAll(),db.collection('places').get().catch(function(){return {docs:[]};})]).then(function(r){plBg=false;if(r[1].docs.length){placesMeta={};r[1].docs.forEach(function(d){placesMeta[d.id]=d.data();});try{localStorage.setItem('fichajes-places',JSON.stringify(placesMeta));}catch(e){}}plData=r[0];if(curTab==='places')renderPlaces();},function(){plBg=false;});}}
     if(!plData){box.innerHTML='<div class="empty">Cargando lugares…</div>';var plT=setTimeout(function(){if(!plData&&$('placesBox')===box&&/Cargando/.test(box.textContent))box.innerHTML='<div class="empty">Está tardando mucho en cargar… <button class="s" id="plRetry" type="button" style="width:auto">Reintentar</button></div>';var rb=$('plRetry');if(rb)rb.onclick=function(){plData=null;renderPlaces();};},15000);
-      Promise.all([loadAll(),db.collection('places').get().catch(function(){return db.collection('places').get({source:'cache'});}).catch(function(){return {docs:[]};})]).then(function(r){clearTimeout(plT);placesMeta={};r[1].docs.forEach(function(d){placesMeta[d.id]=d.data();});plData=r[0];renderPlaces();},function(e){clearTimeout(plT);box.innerHTML='<div class="empty">No se pudieron cargar los lugares: '+esc(e&&e.message||e)+'</div>';});return;}
+      Promise.all([loadAll(),db.collection('places').get().catch(function(){return db.collection('places').get({source:'cache'});}).catch(function(){return {docs:[]};})]).then(function(r){clearTimeout(plT);placesMeta={};r[1].docs.forEach(function(d){placesMeta[d.id]=d.data();});try{localStorage.setItem('fichajes-places',JSON.stringify(placesMeta));}catch(e){}plData=r[0];renderPlaces();},function(e){clearTimeout(plT);box.innerHTML='<div class="empty">No se pudieron cargar los lugares: '+esc(e&&e.message||e)+'</div>';});return;}
     try{renderPlaces2(box);}catch(e){console.error(e);box.innerHTML='<div class="empty">Error al mostrar los lugares: '+esc(e&&e.message||e)+' <button class="s" id="plRetry" type="button" style="width:auto">Reintentar</button></div>';$('plRetry').onclick=function(){plData=null;renderPlaces();};}
   }
   function renderPlaces2(box){
@@ -2848,6 +2853,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     var el=$('plMap');if(!el)return;var pts=L.filter(function(o){return o.meta.lat!=null;});
     if(!pts.length){el.innerHTML='<div class="empty" style="padding:40px 10px">Pon la ubicación de algún lugar (✎ Editar) para verlo en el mapa.</div>';return;}
     needLeaflet().then(function(){
+      if(!el.isConnected||$('plMap')!==el)return;
       (plMapObj||[]).forEach(function(mm){try{mm.remove();}catch(e){}});plMapObj=[];var Lf=window.L;
       var G=geoClusters(),wt={},items=[];
       pts.forEach(function(o){var m=o.meta;if(m.lat2!=null){var ca=G.of([m.lat,m.lng]),cb=G.of([m.lat2,m.lng2]);items.push({o:o,trip:true,ca:ca,cb:cb});[ca,cb].forEach(function(c){wt[c]=(wt[c]||0)+(o[plMetric]||0)/2;});}else{var c=G.of([m.lat,m.lng]);items.push({o:o,c:c});wt[c]=(wt[c]||0)+(o[plMetric]||0);}});
