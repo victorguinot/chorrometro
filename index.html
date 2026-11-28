@@ -364,21 +364,23 @@ body.tvOn .bn{padding:28px 36px;font-size:1.5em;border-width:4px;border-radius:2
 .tv-top .tv-sp{flex:1}
 .tv-top .tv-clk{font-size:1.6em;font-weight:800;font-variant-numeric:tabular-nums}
 .tv-top .tv-x{background:none;border:0;color:#6b7f8a;font-size:1em;cursor:pointer;padding:0 .2em}
-.tv-main{display:grid;grid-template-columns:1fr 2.1fr 1.25fr;gap:1em;padding:1em 1.2em;min-height:0}
+.tv-main{display:grid;grid-template-columns:.9fr 1.8fr 1.6fr;gap:1em;padding:1em 1.2em;min-height:0}
 .tv-card{background:#121b20;border:1px solid #22313a;border-radius:.8em;padding:.8em 1em;min-height:0;overflow:hidden;display:flex;flex-direction:column}
 .tv-h{font-size:.8em;letter-spacing:.08em;text-transform:uppercase;color:#8fa3ad;font-weight:700;margin:0 0 .5em}
 .tv-kpi{display:flex;flex-direction:column;justify-content:space-around;gap:.4em}
-.tv-k b{display:block;font-size:3.2em;line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.tv-k b{display:block;font-size:2.8em;line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
 .tv-k span{color:#8fa3ad;font-size:.85em}
-.tv-row{display:grid;grid-template-columns:2.2em minmax(5em,9em) 1fr 4.6em 5.6em;align-items:center;gap:.5em;padding:.22em 0;transition:transform .6s}
+.tv-row{display:grid;grid-template-columns:2.2em minmax(5em,9em) 1fr 4.6em;align-items:center;gap:.5em;padding:.22em 0;transition:transform .6s}
 .tv-row .tv-m{font-size:1.2em;text-align:center}
 .tv-row .tv-n{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tv-bar{height:1em;border-radius:.5em;background:#1c2a31;overflow:hidden}
 .tv-bar i{display:block;height:100%;border-radius:.5em;transition:width .8s}
 .tv-row .tv-v{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
 .tv-row .tv-v small{font-weight:600;color:#8fa3ad;font-size:.7em;margin-left:.15em}
-.tv-cd{display:flex;flex-direction:column;align-items:flex-end;gap:.15em;font-variant-numeric:tabular-nums;font-weight:800}
-.tv-cd s{display:block;width:100%;height:.3em;border-radius:.2em;background:#1c2a31;overflow:hidden;text-decoration:none}
+.tv-cd{display:flex;align-items:center;gap:.6em;font-variant-numeric:tabular-nums;font-weight:800;flex:none;width:12em}
+.tv-cd>b{flex:none;width:6.2em;text-align:right}
+.tv-cd>s{flex:1}
+.tv-cd s{display:block;height:.45em;border-radius:.2em;background:#1c2a31;overflow:hidden;text-decoration:none}
 .tv-cd s i{display:block;height:100%;background:#3ccf91;transition:width 1s linear}
 .tv-cd.warn{color:#ffc04d}.tv-cd.warn s i{background:#ffc04d}
 .tv-cd.late{color:#ff6b5b}.tv-cd.late s i{background:#ff6b5b;width:100%!important;animation:tvPulse 1s ease-in-out infinite}
@@ -1774,7 +1776,7 @@ body.tvOn .bn{padding:28px 36px;font-size:1.5em;border-width:4px;border-radius:2
   document.addEventListener('visibilitychange',function(){if(tvOn&&document.visibilityState==='visible'&&navigator.wakeLock)navigator.wakeLock.request('screen').then(function(l){tvLock=l;}).catch(function(){});});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&tvOn)tvClose();});
   function tvTick(){if(!tvOn)return;var now=Date.now(),tot=cfg.min*60000;document.querySelectorAll('#tv .tv-cd').forEach(function(c){var r=+c.dataset.due-now,a=Math.abs(r),m=Math.floor(a/60000),sx=Math.floor(a/1000)%60;
-      c.querySelector('b').textContent=(r<0?'+':'')+(m>=60?Math.floor(m/60)+'h'+pad(m%60):m+':'+pad(sx));c.className='tv-cd'+(r<0?' late':(r<5*60000?' warn':''));c.querySelector('i').style.width=Math.max(0,Math.min(100,r/tot*100))+'%';});}
+      c.querySelector('b').textContent=(r<0?'¡ya! ':'')+(r<0?'+':'')+(m>=60?Math.floor(m/60)+'h'+pad(m%60):m+':'+pad(sx));c.className='tv-cd'+(r<0?' late':(r<5*60000?' warn':''));c.querySelector('i').style.width=Math.max(0,Math.min(100,r/tot*100))+'%';});}
   setInterval(tvTick,1000);
   function renderTV(){
     if(!tvOn)return;var el=$('tv'),se=sess(viewSid),now=Date.now();
@@ -1784,16 +1786,16 @@ body.tvOn .bn{padding:28px 36px;font-size:1.5em;border-width:4px;border-radius:2
     var tot=0;logs.forEach(function(l){tot+=l.amt;});var hr=0;logs.forEach(function(l){if(now-l.ts<=3600000&&l.ts<=now)hr+=l.amt;});
     var end=se.end||now,loc=curLoc(se);
     var top='<div class="tv-top"><b>'+esc(sTitle(se))+'</b>'+(loc?'<span>📍 '+esc(loc)+'</span>':'')+'<span>⏱ '+dur(end-se.start)+'</span><span>👥 '+(live?pres.length:ps.length)+'</span>'+(live?'':'<span>🏁 terminada</span>')+'<span class="tv-sp"></span><span class="tv-clk">'+hhmm(now)+'</span><button class="tv-x" id="tvX" title="Salir">✕</button></div>';
-    var kpi='<div class="tv-card tv-kpi"><div class="tv-k"><b>'+logs.length+'</b><span>chorros</span></div><div class="tv-k"><b>'+fmt(Math.round(tot*100)/100)+'</b><span>ml en total</span></div>'+(live?'<div class="tv-k"><b>'+fmt(Math.round(hr*100)/100)+'</b><span>ml en la última hora</span></div>':'<div class="tv-k"><b>'+fmt(Math.round(tot/Math.max(1,ps.length)*100)/100)+'</b><span>ml por persona</span></div>')+'</div>';
+    var sp0=live?nowSpots(se):[];
+    var kpi='<div class="tv-card tv-kpi"><div class="tv-k"><b>'+logs.length+'</b><span>chorros</span></div><div class="tv-k"><b>'+fmt(Math.round(tot*100)/100)+'</b><span>ml en total</span></div>'+(live?'<div class="tv-k"><b>'+fmt(Math.round(hr*100)/100)+'</b><span>ml en la última hora</span></div>':'<div class="tv-k"><b>'+fmt(Math.round(tot/Math.max(1,ps.length)*100)/100)+'</b><span>ml por persona</span></div>')+(sp0.length?'<div><div class="tv-h">📍 Dónde están</div>'+sp0.slice(0,4).map(function(x){return '<div class="tv-loc"><b>'+esc(x.loc)+'</b><span class="tv-cnt">'+x.names.length+'</span></div>';}).join('')+'</div>':'')+'</div>';
     var rk=ps.map(function(p,i){var t=0,n=0,last=0;state.logs.forEach(function(l){if(l.pid===p.id){t+=l.amt;n++;if(l.ts>last)last=l.ts;}});return {p:p,i:i,t:t,n:n,last:last};}).filter(function(x){return x.n>0||!x.p.gone;}).sort(function(a,b){return (b.t-a.t)||(b.n-a.n)||(a.i-b.i);});
     var mx=rk.length?Math.max(rk[0].t,0.01):1,rows=Math.max(6,Math.min(14,Math.floor((window.innerHeight-200)/ (parseFloat(getComputedStyle(el).fontSize)*1.9))));
     var med=['🥇','🥈','🥉'];
-    var rank='<div class="tv-card"><div class="tv-h">🏆 Ranking · ml'+(live&&cfg.on?' · ⏳ cuenta atrás':'')+'</div>'+(rk.length?rk.slice(0,rows).map(function(x,k){var nw=x.last&&now-x.last<120000;return '<div class="tv-row'+(nw?' tv-new':'')+(x.p.gone&&live?' tv-gone':'')+'"><span class="tv-m">'+(med[k]||(k+1))+'</span><span class="tv-n">'+esc(x.p.name)+'</span><span class="tv-bar"><i style="width:'+Math.round(x.t/mx*100)+'%;background:'+colorOf(x.i)+'"></i></span><span class="tv-v">'+fmt(Math.round(x.t*100)/100)+'<small>ml</small></span>'+(live&&cfg.on&&!x.p.gone&&presentAt(x.p,se,now)?'<span class="tv-cd" data-due="'+(turnRef(x.p)+cfg.min*60000)+'"><b></b><s><i></i></s></span>':'<span></span>')+'</div>';}).join('')+(rk.length>rows?'<div class="tv-k"><span>+'+(rk.length-rows)+' más</span></div>':''):'<div class="tv-empty">Aún no hay chorros</div>')+'</div>';
+    var rank='<div class="tv-card"><div class="tv-h">🏆 Ranking · ml</div>'+(rk.length?rk.slice(0,rows).map(function(x,k){var nw=x.last&&now-x.last<120000;return '<div class="tv-row'+(nw?' tv-new':'')+(x.p.gone&&live?' tv-gone':'')+'"><span class="tv-m">'+(med[k]||(k+1))+'</span><span class="tv-n">'+esc(x.p.name)+'</span><span class="tv-bar"><i style="width:'+Math.round(x.t/mx*100)+'%;background:'+colorOf(x.i)+'"></i></span><span class="tv-v">'+fmt(Math.round(x.t*100)/100)+'<small>ml</small></span></div>';}).join('')+(rk.length>rows?'<div class="tv-k"><span>+'+(rk.length-rows)+' más</span></div>':''):'<div class="tv-empty">Aún no hay chorros</div>')+'</div>';
     var right='<div class="tv-card">';
     if(live&&cfg.on){var cap=capOf(viewSid),due=ps.map(function(p,i){return {p:p,i:i,d:turnRef(p)+cfg.min*60000};}).filter(function(x){return !x.p.gone&&presentAt(x.p,se,now)&&!(cap&&totOf(x.p.id)>=cap);}).sort(function(a,b){return a.d-b.d;});
-      right+='<div class="tv-h">⏰ Le toca</div>'+(due.length?due.slice(0,5).map(function(x){var r=x.d-now;return '<div class="tv-due"><i class="tv-dot" style="background:'+colorOf(x.i)+'"></i><b>'+esc(x.p.name)+'</b><span class="tv-w'+(r<=0?' tv-late':'')+'">'+(r<=0?'¡ya! +'+dur(-r):'en '+dur(r+59999))+'</span></div>';}).join(''):'<div class="tv-k"><span>Nadie pendiente</span></div>');}
+      var nd=Math.max(4,rows-2);right+='<div class="tv-h">⏳ Le toca · cuenta atrás</div>'+(due.length?due.slice(0,nd).map(function(x){return '<div class="tv-due"><i class="tv-dot" style="background:'+colorOf(x.i)+'"></i><b>'+esc(x.p.name)+'</b><span class="tv-cd" data-due="'+x.d+'"><s><i></i></s><b></b></span></div>';}).join('')+(due.length>nd?'<div class="tv-k"><span>+'+(due.length-nd)+' más</span></div>':''):'<div class="tv-k"><span>Nadie pendiente</span></div>');}
     var sp=live?nowSpots(se):[];
-    if(sp.length){right+='<div class="tv-h" style="margin-top:.8em">📍 Dónde están</div>'+sp.slice(0,5).map(function(x){return '<div class="tv-loc"><b>'+esc(x.loc)+'</b><span class="tv-cnt">'+x.names.length+'</span></div>';}).join('');}
     if(!live){var lastL=logs[0];right+='<div class="tv-h">🏁 Resumen</div><div class="tv-k"><span>De '+hhmm(se.start)+' a '+hhmm(end)+'</span></div>'+(lastL?'<div class="tv-k"><span>Último chorro: '+esc(name(lastL.pid))+' a las '+hhmm(lastL.ts)+'</span></div>':'');}
     right+='</div>';
     var tick='<div class="tv-tick">'+(logs.length?logs.slice(0,8).map(function(l){var lc=l.loc||'';return '<span>💧 <b>'+esc(name(l.pid))+'</b> '+fmt(l.amt)+(lc?' · '+esc(lc):'')+' <em>'+(live?'hace '+dur(now-l.ts):hhmm(l.ts))+'</em></span>';}).join(''):'<span>Esperando el primer chorro…</span>')+'</div>';
