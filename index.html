@@ -1814,7 +1814,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   /* avisos grandes */
   function bigNote(kind,html){
     var box=$('notes'),scr=document.body.classList.contains('screen');
-    var ms=(kind==='turno'||kind==='me'||kind==='end')?(scr?45000:30000):(scr?30000:20000),df={short:0.4,normal:1,long:2}[NP.dur]||1;ms=Math.round(ms*df);
+    var ms=10000,df={short:0.5,normal:1,long:3}[NP.dur]||1;ms=Math.round(ms*df);
     var n=document.createElement('div');n.className='bn bn-'+kind;n.setAttribute('role','alert');
     n.innerHTML=html+'<div class="bn-bar" style="animation-duration:'+ms+'ms"></div>';
     n.onclick=function(e){var b=e.target.closest&&e.target.closest('[data-sum]');if(b)showSummaryOf(b.dataset.sum);n.remove();};
@@ -1893,7 +1893,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
       m.innerHTML='<div class="sm-card npc"><div class="sm-head"><b>🔔 Avisos</b><button class="s" id="npX">Cerrar</button></div>'+
         '<div class="msg" style="margin:0 0 6px">'+(npOwn?'Usas tus propios ajustes en este dispositivo.':(npOrg?'Usas los ajustes del organizador.':'Usas los ajustes por defecto.'))+'</div>'+
         '<h4>Qué avisos ver</h4>'+NP_ROWS.map(function(r){return '<label class="npr"><input type="checkbox" data-np="'+r[0]+'"'+(NP[r[0]]?' checked':'')+'> '+r[1]+'</label>';}).join('')+
-        '<h4>Cómo</h4><label class="npr">Duración <select id="npDur"><option value="short"'+(NP.dur==='short'?' selected':'')+'>Corta (8 s)</option><option value="normal"'+(NP.dur==='normal'?' selected':'')+'>Normal (20 s)</option><option value="long"'+(NP.dur==='long'?' selected':'')+'>Larga (40 s)</option></select></label>'+
+        '<h4>Cómo</h4><label class="npr">Duración <select id="npDur"><option value="short"'+(NP.dur==='short'?' selected':'')+'>Corta (5 s)</option><option value="normal"'+(NP.dur==='normal'?' selected':'')+'>Normal (10 s)</option><option value="long"'+(NP.dur==='long'?' selected':'')+'>Larga (30 s)</option></select></label>'+
         '<label class="npr"><input type="checkbox" data-np="snd"'+(NP.snd?' checked':'')+'> 🔊 Sonido con cada aviso</label>'+
         '<label class="npr"><input type="checkbox" data-np="vib"'+(NP.vib?' checked':'')+'> 📳 Vibrar (Android)</label>'+
         '<label class="npr"><input type="checkbox" data-np="alarm"'+(NP.alarm?' checked':'')+'> 🚨 Alarma fuerte cuando a alguien le toque</label>'+
