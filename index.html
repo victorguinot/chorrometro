@@ -455,7 +455,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   function pastEdit(){return !!db&&isOwner&&!!viewSid&&!isActive(viewSid)&&!!sess(viewSid);}
   function isActive(sid){return !!sid&&(!db?sid==='local':actives.indexOf(sid)>=0);}
   function locTimeline(se){if(!se)return [];if(se.locs&&se.locs.length)return se.locs;var l=se.loc||(/^Chill de /.test(se.name||'')?se.name.slice(9):'');return l?[{loc:l,at:se.start}]:[];}
-  function curLoc(se){var t=locTimeline(se);return t.length?t[t.length-1].loc:'';}
+  function curLoc(se){if(se&&!se.end&&se.id===viewSid&&typeof nowSpots==='function'){try{var sp=nowSpots(se);if(sp.length){var mk=myAcct?canon(myAcct):'',top=sp[0].names.length,tie=sp.filter(function(x){return x.names.length===top;});if(tie.length>1&&mk){var mine=tie.filter(function(x){return x.names.some(function(n){return canon(n)===mk;});})[0];if(mine)return mine.loc;}return sp[0].loc;}}catch(e){}}var t=locTimeline(se);return t.length?t[t.length-1].loc:'';}
   function isHouse(loc){if(!loc)return false;var m=(typeof placesMeta!=='undefined'&&placesMeta[plKey(loc)])||null;if(m&&m.type)return m.type==='casa';var ks={};state.people.forEach(function(p){if(p.name)ks[canon(p.name)]=1;});Object.keys(acctMap).forEach(function(i){ks[canon(acctMap[i])]=1;});return Object.keys(ks).some(function(k){return isHostOf(loc,k);});}
   function enLoc(loc){return (isHouse(loc)?'donde ':'en ')+loc;}
   function isHostOf(loc,k){if(!loc)return false;if(canon(loc)===k)return true;return loc.split(/\s+y\s+|\s+i\s+|\s*[,&+\/]\s*/i).some(function(x){return x.trim()&&canon(x.trim())===k;});}
@@ -577,8 +577,8 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     m.querySelectorAll('[data-spot]').forEach(function(b){b.onclick=function(){done(spots[+b.dataset.spot].loc);};});});}
   function opAddPerson(n){
     var se=db&&viewSid&&isActive(viewSid)?sess(viewSid):null,spots=se?nowSpots(se):[];
-    if(spots.length>1)return askSpot(n,spots).then(function(loc){return opAddPerson0(n,nrm(loc)===nrm(curLoc(se))?null:loc);});
-    if(spots.length===1&&nrm(spots[0].loc)!==nrm(curLoc(se)))return opAddPerson0(n,spots[0].loc);
+    if(spots.length>1)return askSpot(n,spots).then(function(loc){return opAddPerson0(n,nrm(loc)===nrm(locAtTs(se,Date.now()))?null:loc);});
+    if(spots.length===1&&nrm(spots[0].loc)!==nrm(locAtTs(se,Date.now())))return opAddPerson0(n,spots[0].loc);
     return opAddPerson0(n,null);
   }
   function opAddPerson0(n,loc){
@@ -2477,7 +2477,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   }
   function tickScreen(){
     if(!document.body.classList.contains('screen'))return;
-    var a=sess(viewSid);$('scrHead').innerHTML='<b>'+esc(a?sTitle(a)+(locTimeline(a).length>1?' · ahora en '+curLoc(a):''):'Chorrómetro')+(document.body.classList.contains('scrStats')?' · 📊 Estadísticas':(document.body.classList.contains('scrNight')?' · 🌙 La noche':''))+'</b><span>'+hhmm(Date.now())+'</span>';
+    var a=sess(viewSid);$('scrHead').innerHTML='<b>'+esc(a?sTitle(a)+((locTimeline(a).length>1||nrm(curLoc(a))!==nrm(a.loc||''))?' · ahora en '+curLoc(a):''):'Chorrómetro')+(document.body.classList.contains('scrStats')?' · 📊 Estadísticas':(document.body.classList.contains('scrNight')?' · 🌙 La noche':''))+'</b><span>'+hhmm(Date.now())+'</span>';
   }
   $('scrBtn').onclick=function(){setTab('chill');setScreen(true);};
   $('scrExit').onclick=function(){setScreen(false);};
