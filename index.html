@@ -353,6 +353,44 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 .perm{width:100%}.perm td,.perm th{white-space:normal}.perm td.n,.perm th.n{width:64px;text-align:center}.perm input{width:auto;margin:0;transform:scale(1.2)}
 .evcTip{position:absolute;z-index:5;background:var(--surf);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.25);padding:8px 10px;font-size:12px;min-width:170px;max-width:240px;max-height:270px;overflow:auto;pointer-events:none}.evcTip .evh{margin:0 0 6px;color:var(--mut)}.evcTip .evr{display:flex;gap:6px;align-items:center;line-height:1.5}.evcTip .evr i{width:8px;height:8px;border-radius:50%;flex:none}.evcTip .evr span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.evcTip .evr em{font-style:normal;color:#16a34a;min-width:34px;text-align:right}.evcTip .evz{opacity:.6}
 .oddw{border:1px solid var(--warn,#b45309);background:rgba(245,158,11,.1);border-radius:10px;padding:8px 10px;margin:0 0 10px;font-size:14px}.oddr{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.oddr button.s{width:auto;margin:0;padding:3px 8px;font-size:13px}.oddr span{font-size:13px;color:var(--mut);flex:1;min-width:150px}
+
+#tv{position:fixed;inset:0;z-index:35;background:#0b1114;color:#eef3f5;display:grid;grid-template-rows:auto 1fr auto;font-size:clamp(14px,1.45vw,30px);overflow:hidden;font-family:inherit}
+#tv[hidden]{display:none}
+body.tvOn{overflow:hidden}
+body.tvOn .notes{width:min(1100px,calc(100% - 48px));top:24px}
+body.tvOn .bn{padding:28px 36px;font-size:1.5em;border-width:4px;border-radius:20px}
+.tv-top{display:flex;align-items:center;gap:1.2em;padding:.7em 1.2em;background:#121b20;border-bottom:1px solid #22313a;white-space:nowrap;overflow:hidden}
+.tv-top b{font-size:1.35em}
+.tv-top .tv-sp{flex:1}
+.tv-top .tv-clk{font-size:1.6em;font-weight:800;font-variant-numeric:tabular-nums}
+.tv-top .tv-x{background:none;border:0;color:#6b7f8a;font-size:1em;cursor:pointer;padding:0 .2em}
+.tv-main{display:grid;grid-template-columns:1fr 2.1fr 1.25fr;gap:1em;padding:1em 1.2em;min-height:0}
+.tv-card{background:#121b20;border:1px solid #22313a;border-radius:.8em;padding:.8em 1em;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.tv-h{font-size:.8em;letter-spacing:.08em;text-transform:uppercase;color:#8fa3ad;font-weight:700;margin:0 0 .5em}
+.tv-kpi{display:flex;flex-direction:column;justify-content:space-around;gap:.4em}
+.tv-k b{display:block;font-size:3.2em;line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.tv-k span{color:#8fa3ad;font-size:.85em}
+.tv-row{display:grid;grid-template-columns:2.2em minmax(5em,9em) 1fr 3.6em;align-items:center;gap:.5em;padding:.22em 0;transition:transform .6s}
+.tv-row .tv-m{font-size:1.2em;text-align:center}
+.tv-row .tv-n{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-bar{height:1em;border-radius:.5em;background:#1c2a31;overflow:hidden}
+.tv-bar i{display:block;height:100%;border-radius:.5em;transition:width .8s}
+.tv-row .tv-v{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.tv-row.tv-new{animation:tvFlash 2.4s ease-out 2}
+.tv-row.tv-gone{opacity:.45}
+@keyframes tvFlash{0%{background:rgba(255,200,60,.35)}100%{background:transparent}}
+.tv-due{display:flex;align-items:center;gap:.5em;padding:.25em 0;font-size:1.05em}
+.tv-due b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-due .tv-w{font-weight:800;font-variant-numeric:tabular-nums}
+.tv-late{color:#ff6b5b}
+.tv-dot{width:.7em;height:.7em;border-radius:50%;flex:none}
+.tv-loc{display:flex;align-items:center;gap:.5em;padding:.2em 0}
+.tv-loc b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-loc .tv-cnt{font-weight:800;font-size:1.2em}
+.tv-tick{display:flex;gap:1.6em;padding:.6em 1.2em;background:#121b20;border-top:1px solid #22313a;white-space:nowrap;overflow:hidden;font-size:.95em}
+.tv-tick span{color:#c9d6dc}.tv-tick em{color:#8fa3ad;font-style:normal}
+.tv-empty{display:flex;align-items:center;justify-content:center;font-size:1.6em;color:#8fa3ad;text-align:center;padding:2em}
+@media (max-aspect-ratio:1/1){#tv{font-size:clamp(13px,3.4vw,26px)}.tv-main{grid-template-columns:1fr;grid-auto-rows:min-content;overflow:auto}.tv-kpi{flex-direction:row;flex-wrap:wrap}.tv-k b{font-size:2.2em}.tv-top{flex-wrap:wrap;white-space:normal;row-gap:.3em;padding-right:2.4em}.tv-top .tv-sp{display:none}.tv-top .tv-x{position:absolute;top:.5em;right:.6em;font-size:1.3em}}
 </style>
 </head>
 <body>
@@ -401,7 +439,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     <section id="chillSec">
       <h2>Chorros de la liada</h2>
       <div id="sbar" class="sbar" hidden></div>
-      <div class="tools"><span class="sp"></span><button class="s" id="statsBtn" hidden>Estadísticas</button><button class="s" id="histBtn" hidden>Historial</button><button class="s" id="trashBtn" hidden>Eliminados</button><button class="s" id="actBtn" hidden>Actividad</button><button class="s" id="scrBtn">📺 Modo pantalla</button><button class="s" id="qrBtn">🔳 Mostrar QR</button><button class="s" id="copyCsv" hidden>📋 Copiar CSV</button><button class="s" id="shareBtn" hidden>🖼️ Resumen</button><button class="s" id="bkBtn" hidden>💾 Copia de seguridad</button><button class="s" id="asUserBtn" hidden>👁️ Ver como usuario</button></div>
+      <div class="tools"><span class="sp"></span><button class="s" id="statsBtn" hidden>Estadísticas</button><button class="s" id="histBtn" hidden>Historial</button><button class="s" id="trashBtn" hidden>Eliminados</button><button class="s" id="actBtn" hidden>Actividad</button><button class="s" id="scrBtn">📺 Modo pantalla</button><button class="s" id="tvBtn">🖥️ Pantalla TV</button><button class="s" id="qrBtn">🔳 Mostrar QR</button><button class="s" id="copyCsv" hidden>📋 Copiar CSV</button><button class="s" id="shareBtn" hidden>🖼️ Resumen</button><button class="s" id="bkBtn" hidden>💾 Copia de seguridad</button><button class="s" id="asUserBtn" hidden>👁️ Ver como usuario</button></div>
       <div id="csvBox"></div>
       <div id="qrBox" hidden></div>
       <div id="oddBox"></div>
@@ -422,6 +460,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
 <button id="scrExit" class="s">Salir de modo pantalla</button>
 <div id="undoBar" class="undo" role="status" hidden></div>
 <div id="asUserBar" class="asubar" hidden>👁 Estás viendo el Chorrómetro como un usuario normal <button id="asUserExit">Volver a mi vista</button></div>
+<div id="tv" hidden></div>
 <div id="notes" class="notes" aria-live="assertive"></div>
 <div id="nextBox" class="nbox" hidden></div>
 <div id="shareModal" class="smod" hidden></div>
@@ -1717,11 +1756,47 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
   }
   var rzT=null;window.addEventListener('resize',function(){clearTimeout(rzT);rzT=setTimeout(renderChart,150);});
   var rpT=null;
+
+  var tvOn=false,tvLock=null,tvLastSeen=0,tvT=null;
+  function tvOpen(){tvOn=true;document.body.classList.add('tvOn');$('tv').hidden=false;try{var de=document.documentElement;if(de.requestFullscreen&&!document.fullscreenElement)de.requestFullscreen().catch(function(){});}catch(e){}
+    try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(function(l){tvLock=l;}).catch(function(){});}catch(e){}
+    tvLastSeen=Date.now();renderTV();clearInterval(tvT);tvT=setInterval(renderTV,10000);}
+  function tvClose(){tvOn=false;document.body.classList.remove('tvOn');$('tv').hidden=true;clearInterval(tvT);try{if(tvLock)tvLock.release();}catch(e){}tvLock=null;
+    try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(function(){});}catch(e){}
+    try{var u=new URL(location.href);if(u.searchParams.has('tv')){u.searchParams.delete('tv');history.replaceState(null,'',u.toString());}}catch(e){}}
+  document.addEventListener('visibilitychange',function(){if(tvOn&&document.visibilityState==='visible'&&navigator.wakeLock)navigator.wakeLock.request('screen').then(function(l){tvLock=l;}).catch(function(){});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&tvOn)tvClose();});
+  function renderTV(){
+    if(!tvOn)return;var el=$('tv'),se=sess(viewSid),now=Date.now();
+    if(!se){el.innerHTML='<div class="tv-top"><b>🖥️ Chorrómetro</b><span class="tv-sp"></span><span class="tv-clk">'+hhmm(now)+'</span><button class="tv-x" id="tvX">✕</button></div><div class="tv-empty">No hay ninguna liada en curso.</div><div></div>';$('tvX').onclick=tvClose;return;}
+    var live=isActive(viewSid),ps=state.people,logs=state.logs.slice().sort(function(a,b){return b.ts-a.ts;});
+    var pres=ps.filter(function(p){return !p.gone&&presentAt(p,se,now);});
+    var tot=0;logs.forEach(function(l){tot+=l.amt;});var hr=0;logs.forEach(function(l){if(now-l.ts<=3600000&&l.ts<=now)hr+=l.amt;});
+    var end=se.end||now,loc=curLoc(se);
+    var top='<div class="tv-top"><b>'+esc(sTitle(se))+'</b>'+(loc?'<span>📍 '+esc(loc)+'</span>':'')+'<span>⏱ '+dur(end-se.start)+'</span><span>👥 '+(live?pres.length:ps.length)+'</span>'+(live?'':'<span>🏁 terminada</span>')+'<span class="tv-sp"></span><span class="tv-clk">'+hhmm(now)+'</span><button class="tv-x" id="tvX" title="Salir">✕</button></div>';
+    var kpi='<div class="tv-card tv-kpi"><div class="tv-k"><b>'+logs.length+'</b><span>chorros</span></div><div class="tv-k"><b>'+fmt(Math.round(tot*100)/100)+'</b><span>ml en total</span></div>'+(live?'<div class="tv-k"><b>'+fmt(Math.round(hr*100)/100)+'</b><span>ml en la última hora</span></div>':'<div class="tv-k"><b>'+fmt(Math.round(tot/Math.max(1,ps.length)*100)/100)+'</b><span>ml por persona</span></div>')+'</div>';
+    var rk=ps.map(function(p,i){var t=0,n=0,last=0;state.logs.forEach(function(l){if(l.pid===p.id){t+=l.amt;n++;if(l.ts>last)last=l.ts;}});return {p:p,i:i,t:t,n:n,last:last};}).filter(function(x){return x.n>0||!x.p.gone;}).sort(function(a,b){return (b.t-a.t)||(b.n-a.n)||(a.i-b.i);});
+    var mx=rk.length?Math.max(rk[0].t,0.01):1,rows=Math.max(6,Math.min(14,Math.floor((window.innerHeight-200)/ (parseFloat(getComputedStyle(el).fontSize)*1.9))));
+    var med=['🥇','🥈','🥉'];
+    var rank='<div class="tv-card"><div class="tv-h">🏆 Ranking</div>'+(rk.length?rk.slice(0,rows).map(function(x,k){var nw=x.last&&now-x.last<120000;return '<div class="tv-row'+(nw?' tv-new':'')+(x.p.gone&&live?' tv-gone':'')+'"><span class="tv-m">'+(med[k]||(k+1))+'</span><span class="tv-n">'+esc(x.p.name)+'</span><span class="tv-bar"><i style="width:'+Math.round(x.t/mx*100)+'%;background:'+colorOf(x.i)+'"></i></span><span class="tv-v">'+fmt(Math.round(x.t*100)/100)+'</span></div>';}).join('')+(rk.length>rows?'<div class="tv-k"><span>+'+(rk.length-rows)+' más</span></div>':''):'<div class="tv-empty">Aún no hay chorros</div>')+'</div>';
+    var right='<div class="tv-card">';
+    if(live&&cfg.on){var cap=capOf(viewSid),due=ps.map(function(p,i){return {p:p,i:i,d:turnRef(p)+cfg.min*60000};}).filter(function(x){return !x.p.gone&&presentAt(x.p,se,now)&&!(cap&&totOf(x.p.id)>=cap);}).sort(function(a,b){return a.d-b.d;});
+      right+='<div class="tv-h">⏰ Le toca</div>'+(due.length?due.slice(0,5).map(function(x){var r=x.d-now;return '<div class="tv-due"><i class="tv-dot" style="background:'+colorOf(x.i)+'"></i><b>'+esc(x.p.name)+'</b><span class="tv-w'+(r<=0?' tv-late':'')+'">'+(r<=0?'¡ya! +'+dur(-r):'en '+dur(r+59999))+'</span></div>';}).join(''):'<div class="tv-k"><span>Nadie pendiente</span></div>');}
+    var sp=live?nowSpots(se):[];
+    if(sp.length){right+='<div class="tv-h" style="margin-top:.8em">📍 Dónde están</div>'+sp.slice(0,5).map(function(x){return '<div class="tv-loc"><b>'+esc(x.loc)+'</b><span class="tv-cnt">'+x.names.length+'</span></div>';}).join('');}
+    if(!live){var lastL=logs[0];right+='<div class="tv-h">🏁 Resumen</div><div class="tv-k"><span>De '+hhmm(se.start)+' a '+hhmm(end)+'</span></div>'+(lastL?'<div class="tv-k"><span>Último chorro: '+esc(name(lastL.pid))+' a las '+hhmm(lastL.ts)+'</span></div>':'');}
+    right+='</div>';
+    var tick='<div class="tv-tick">'+(logs.length?logs.slice(0,8).map(function(l){var lc=l.loc||'';return '<span>💧 <b>'+esc(name(l.pid))+'</b> '+fmt(l.amt)+(lc?' · '+esc(lc):'')+' <em>'+(live?'hace '+dur(now-l.ts):hhmm(l.ts))+'</em></span>';}).join(''):'<span>Esperando el primer chorro…</span>')+'</div>';
+    el.innerHTML=top+'<div class="tv-main">'+kpi+rank+right+'</div>'+tick;
+    $('tvX').onclick=tvClose;
+  }
+  $('tvBtn').onclick=function(){tvOpen();};
+  try{if(new URLSearchParams(location.search).has('tv'))setTimeout(tvOpen,300);}catch(e){}
   function onData(){clearTimeout(rpT);rpT=setTimeout(function(){var se=sess(viewSid);if(db&&canWrite&&se&&state.people.length&&state.people.some(function(p){return (p.moves||[]).length;})||(se&&se.rpath))saveRpath(se);},1500);
     var sig=state.people.map(function(p){return p.id+p.name+(p.gone||'');}).join('|')+'|'+viewSid+'|'+actives.join(',')+'|'+(function(){var m=myPerson();return m?m.id:'';})();
     if(sig!==peopleSig){peopleSig=sig;renderForm();renderPeople();}
     freezeSlots();
-    renderMatrix();renderOdd();renderSummary();renderChRecs();renderAlerts();renderChart();renderGantt();renderRoutes();tickScreen();
+    renderMatrix();renderOdd();renderSummary();renderChRecs();renderAlerts();renderChart();renderGantt();renderRoutes();tickScreen();if(tvOn)renderTV();
     if(editing&&!getLog(editing)){editing=null;delLog=false;renderEditor();}
   }
   function renderAll(){peopleSig='';onData();renderEditor();renderSessionBar();}
