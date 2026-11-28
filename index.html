@@ -697,12 +697,23 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     return Promise.all(ls.map(function(l){return db.doc('logs/'+l.id).update({pid:toId});})).then(function(){return Object.keys(upd).length?db.doc('people/'+toId).update(upd):null;}).then(function(){return db.doc('people/'+fromId).delete();});
   }
   function canRen(x){if(!db||isOwner)return true;var mp=myPerson();return !!(mp&&mp.id===x.id);}
-  function renameGlobal(old,nn){
+  function mergeDoc(a,b){
+    var upd={};if((a.x.at||Infinity)<(b.x.at||Infinity))upd.at=a.x.at;
+    if(b.x.gone&&!a.x.gone)upd.gone=null;else if(a.x.gone&&b.x.gone&&a.x.gone>b.x.gone)upd.gone=a.x.gone;
+    var aw=(b.x.away||[]).concat(a.x.away||[]);if((a.x.away||[]).length)upd.away=aw;
+    if((a.x.moves||[]).length&&!(b.x.moves||[]).length)upd.moves=a.x.moves;
+    return db.collection('logs').where('pid','==',a.id).get().then(function(ls){return Promise.all(ls.docs.map(function(l){return db.doc('logs/'+l.id).update({pid:b.id});})).then(function(){return ls.size;});})
+      .then(function(n){return (Object.keys(upd).length?db.doc('people/'+b.id).update(upd):Promise.resolve()).then(function(){return db.doc('people/'+a.id).delete();}).then(function(){logAct({act:'merge',from:a.x.name,pname:b.x.name,n:n,sid:a.x.sid});});});
+  }
+  function renameGlobal(old,nn,merge){
     var ko=canon(old),kn=canon(nn);
-    return db.collection('people').limit(1000).get().then(function(sn){
-      var docs=sn.docs.map(function(d){return {id:d.id,x:d.data()};}),mine=docs.filter(function(d){return d.x.name&&canon(d.x.name)===ko;});
-      if(kn!==ko){var clash=mine.filter(function(d){return docs.some(function(o){return o.id!==d.id&&o.x.sid===d.x.sid&&o.x.name&&canon(o.x.name)===kn;});});
-        if(clash.length){var e=new Error('clash');e.userMsg=nn+' ya aparece en alguna de las mismas liadas. Únelos primero desde esa liada (✎ en la lista de personas).';throw e;}}
+    return db.collection('people').limit(2000).get().then(function(sn){
+      var docs=sn.docs.map(function(d){return {id:d.id,x:d.data()};}),mine=docs.filter(function(d){return d.x.name&&canon(d.x.name)===ko;}),pairs=[];
+      if(kn!==ko){mine.forEach(function(d){var o=docs.filter(function(o){return o.id!==d.id&&o.x.sid===d.x.sid&&o.x.name&&canon(o.x.name)===kn;})[0];if(o)pairs.push([d,o]);});
+        if(pairs.length&&!merge){var e=new Error('clash');e.clash=pairs.length;e.userMsg=old+' y '+nn+' coinciden en '+pairs.length+' liada'+(pairs.length===1?'':'s')+'. Si son la misma persona, pulsa «Fusionar» y se juntan sus chorros.';throw e;}}
+      var pm={};pairs.forEach(function(x){pm[x[0].id]=1;});
+      return pairs.reduce(function(pr,x){return pr.then(function(){return mergeDoc(x[0],x[1]);});},Promise.resolve()).then(function(){return mine.filter(function(d){return !pm[d.id];});});
+    }).then(function(mine){
       var ps=mine.map(function(d){return db.doc('people/'+d.id).update({name:nn});});
       var oc=colMap[nrm(old)];if(typeof oc==='number'&&typeof colMap[nrm(nn)]!=='number'){var u={};for(var ck in colMap)u[ck]=colMap[ck];u[nrm(nn)]=oc;colMap[nrm(nn)]=oc;ps.push(db.doc('colors/map').set(u).catch(function(){}));}
       Object.keys(acctMap).forEach(function(id){if(canon(acctMap[id])===ko)ps.push(db.doc('accounts/'+id).update({name:nn}).catch(function(){}));});
@@ -2516,7 +2527,7 @@ body.screen .tabs{display:none!important}body.screen:not(.scrStats) #tabPane{dis
     $('pnQ').oninput=function(){pnQ=this.value;var c=this.selectionStart;renderPnBox();var i=$('pnQ');i.focus();try{i.setSelectionRange(c,c);}catch(e){}};
     box.querySelectorAll('[data-pned]').forEach(function(b){b.onclick=function(){var k=canon(b.dataset.pned);pnEd=pnEd===k?null:k;renderPnBox();if(pnEd&&$('pnNew')){$('pnNew').focus();$('pnNew').select();}};});
     if($('pnNo'))$('pnNo').onclick=function(){pnEd=null;renderPnBox();};
-    if($('pnOk')){var go=function(){var old=null;PNL.forEach(function(x){if(canon(x.name)===pnEd)old=x.name;});var nn=$('pnNew').value.trim().replace(/\s+/g,' ');if(!old)return;if(!nn){$('pnMsg2').textContent='Escribe el nombre.';return;}if(nn===old){pnEd=null;renderPnBox();return;}$('pnOk').disabled=true;$('pnMsg2').textContent='Guardando…';renameGlobal(old,nn).then(function(){pnEd=null;say('Nombre cambiado: '+old+' → '+nn+' en todas las liadas.');renderPnBox(true);},function(e){$('pnOk').disabled=false;$('pnMsg2').textContent=(e&&e.userMsg)||('No se pudo: '+(e&&e.message||e));});};$('pnOk').onclick=go;$('pnNew').onkeydown=function(e){if(e.key==='Enter')go();if(e.key==='Escape'){pnEd=null;renderPnBox();}};}
+    if($('pnOk')){var go=function(){var old=null;PNL.forEach(function(x){if(canon(x.name)===pnEd)old=x.name;});var nn=$('pnNew').value.trim().replace(/\s+/g,' ');if(!old)return;if(!nn){$('pnMsg2').textContent='Escribe el nombre.';return;}if(nn===old){pnEd=null;renderPnBox();return;}var run=function(mg){$('pnOk').disabled=true;$('pnMsg2').textContent=mg?'Fusionando…':'Guardando…';renameGlobal(old,nn,mg).then(function(){pnEd=null;say((mg?'Fusionados: '+old+' → '+nn:'Nombre cambiado: '+old+' → '+nn)+' en todas las liadas.');renderPnBox(true);},function(e){$('pnOk').disabled=false;$('pnMsg2').innerHTML=esc((e&&e.userMsg)||('No se pudo: '+(e&&e.message||e)))+(e&&e.clash?' <button class="go" id="pnMg" type="button">🔗 Fusionar</button>':'');if($('pnMg'))$('pnMg').onclick=function(){run(true);};});};run(false);};$('pnOk').onclick=go;$('pnNew').onkeydown=function(e){if(e.key==='Enter')go();if(e.key==='Escape'){pnEd=null;renderPnBox();}};}
   }
   /* notificaciones push */
   var pushPrefs=null;
