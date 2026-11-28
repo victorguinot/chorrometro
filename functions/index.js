@@ -34,7 +34,7 @@ async function send(uid, tokens, msg) {
 exports.avisos = onSchedule({ schedule: 'every 1 minutes', region: REGION, timeZone: 'Europe/Madrid', retryCount: 0 }, async () => {
   const pushSnap = await db.collection('push').get();
   const subs = pushSnap.docs.map((d) => ({ uid: d.id, ...d.data() })).filter((x) => (x.tokens || []).length && (x.toca !== false || x.mucho !== false));
-  if (!subs.length) return;
+  // (sigue aunque nadie tenga avisos: hace falta para la salida automática)
   const sesSnap = await db.collection('sessions').orderBy('start', 'desc').limit(10).get();
   const active = sesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((s) => !s.end && !s.deleted);
   if (!active.length) return;
@@ -45,13 +45,24 @@ exports.avisos = onSchedule({ schedule: 'every 1 minutes', region: REGION, timeZ
   const now = Date.now();
   for (const S of active) {
     const want = subs.filter((x) => acc[x.uid]);
-    if (!want.length) continue;
     const [pSnap, lSnap] = await Promise.all([
       db.collection('people').where('sid', '==', S.id).get(),
       db.collection('logs').where('sid', '==', S.id).get()
     ]);
     const last = {}; lSnap.docs.forEach((d) => { const l = d.data(); if (l.ts && l.ts <= now && (!last[l.pid] || l.ts > last[l.pid])) last[l.pid] = l.ts; });
     const people = pSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    // Salida automática: 6 h sin apuntar nada → se fue media hora después de su último chorro
+    for (const p of people) {
+      if (p.gone || (p.away || []).some((a) => a.f <= now && !a.t)) continue;
+      const back = Math.max(0, ...(p.away || []).map((a) => a.t || 0));
+      const ref = Math.max(last[p.id] || Math.max(p.at || 0, S.start || 0), back);
+      if (now - ref < 6 * 3600000) continue;
+      const g = Math.min(ref + 30 * 60000, now);
+      await db.doc('people/' + p.id).update({ gone: g });
+      p.gone = g;
+      await db.collection('activity').add({ act: 'gone', pname: p.name, sid: S.id, auto: true, at: now, by: null });
+    }
+    if (!want.length) continue;
     const locs = (S.locs || []).slice().sort((a, b) => a.at - b.at);
     const groupLoc = (t) => { let l = S.loc || ''; locs.forEach((x) => { if (x.at <= t + 60000) l = x.loc; }); return l; };
     for (const x of want) {
